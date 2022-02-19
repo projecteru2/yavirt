@@ -77,8 +77,6 @@ func Run(c *cli.Context) error {
 	}
 	defer guest.GetCurrentEpoller().Close() // nolint
 
-	svc.BootGuestCh = mon.BootGuestCh
-
 	grpcSrv, err := grpcserver.Listen(svc)
 	if err != nil {
 		return errors.Trace(err)

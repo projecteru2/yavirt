@@ -448,10 +448,7 @@ func (svc *Service) Wait(ctx virt.Context, id string, block bool) (msg string, c
 }
 
 func (svc *Service) PushImage(ctx virt.Context, imgName, user string) (err error) {
-	if err = svc.guest.PushImage(ctx, imgName, user); err != nil {
-		log.ErrorStack(err)
-		metric.IncrError()
-	}
+	// todo
 	return
 }
 
@@ -485,10 +482,7 @@ func (svc *Service) ListImage(ctx virt.Context, filter string) ([]types.SysImage
 }
 
 func (svc *Service) PullImage(ctx virt.Context, imgName string, all bool) (msg string, err error) {
-	if msg, err = svc.guest.PullImage(ctx, imgName, all); err != nil {
-		log.ErrorStack(err)
-		metric.IncrError()
-	}
+	// todo
 	return
 }
 

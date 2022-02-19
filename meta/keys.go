@@ -106,3 +106,28 @@ func SubnetKey(subnet int64) string {
 	var v = strconv.FormatInt(subnet, 10) //nolint
 	return filepath.Join(config.Conf.EtcdPrefix, ipPrefix, v)
 }
+
+// IPBlockKey /<prefix>/ippool/<ipp name>/blocks/<subnet>
+func IPBlockKey(ipp, subnet string) string {
+	return filepath.Join(IPBlocksPrefix(ipp), subnet)
+}
+
+// IPBlocksPrefix /<prefix>/ippool/<ipp name>/blocks/
+func IPBlocksPrefix(ipp string) string {
+	return filepath.Join(IPPoolKey(ipp), ipblockPrefix)
+}
+
+// IPPoolLockKey /<prefix>/ippools/<name>/lock
+func IPPoolLockKey(name string) string {
+	return filepath.Join(IPPoolKey(name), "lock")
+}
+
+// IPPoolKey /<prefix>/ippools/<name>
+func IPPoolKey(name string) string {
+	return filepath.Join(IPPoolsPrefix(), name)
+}
+
+// IPPoolsPrefix /<prefix>/ippools/
+func IPPoolsPrefix() string {
+	return filepath.Join(config.Conf.EtcdPrefix, ippPrefix)
+}

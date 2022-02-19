@@ -19,7 +19,6 @@ import (
 	"github.com/projecteru2/yavirt/virt/nic"
 	"github.com/projecteru2/yavirt/virt/types"
 	"github.com/projecteru2/yavirt/virt/volume"
-	"github.com/projecteru2/yavirt/vnet"
 )
 
 // Bot .

@@ -18,7 +18,6 @@ import (
 	"github.com/projecteru2/yavirt/log"
 	"github.com/projecteru2/yavirt/meta"
 	"github.com/projecteru2/yavirt/model"
-	"github.com/projecteru2/yavirt/netx"
 	"github.com/projecteru2/yavirt/sh"
 	"github.com/projecteru2/yavirt/util"
 	"github.com/projecteru2/yavirt/vnet"
@@ -249,24 +248,7 @@ func (g *Guest) DeleteNetwork() error {
 }
 
 func (g *Guest) deleteExtraNetworks() (err error) {
-	var args map[string]*deleteExtraNetworkArgs
-	if args, err = g.getDeleteExtraNetworksArgs(); err != nil {
-		return
-	}
-
-	for _, a := range args {
-		if err = a.hand.DeleteEndpointNetwork(a.args); err != nil {
-			return
-		}
-	}
-
-	for _, netw := range g.ExtraNetworks {
-		a := args[netw.Name]
-		if err = a.hand.ReleaseIPs(a.args.IPs...); err != nil {
-			return errors.Trace(err)
-		}
-	}
-
+	// todo
 	return
 }
 

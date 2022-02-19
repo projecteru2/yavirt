@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/projecteru2/yavirt/config"
 	"github.com/projecteru2/yavirt/errors"
 	"github.com/projecteru2/yavirt/libvirt"
 	"github.com/projecteru2/yavirt/log"
@@ -587,6 +586,7 @@ func (g *Guest) botOperate(fn func(bot Bot) error, skipLock ...bool) error {
 // CacheImage downloads the image from hub.
 func (g *Guest) CacheImage(lock sync.Locker) error {
 	// not implemented
+	return nil
 }
 
 func (g *Guest) sysVolume() (vol volume.Virt, err error) {
