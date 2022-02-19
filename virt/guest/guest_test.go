@@ -79,7 +79,6 @@ func TestLifecycle(t *testing.T) {
 	bot.On("Boot").Return(nil).Once()
 	bot.On("Close").Return(nil).Once()
 	bot.On("GetState").Return(libvirt.DomainShutoff, nil).Once()
-	bot.On("BindExtraNetwork").Return(nil)
 	assert.NilErr(t, guest.Start())
 	assert.Equal(t, model.StatusRunning, guest.Status)
 	guest.rangeVolumes(checkVolsStatus(t, model.StatusRunning))
@@ -212,7 +211,6 @@ func TestSyncState(t *testing.T) {
 	bot.On("Boot").Return(nil).Once()
 	bot.On("Close").Return(nil).Once()
 	bot.On("GetState").Return(libvirt.DomainShutoff, nil).Once()
-	bot.On("BindExtraNetwork").Return(nil).Once()
 	assert.NilErr(t, guest.SyncState())
 }
 

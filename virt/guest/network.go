@@ -14,7 +14,6 @@ import (
 
 	"github.com/projecteru2/yavirt/config"
 	"github.com/projecteru2/yavirt/errors"
-	"github.com/projecteru2/yavirt/libvirt"
 	"github.com/projecteru2/yavirt/log"
 	"github.com/projecteru2/yavirt/meta"
 	"github.com/projecteru2/yavirt/model"
@@ -41,67 +40,6 @@ func (g *Guest) DisconnectExtraNetwork(network string) error {
 
 // ConnectExtraNetwork .
 func (g *Guest) ConnectExtraNetwork(network, ipv4 string) (ip meta.IP, err error) {
-	// todo
-	return
-}
-
-func (g *Guest) bindExtraNetwork(ip meta.IP) error {
-	g.ExtraNetworks.Append(ip)
-	if err := g.Save(); err != nil {
-		return errors.Trace(err)
-	}
-
-	return g.botOperate(func(bot Bot) error {
-		switch st, err := bot.GetState(); {
-		case err != nil:
-			return errors.Trace(err)
-		case st != libvirt.DomainRunning:
-			return nil
-		}
-
-		return bot.BindExtraNetwork()
-	})
-}
-
-func (g *Guest) parseExtraNetworkIP(hand handler.Handler, ipv4 string) (ip meta.IP, rollback func() error, err error) {
-	if len(ipv4) < 1 {
-		return g.createExtraNetwork(hand)
-	}
-
-	return g.queryExtraNetworkIP(hand, ipv4)
-}
-
-func (g *Guest) queryExtraNetworkIP(hand handler.Handler, ipv4 string) (meta.IP, func() error, error) {
-	// todo
-	return nil, nil, nil
-}
-
-func (g *Guest) unjoinExtraNetwork(hand handler.Handler, ip meta.IP) error {
-	args, err := g.getExtraEndpointArgs(ip, true)
-	if err != nil {
-		return errors.Trace(err)
-	}
-
-	return hand.DeleteEndpointNetwork(args)
-}
-
-func (g *Guest) joinExtraNetworks() (err error) {
-	// todo
-	return
-}
-
-func (g *Guest) joinExtraNetwork(hand handler.Handler, ip meta.IP) error {
-	args, err := g.getExtraEndpointArgs(ip, true)
-	if err != nil {
-		return errors.Trace(err)
-	}
-
-	_, err = hand.JoinEndpointNetwork(args)
-
-	return err
-}
-
-func (g *Guest) createExtraNetwork(hand handler.Handler) (ip meta.IP, rollback func() error, err error) {
 	// todo
 	return
 }
@@ -240,48 +178,7 @@ func (g *Guest) assignIP() (meta.IP, error) {
 
 // DeleteNetwork .
 func (g *Guest) DeleteNetwork() error {
-	if err := g.deleteExtraNetworks(); err != nil {
-		return errors.Trace(err)
-	}
-
 	return g.deleteEthernet()
-}
-
-func (g *Guest) deleteExtraNetworks() (err error) {
-	// todo
-	return
-}
-
-type deleteExtraNetworkArgs struct {
-	args types.EndpointArgs
-}
-
-func (g *Guest) getDeleteExtraNetworksArgs() (args map[string]*deleteExtraNetworkArgs, err error) {
-	// todo
-	return
-}
-
-func (g *Guest) getExtraEndpointArgs(ip meta.IP, includeDevice bool) (types.EndpointArgs, error) {
-	args := types.EndpointArgs{
-		EndpointID: g.ID,
-		IPs:        []meta.IP{ip},
-		MAC:        g.MAC,
-	}
-
-	cali, err := g.calicoHandler()
-	if err != nil {
-		return args, errors.Annotatef(errors.ErrInvalidValue, "only calico ethernet supports extra network")
-	}
-
-	if includeDevice {
-		if args.Device, err = cali.GetEndpointDevice(g.NetworkPair); err != nil {
-			return args, errors.Trace(err)
-		}
-	}
-
-	args.Hostname, err = util.Hostname()
-
-	return args, err
 }
 
 func (g *Guest) deleteEthernet() error {

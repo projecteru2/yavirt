@@ -1,0 +1,53 @@
+run:
+  timeout: 5m
+  tests: false
+  skip-dirs:
+    - vendor
+    - guestfs
+    - bin
+  modules-download-mode: readonly
+
+linters-settings:
+  maligned:
+    suggest-new: true
+  gocritic:
+    disabled-checks:
+      - captLocal
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - revive
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - rowserrcheck
+    - exportloopref
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - gocognit
+    - errcheck
+    - dupl
+    - asciicheck
+    - nolintlint
+    - nestif

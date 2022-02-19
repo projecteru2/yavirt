@@ -98,8 +98,6 @@ func (g *Guest) start() error {
 		return util.Invoke([]func() error{
 			bot.Boot,
 			g.joinEthernet,
-			g.joinExtraNetworks,
-			bot.BindExtraNetwork,
 			g.ForwardRunning,
 		})
 	})

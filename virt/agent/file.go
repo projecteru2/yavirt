@@ -180,7 +180,7 @@ func (w *file) Tail(n int) ([]byte, error) {
 	var buff bytes.Buffer
 	lineEnd := size
 	cursor := make([]byte, 1)
-	for i := size - 2; i >= 0; i-- { //nolint // start from the last second element
+	for i := size - 2; i >= 0; i-- { // nolint // start from the last second element
 		if _, err = w.ReadAt(cursor, i); err != nil {
 			return nil, err
 		}
