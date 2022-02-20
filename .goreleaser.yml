@@ -1,0 +1,54 @@
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - main: ./yavirtd.go
+    id: "yavirtd"
+    binary: yavirtd
+    env:
+      - CGO_ENABLED=1
+    ldflags:
+      - -s -w
+      - -X "github.com/projecteru2/yavirt/ver.Git={{.Commit}}"
+      - -X "github.com/projecteru2/yavirt/ver.Compile={{.Env.GOVERSION}}"
+      - -X "github.com/projecteru2/yavirt/ver.Date={{.Date}}"
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+  - main: ./ctl/ctl.go
+    id: "yavirtctl"
+    binary: yavirtctl
+    env:
+      - CGO_ENABLED=1
+    ldflags:
+      - -s -w
+      - -X "github.com/projecteru2/yavirt/ver.Git={{.Commit}}"
+      - -X "github.com/projecteru2/yavirt/ver.Compile={{.Env.GOVERSION}}"
+      - -X "github.com/projecteru2/yavirt/ver.Date={{.Date}}"
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+archives:
+  - name_template: "{{.ProjectName}}-{{.Tag}}-{{.Env.DISTRO}}"
+
+checksum:
+  name_template: "{{.ProjectName}}-{{.Tag}}-{{.Env.DISTRO}}.checksums"
+ 
+release:
+  name_template: "{{.Tag}}"
+ 
+snapshot:
+  name_template: "{{.Tag}}-{{.Env.DISTRO}}"
+ 
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+    - '^(?i)merge branch'

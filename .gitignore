@@ -1,3 +1,4 @@
 bin/
 cscope.*
 vendor/
+dist/
