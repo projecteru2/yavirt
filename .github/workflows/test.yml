@@ -11,7 +11,7 @@ on:
 jobs:
   unittests:
     runs-on: ubuntu-latest
-    container: projecteru2/yavirt:prebuild
+    container: projecteru2/footstone:yavirt-prebuild
 
     steps:
       - uses: actions/checkout@v2

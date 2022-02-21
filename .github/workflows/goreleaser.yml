@@ -2,8 +2,8 @@ name: goreleaser
 
 on:
   push:
-#    tags:
-#      - v*
+    tags:
+      - v*
 
 env:
   GOVERSION: 1.17

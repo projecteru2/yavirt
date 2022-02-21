@@ -1,4 +1,4 @@
-FROM projecteru2/yavirt:prebuild AS BUILD
+FROM projecteru2/footstone:yavirt-prebuild AS BUILD
 
 # make binary
 RUN git clone https://github.com/projecteru2/yavirt.git /go/src/github.com/projecteru2/yavirt
