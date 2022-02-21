@@ -1,0 +1,38 @@
+name: goreleaser
+
+on:
+  push:
+#    tags:
+#      - v*
+
+env:
+  GOVERSION: 1.17
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    container: projecteru2/footstone:yavirt-prebuild
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up environment variables
+        run: |
+          echo "VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GOVERSION }}
+
+      - name: Release
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISTRO: ubuntu
