@@ -4,9 +4,9 @@ import (
 	"context"
 	"io"
 
+	"github.com/projecteru2/yavirt/internal/virt/guestfs"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	"github.com/projecteru2/yavirt/internal/virt/guestfs"
 )
 
 func (g *Guest) logRunning(ctx context.Context, bot Bot, n int, logPath string, dest io.WriteCloser) error {

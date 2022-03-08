@@ -13,18 +13,18 @@ import (
 	"github.com/containernetworking/cni/pkg/types/current"
 
 	"github.com/projecteru2/yavirt/configs"
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/internal/meta"
 	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/pkg/sh"
-	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/projecteru2/yavirt/internal/vnet"
 	calinet "github.com/projecteru2/yavirt/internal/vnet/calico"
 	"github.com/projecteru2/yavirt/internal/vnet/handler"
 	calihandler "github.com/projecteru2/yavirt/internal/vnet/handler/calico"
 	vlanhandler "github.com/projecteru2/yavirt/internal/vnet/handler/vlan"
 	"github.com/projecteru2/yavirt/internal/vnet/types"
+	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/log"
+	"github.com/projecteru2/yavirt/pkg/sh"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 const (

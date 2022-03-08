@@ -3,11 +3,11 @@ package calico
 import (
 	"context"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/internal/meta"
 	calinet "github.com/projecteru2/yavirt/internal/vnet/calico"
 	"github.com/projecteru2/yavirt/internal/vnet/ipam"
+	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/log"
 )
 
 // NewIP .

@@ -9,12 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/projecteru2/yavirt/configs"
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/idgen"
 	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/pkg/netx"
-	"github.com/projecteru2/yavirt/pkg/store"
-	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/projecteru2/yavirt/internal/virt"
 	"github.com/projecteru2/yavirt/internal/virt/guest/manager"
 	"github.com/projecteru2/yavirt/internal/vnet"
@@ -22,6 +17,11 @@ import (
 	calinet "github.com/projecteru2/yavirt/internal/vnet/calico"
 	"github.com/projecteru2/yavirt/internal/vnet/device"
 	calihandler "github.com/projecteru2/yavirt/internal/vnet/handler/calico"
+	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/idgen"
+	"github.com/projecteru2/yavirt/pkg/netx"
+	"github.com/projecteru2/yavirt/pkg/store"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 var runtime Runtime

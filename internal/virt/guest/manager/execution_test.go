@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/internal/virt"
+	"github.com/projecteru2/yavirt/pkg/test/assert"
 )
 
 func TestPush(t *testing.T) {

@@ -5,11 +5,11 @@ import (
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/models"
+	"github.com/projecteru2/yavirt/internal/virt/volume/mocks"
 	storemocks "github.com/projecteru2/yavirt/pkg/store/mocks"
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/pkg/test/mock"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	"github.com/projecteru2/yavirt/internal/virt/volume/mocks"
 )
 
 func TestAmplifyFailed_DeltaLessThanMinSize(t *testing.T) {

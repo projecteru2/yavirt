@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/projecteru2/yavirt/internal/models"
+	snapmock "github.com/projecteru2/yavirt/internal/virt/snapshot/mocks"
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/pkg/test/mock"
-	snapmock "github.com/projecteru2/yavirt/internal/virt/snapshot/mocks"
 )
 
 func TestCreate(t *testing.T) {

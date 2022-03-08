@@ -4,12 +4,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/internal/meta"
-	"github.com/projecteru2/yavirt/pkg/test/assert"
-	"github.com/projecteru2/yavirt/pkg/test/mock"
 	"github.com/projecteru2/yavirt/internal/virt/agent/mocks"
 	"github.com/projecteru2/yavirt/internal/virt/volume"
+	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/test/assert"
+	"github.com/projecteru2/yavirt/pkg/test/mock"
 )
 
 func TestCopyFileRunning(t *testing.T) {

@@ -6,17 +6,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/projecteru2/yavirt/internal/models"
+	"github.com/projecteru2/yavirt/internal/virt/guest/mocks"
+	"github.com/projecteru2/yavirt/internal/virt/volume"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/idgen"
 	"github.com/projecteru2/yavirt/pkg/libvirt"
-	"github.com/projecteru2/yavirt/internal/models"
 	storemocks "github.com/projecteru2/yavirt/pkg/store/mocks"
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/pkg/test/mock"
 	"github.com/projecteru2/yavirt/pkg/utils"
 	utilmocks "github.com/projecteru2/yavirt/pkg/utils/mocks"
-	"github.com/projecteru2/yavirt/internal/virt/guest/mocks"
-	"github.com/projecteru2/yavirt/internal/virt/volume"
 )
 
 const (

@@ -6,7 +6,7 @@ LDFLAGS += -X "$(NS)/internal/ver.Git=$(shell git rev-parse HEAD)"
 LDFLAGS += -X "$(NS)/internal/ver.Compile=$(shell go version)"
 LDFLAGS += -X "$(NS)/internal/ver.Date=$(shell date +'%F %T %z')"
 
-PKGS := $$(go list ./... | grep -v -P '$(NS)/guestfs|vendor/')
+PKGS := $$(go list ./... | grep -v -P '$(NS)/third_party|vendor/')
 
 .PHONY: all test build guestfs
 
@@ -21,10 +21,10 @@ build-ctl:
 	$(BUILD) -ldflags '$(LDFLAGS)' -o bin/yavirtctl cmd/cmd.go
 
 lint: format
-	golangci-lint run --skip-dirs-use-default --skip-dirs=guestfs
+	golangci-lint run --skip-dirs-use-default --skip-dirs=third_party
 
 format: vet
-	gofmt -s -w $$(find . -iname '*.go' | grep -v -P '\./guestfs|\./vendor/')
+	gofmt -s -w $$(find . -iname '*.go' | grep -v -P '\./third_party|\./vendor/')
 
 vet:
 	go vet $(PKGS)

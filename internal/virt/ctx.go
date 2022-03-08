@@ -3,8 +3,8 @@ package virt
 import (
 	"context"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
 	calihandler "github.com/projecteru2/yavirt/internal/vnet/handler/calico"
+	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
 type key string

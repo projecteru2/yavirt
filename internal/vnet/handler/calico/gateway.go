@@ -6,12 +6,12 @@ import (
 	libcaliapi "github.com/projectcalico/libcalico-go/lib/apis/v3"
 
 	"github.com/projecteru2/yavirt/configs"
-	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/internal/meta"
-	"github.com/projecteru2/yavirt/pkg/utils"
 	calinet "github.com/projecteru2/yavirt/internal/vnet/calico"
 	"github.com/projecteru2/yavirt/internal/vnet/device"
 	"github.com/projecteru2/yavirt/internal/vnet/types"
+	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 // InitGateway .

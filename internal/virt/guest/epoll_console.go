@@ -5,8 +5,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/internal/virt/types"
+	"github.com/projecteru2/yavirt/pkg/errors"
 	"golang.org/x/sys/unix"
 )
 

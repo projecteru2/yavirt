@@ -3,9 +3,9 @@ package calico
 import (
 	"fmt"
 
+	"github.com/projecteru2/yavirt/internal/vnet/device"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	"github.com/projecteru2/yavirt/internal/vnet/device"
 )
 
 func (h *Handler) createTap() (device.VirtLink, error) {

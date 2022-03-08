@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/projecteru2/yavirt/configs"
+	"github.com/projecteru2/yavirt/internal/virt/agent/types"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
-	"github.com/projecteru2/yavirt/internal/virt/agent/types"
 )
 
 // Grep .

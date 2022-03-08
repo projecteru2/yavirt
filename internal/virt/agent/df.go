@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/projecteru2/yavirt/internal/virt/agent/types"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	"github.com/projecteru2/yavirt/internal/virt/agent/types"
 )
 
 // output e.g., "/dev/vda1       50758780 13669928  37072468  27% /"

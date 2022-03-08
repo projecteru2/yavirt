@@ -3,8 +3,8 @@ package agent
 import (
 	"testing"
 
-	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/internal/virt/agent/types"
+	"github.com/projecteru2/yavirt/pkg/test/assert"
 )
 
 func TestStdio(t *testing.T) {

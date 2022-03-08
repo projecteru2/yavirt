@@ -11,8 +11,8 @@ import (
 	"github.com/projecteru2/yavirt/cmd/image"
 	"github.com/projecteru2/yavirt/cmd/maint"
 	"github.com/projecteru2/yavirt/cmd/network"
-	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/internal/ver"
+	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
 func main() {

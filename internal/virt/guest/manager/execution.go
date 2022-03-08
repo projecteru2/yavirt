@@ -4,8 +4,8 @@ import (
 	"container/list"
 	"sync"
 
-	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/internal/metrics"
+	"github.com/projecteru2/yavirt/pkg/log"
 )
 
 type execution struct {

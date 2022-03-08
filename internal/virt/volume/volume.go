@@ -4,13 +4,13 @@ import (
 	"time"
 
 	"github.com/projecteru2/yavirt/configs"
+	"github.com/projecteru2/yavirt/internal/models"
+	"github.com/projecteru2/yavirt/internal/virt/agent"
+	"github.com/projecteru2/yavirt/internal/virt/domain"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/pkg/log"
-	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	"github.com/projecteru2/yavirt/internal/virt/agent"
-	"github.com/projecteru2/yavirt/internal/virt/domain"
 )
 
 // Virt .

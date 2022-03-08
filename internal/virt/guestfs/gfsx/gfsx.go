@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
-	libguestfs "github.com/projecteru2/yavirt/third_party/guestfs"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs/types"
+	"github.com/projecteru2/yavirt/pkg/errors"
+	libguestfs "github.com/projecteru2/yavirt/third_party/guestfs"
 )
 
 // Gfsx .

@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	"github.com/projecteru2/yavirt/internal/meta"
+	agentmocks "github.com/projecteru2/yavirt/internal/virt/agent/mocks"
+	agenttypes "github.com/projecteru2/yavirt/internal/virt/agent/types"
+	guestfstypes "github.com/projecteru2/yavirt/internal/virt/guestfs/types"
 	"github.com/projecteru2/yavirt/pkg/sh"
 	shmocks "github.com/projecteru2/yavirt/pkg/sh/mocks"
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/pkg/test/mock"
-	agentmocks "github.com/projecteru2/yavirt/internal/virt/agent/mocks"
-	agenttypes "github.com/projecteru2/yavirt/internal/virt/agent/types"
-	guestfstypes "github.com/projecteru2/yavirt/internal/virt/guestfs/types"
 )
 
 func TestResetFstabByUUID(t *testing.T) {

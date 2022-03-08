@@ -4,12 +4,12 @@ import (
 	"os"
 
 	"github.com/projecteru2/yavirt/configs"
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/netx"
 	"github.com/projecteru2/yavirt/internal/vnet"
 	"github.com/projecteru2/yavirt/internal/vnet/calico"
 	"github.com/projecteru2/yavirt/internal/vnet/device"
 	calihandler "github.com/projecteru2/yavirt/internal/vnet/handler/calico"
+	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/netx"
 )
 
 func (svc *Service) setupCalico() error {

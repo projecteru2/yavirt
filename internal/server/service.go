@@ -10,11 +10,8 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/projecteru2/yavirt/configs"
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/internal/metrics"
 	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/projecteru2/yavirt/internal/ver"
 	"github.com/projecteru2/yavirt/internal/virt"
 	"github.com/projecteru2/yavirt/internal/virt/guest/manager"
@@ -22,6 +19,9 @@ import (
 	"github.com/projecteru2/yavirt/internal/vnet"
 	calihandler "github.com/projecteru2/yavirt/internal/vnet/handler/calico"
 	vlanhandler "github.com/projecteru2/yavirt/internal/vnet/handler/vlan"
+	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/log"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 // Service .

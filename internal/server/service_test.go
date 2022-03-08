@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/pkg/test/assert"
-	"github.com/projecteru2/yavirt/pkg/test/mock"
-	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/projecteru2/yavirt/internal/virt"
 	vg "github.com/projecteru2/yavirt/internal/virt/guest"
 	managerocks "github.com/projecteru2/yavirt/internal/virt/guest/manager/mocks"
 	virtypes "github.com/projecteru2/yavirt/internal/virt/types"
+	"github.com/projecteru2/yavirt/pkg/test/assert"
+	"github.com/projecteru2/yavirt/pkg/test/mock"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 func init() {

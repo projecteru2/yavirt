@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/projecteru2/yavirt/pkg/netx"
 	"github.com/projecteru2/yavirt/internal/vnet/device"
+	"github.com/projecteru2/yavirt/pkg/netx"
 )
 
 // IP .

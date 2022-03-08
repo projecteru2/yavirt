@@ -6,9 +6,9 @@ import (
 	"os"
 	"path"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs/gfsx"
+	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
 func (g *Guest) copyToGuestRunning(ctx context.Context, dest string, content chan []byte, bot Bot, overrideFolder bool) error {
