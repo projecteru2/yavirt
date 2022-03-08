@@ -7,7 +7,7 @@ import (
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/libvirt"
+	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/util"
 	"github.com/projecteru2/yavirt/virt/template"

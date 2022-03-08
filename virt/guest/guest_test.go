@@ -8,7 +8,7 @@ import (
 
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/idgen"
-	"github.com/projecteru2/yavirt/libvirt"
+	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/internal/models"
 	storemocks "github.com/projecteru2/yavirt/store/mocks"
 	"github.com/projecteru2/yavirt/test/assert"

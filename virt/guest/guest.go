@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/libvirt"
+	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/util"

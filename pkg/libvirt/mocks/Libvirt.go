@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	libvirt "github.com/projecteru2/yavirt/libvirt"
+	libvirt "github.com/projecteru2/yavirt/pkg/libvirt"
 	mock "github.com/stretchr/testify/mock"
 )
 

@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/projecteru2/yavirt/libvirt"
+	"github.com/projecteru2/yavirt/pkg/libvirt"
 )
 
 // DomainStateErr .

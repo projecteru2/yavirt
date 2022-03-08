@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/projecteru2/yavirt/libvirt"
+	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/pkg/log"
 )
 
