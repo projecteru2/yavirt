@@ -1,6 +1,6 @@
 package mocks
 
-import "github.com/projecteru2/yavirt/store"
+import "github.com/projecteru2/yavirt/pkg/store"
 
 // Mock .
 func Mock() (*Store, func()) {

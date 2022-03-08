@@ -7,7 +7,7 @@ import (
 
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/meta"
-	"github.com/projecteru2/yavirt/store"
+	"github.com/projecteru2/yavirt/pkg/store"
 	"github.com/projecteru2/yavirt/util"
 )
 

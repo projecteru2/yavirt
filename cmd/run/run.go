@@ -13,7 +13,7 @@ import (
 	"github.com/projecteru2/yavirt/pkg/idgen"
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/pkg/netx"
-	"github.com/projecteru2/yavirt/store"
+	"github.com/projecteru2/yavirt/pkg/store"
 	"github.com/projecteru2/yavirt/util"
 	"github.com/projecteru2/yavirt/virt"
 	"github.com/projecteru2/yavirt/virt/guest/manager"

@@ -17,7 +17,7 @@ import (
 	"github.com/projecteru2/yavirt/pkg/meta"
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/pkg/netx"
-	"github.com/projecteru2/yavirt/store"
+	"github.com/projecteru2/yavirt/pkg/store"
 	"github.com/projecteru2/yavirt/util"
 )
 

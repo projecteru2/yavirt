@@ -5,7 +5,7 @@ import (
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/models"
-	storemocks "github.com/projecteru2/yavirt/store/mocks"
+	storemocks "github.com/projecteru2/yavirt/pkg/store/mocks"
 	"github.com/projecteru2/yavirt/test/assert"
 	"github.com/projecteru2/yavirt/test/mock"
 	"github.com/projecteru2/yavirt/util"

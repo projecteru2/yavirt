@@ -6,7 +6,7 @@ import (
 
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/idgen"
-	"github.com/projecteru2/yavirt/store/mocks"
+	"github.com/projecteru2/yavirt/pkg/store/mocks"
 	"github.com/projecteru2/yavirt/test/assert"
 	"github.com/projecteru2/yavirt/test/mock"
 )

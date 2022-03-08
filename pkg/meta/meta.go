@@ -5,7 +5,7 @@ import (
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/store"
+	"github.com/projecteru2/yavirt/pkg/store"
 )
 
 // Create .
