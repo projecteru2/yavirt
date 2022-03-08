@@ -5,8 +5,8 @@ import (
 
 	"github.com/projecteru2/libyavirt/types"
 
-	"github.com/projecteru2/yavirt/virt"
-	virtypes "github.com/projecteru2/yavirt/virt/types"
+	"github.com/projecteru2/yavirt/internal/virt"
+	virtypes "github.com/projecteru2/yavirt/internal/virt/types"
 )
 
 func (s *apiServer) GetGuest(c *gin.Context) {

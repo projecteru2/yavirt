@@ -1,6 +1,6 @@
 package model
 
-import "github.com/projecteru2/yavirt/virt/types"
+import "github.com/projecteru2/yavirt/internal/virt/types"
 
 type Manageable interface {
 	GetAllGuests() ([]*Guest, error)

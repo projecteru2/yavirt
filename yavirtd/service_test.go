@@ -8,10 +8,10 @@ import (
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/pkg/test/mock"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	"github.com/projecteru2/yavirt/virt"
-	vg "github.com/projecteru2/yavirt/virt/guest"
-	managerocks "github.com/projecteru2/yavirt/virt/guest/manager/mocks"
-	virtypes "github.com/projecteru2/yavirt/virt/types"
+	"github.com/projecteru2/yavirt/internal/virt"
+	vg "github.com/projecteru2/yavirt/internal/virt/guest"
+	managerocks "github.com/projecteru2/yavirt/internal/virt/guest/manager/mocks"
+	virtypes "github.com/projecteru2/yavirt/internal/virt/types"
 )
 
 func init() {
