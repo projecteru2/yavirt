@@ -12,7 +12,7 @@ import (
 	"github.com/projecteru2/yavirt/cmd/maint"
 	"github.com/projecteru2/yavirt/cmd/network"
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/ver"
+	"github.com/projecteru2/yavirt/internal/ver"
 )
 
 func main() {

@@ -21,7 +21,7 @@ import (
 	"github.com/projecteru2/yavirt/internal/metrics"
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/pkg/store"
-	"github.com/projecteru2/yavirt/ver"
+	"github.com/projecteru2/yavirt/internal/ver"
 	"github.com/projecteru2/yavirt/virt"
 	"github.com/projecteru2/yavirt/virt/guest"
 	"github.com/projecteru2/yavirt/yavirtd"
