@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	model "github.com/projecteru2/yavirt/model"
+	model "github.com/projecteru2/yavirt/internal/models"
 	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/projecteru2/yavirt/virt/types"

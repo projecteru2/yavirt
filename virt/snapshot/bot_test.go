@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/projecteru2/yavirt/model"
+	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/sh"
 	shmocks "github.com/projecteru2/yavirt/sh/mocks"
 	"github.com/projecteru2/yavirt/test/assert"

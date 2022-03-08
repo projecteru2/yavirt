@@ -11,7 +11,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/projecteru2/yavirt/model"
+	model "github.com/projecteru2/yavirt/internal/models"
 
 	types "github.com/projecteru2/yavirt/virt/types"
 

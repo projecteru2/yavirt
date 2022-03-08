@@ -11,7 +11,7 @@ import (
 	"github.com/projecteru2/yavirt/errors"
 	"github.com/projecteru2/yavirt/libvirt"
 	"github.com/projecteru2/yavirt/log"
-	"github.com/projecteru2/yavirt/model"
+	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/util"
 	"github.com/projecteru2/yavirt/virt"
 	"github.com/projecteru2/yavirt/virt/types"

@@ -7,7 +7,7 @@ import (
 
 	"github.com/projecteru2/yavirt/cmd/run"
 	"github.com/projecteru2/yavirt/errors"
-	"github.com/projecteru2/yavirt/model"
+	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/vnet"
 )
 

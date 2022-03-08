@@ -1,6 +1,6 @@
 package mocks
 
-import "github.com/projecteru2/yavirt/model"
+import "github.com/projecteru2/yavirt/internal/models"
 
 func Mock() (*Manageable, func()) {
 	var origManager = model.GetManager()

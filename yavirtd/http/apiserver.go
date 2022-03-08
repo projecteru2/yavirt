@@ -8,7 +8,7 @@ import (
 
 	"github.com/projecteru2/libyavirt/types"
 	"github.com/projecteru2/yavirt/errors"
-	"github.com/projecteru2/yavirt/model"
+	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/virt"
 	"github.com/projecteru2/yavirt/yavirtd"
 )

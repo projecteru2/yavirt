@@ -11,7 +11,7 @@ import (
 	"github.com/projecteru2/yavirt/config"
 	"github.com/projecteru2/yavirt/errors"
 	"github.com/projecteru2/yavirt/idgen"
-	"github.com/projecteru2/yavirt/model"
+	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/netx"
 	"github.com/projecteru2/yavirt/store"
 	"github.com/projecteru2/yavirt/util"

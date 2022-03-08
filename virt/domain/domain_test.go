@@ -5,7 +5,7 @@ import (
 
 	"github.com/projecteru2/yavirt/libvirt"
 	libmocks "github.com/projecteru2/yavirt/libvirt/mocks"
-	"github.com/projecteru2/yavirt/model"
+	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/test/assert"
 	"github.com/projecteru2/yavirt/test/mock"
 	"github.com/projecteru2/yavirt/util"

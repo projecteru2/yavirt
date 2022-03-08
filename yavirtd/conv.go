@@ -6,7 +6,7 @@ import (
 	pb "github.com/projecteru2/core/rpc/gen"
 
 	"github.com/projecteru2/libyavirt/types"
-	"github.com/projecteru2/yavirt/model"
+	"github.com/projecteru2/yavirt/internal/models"
 )
 
 func convGuestResp(g *model.Guest) (resp *types.Guest) {

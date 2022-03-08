@@ -2,7 +2,7 @@ package snapshot
 
 import (
 	"github.com/projecteru2/yavirt/errors"
-	"github.com/projecteru2/yavirt/model"
+	"github.com/projecteru2/yavirt/internal/models"
 )
 
 // Interface .
