@@ -12,7 +12,7 @@ import (
 
 	"github.com/containernetworking/cni/pkg/types/current"
 
-	"github.com/projecteru2/yavirt/config"
+	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/meta"

@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	config "github.com/projecteru2/yavirt/config"
+	config "github.com/projecteru2/yavirt/configs"
 
 	mock "github.com/stretchr/testify/mock"
 

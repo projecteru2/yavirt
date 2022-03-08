@@ -8,7 +8,7 @@ import (
 
 	erucluster "github.com/projecteru2/core/cluster"
 
-	"github.com/projecteru2/yavirt/config"
+	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/errors"
 	"github.com/projecteru2/yavirt/pkg/idgen"
 	"github.com/projecteru2/yavirt/meta"

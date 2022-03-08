@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/projecteru2/yavirt/config"
+	"github.com/projecteru2/yavirt/configs"
 )
 
 const (

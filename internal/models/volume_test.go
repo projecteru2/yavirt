@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/projecteru2/yavirt/config"
+	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/test/assert"
 )
 

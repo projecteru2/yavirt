@@ -3,7 +3,7 @@ package yavirtd
 import (
 	"os"
 
-	"github.com/projecteru2/yavirt/config"
+	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/errors"
 	"github.com/projecteru2/yavirt/netx"
 	"github.com/projecteru2/yavirt/vnet"

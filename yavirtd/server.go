@@ -4,7 +4,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/projecteru2/yavirt/config"
+	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/netx"
 )
 
