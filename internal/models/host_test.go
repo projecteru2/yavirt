@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/projecteru2/yavirt/internal/errors"
-	"github.com/projecteru2/yavirt/idgen"
+	"github.com/projecteru2/yavirt/pkg/idgen"
 	"github.com/projecteru2/yavirt/store/mocks"
 	"github.com/projecteru2/yavirt/test/assert"
 	"github.com/projecteru2/yavirt/test/mock"
