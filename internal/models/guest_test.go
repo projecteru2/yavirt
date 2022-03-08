@@ -9,7 +9,7 @@ import (
 	erutypes "github.com/projecteru2/core/types"
 	eruutils "github.com/projecteru2/core/utils"
 
-	"github.com/projecteru2/yavirt/test/assert"
+	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/util"
 )
 

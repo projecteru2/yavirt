@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/projecteru2/yavirt/configs"
-	"github.com/projecteru2/yavirt/test/assert"
+	"github.com/projecteru2/yavirt/pkg/test/assert"
 )
 
 func TestDataVolume(t *testing.T) {

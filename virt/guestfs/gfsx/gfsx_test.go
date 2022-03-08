@@ -3,7 +3,7 @@ package gfsx
 import (
 	"testing"
 
-	"github.com/projecteru2/yavirt/test/assert"
+	"github.com/projecteru2/yavirt/pkg/test/assert"
 )
 
 func TestParseFstab(t *testing.T) {

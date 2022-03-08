@@ -15,7 +15,7 @@ import (
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/test/assert"
+	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/util"
 )
 

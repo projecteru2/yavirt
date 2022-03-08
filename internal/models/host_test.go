@@ -7,8 +7,8 @@ import (
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/idgen"
 	"github.com/projecteru2/yavirt/pkg/store/mocks"
-	"github.com/projecteru2/yavirt/test/assert"
-	"github.com/projecteru2/yavirt/test/mock"
+	"github.com/projecteru2/yavirt/pkg/test/assert"
+	"github.com/projecteru2/yavirt/pkg/test/mock"
 )
 
 func init() {

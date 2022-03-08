@@ -7,8 +7,8 @@ import (
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/pkg/sh"
 	shmocks "github.com/projecteru2/yavirt/pkg/sh/mocks"
-	"github.com/projecteru2/yavirt/test/assert"
-	"github.com/projecteru2/yavirt/test/mock"
+	"github.com/projecteru2/yavirt/pkg/test/assert"
+	"github.com/projecteru2/yavirt/pkg/test/mock"
 )
 
 func TestBotCreate(t *testing.T) {
