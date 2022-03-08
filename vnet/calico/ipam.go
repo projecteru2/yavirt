@@ -9,7 +9,7 @@ import (
 
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
-	"github.com/projecteru2/yavirt/meta"
+	"github.com/projecteru2/yavirt/pkg/meta"
 	"github.com/projecteru2/yavirt/pkg/netx"
 	"github.com/projecteru2/yavirt/store/etcd"
 	"github.com/projecteru2/yavirt/util"

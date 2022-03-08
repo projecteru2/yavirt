@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/projecteru2/yavirt/meta"
+	"github.com/projecteru2/yavirt/pkg/meta"
 	"github.com/projecteru2/yavirt/vnet/device"
 	"github.com/projecteru2/yavirt/vnet/types"
 )

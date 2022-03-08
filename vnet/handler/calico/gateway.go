@@ -7,7 +7,7 @@ import (
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/meta"
+	"github.com/projecteru2/yavirt/pkg/meta"
 	"github.com/projecteru2/yavirt/util"
 	calinet "github.com/projecteru2/yavirt/vnet/calico"
 	"github.com/projecteru2/yavirt/vnet/device"

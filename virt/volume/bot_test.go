@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/projecteru2/yavirt/meta"
+	"github.com/projecteru2/yavirt/pkg/meta"
 	"github.com/projecteru2/yavirt/sh"
 	shmocks "github.com/projecteru2/yavirt/sh/mocks"
 	"github.com/projecteru2/yavirt/test/assert"

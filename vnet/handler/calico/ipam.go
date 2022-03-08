@@ -5,7 +5,7 @@ import (
 
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
-	"github.com/projecteru2/yavirt/meta"
+	"github.com/projecteru2/yavirt/pkg/meta"
 	calinet "github.com/projecteru2/yavirt/vnet/calico"
 	"github.com/projecteru2/yavirt/vnet/ipam"
 )

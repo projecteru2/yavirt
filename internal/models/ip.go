@@ -1,6 +1,6 @@
 package model
 
-import "github.com/projecteru2/yavirt/meta"
+import "github.com/projecteru2/yavirt/pkg/meta"
 
 // IPs .
 type IPs []meta.IP
