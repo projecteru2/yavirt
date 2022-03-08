@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 	"github.com/projecteru2/yavirt/meta"
 )
 

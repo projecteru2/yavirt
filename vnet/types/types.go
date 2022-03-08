@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 	"github.com/projecteru2/yavirt/meta"
 	"github.com/projecteru2/yavirt/vnet/device"
 )

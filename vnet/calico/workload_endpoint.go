@@ -13,7 +13,7 @@ import (
 	k8smeta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8stypes "k8s.io/apimachinery/pkg/types"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 	"github.com/projecteru2/yavirt/meta"
 	"github.com/projecteru2/yavirt/netx"
 	"github.com/projecteru2/yavirt/store/etcd"

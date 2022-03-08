@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 )
 
 type checker struct { //nolint

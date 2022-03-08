@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/projecteru2/yavirt/config"
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 	"github.com/projecteru2/yavirt/log"
 	"github.com/projecteru2/yavirt/virt/agent/types"
 )

@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 	libguestfs "github.com/projecteru2/yavirt/guestfs"
 	"github.com/projecteru2/yavirt/virt/guestfs"
 	"github.com/projecteru2/yavirt/virt/guestfs/types"

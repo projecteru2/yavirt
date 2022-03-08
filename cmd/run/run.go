@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/projecteru2/yavirt/config"
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 	"github.com/projecteru2/yavirt/idgen"
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/netx"

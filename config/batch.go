@@ -3,7 +3,7 @@ package config
 import (
 	"strings"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 )
 
 // Batch .

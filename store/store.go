@@ -5,7 +5,7 @@ import (
 
 	"go.etcd.io/etcd/clientv3"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 	"github.com/projecteru2/yavirt/store/etcd"
 	"github.com/projecteru2/yavirt/util"
 )

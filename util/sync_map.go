@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 )
 
 type ExitCodeMap struct {

@@ -3,7 +3,7 @@ package model
 import (
 	"os"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 )
 
 // Image wraps a few methods about Image.

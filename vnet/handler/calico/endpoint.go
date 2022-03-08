@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 	"github.com/projecteru2/yavirt/log"
 	"github.com/projecteru2/yavirt/util"
 	"github.com/projecteru2/yavirt/vnet/device"

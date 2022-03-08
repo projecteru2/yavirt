@@ -3,7 +3,7 @@ package model
 import (
 	"net"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 	"github.com/projecteru2/yavirt/meta"
 	"github.com/projecteru2/yavirt/netx"
 	"github.com/projecteru2/yavirt/util"

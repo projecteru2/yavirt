@@ -1,7 +1,7 @@
 package util
 
 import (
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 )
 
 const bitsPerSection = 32

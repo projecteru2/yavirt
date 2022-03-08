@@ -3,7 +3,7 @@ package virt
 import (
 	"context"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 	calihandler "github.com/projecteru2/yavirt/vnet/handler/calico"
 )
 

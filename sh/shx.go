@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"os/exec"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 )
 
 type shx struct{}

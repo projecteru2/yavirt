@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/projecteru2/yavirt/config"
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 )
 
 // Cleanup cleans flocks up.

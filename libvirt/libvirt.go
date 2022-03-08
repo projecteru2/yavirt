@@ -3,7 +3,7 @@ package libvirt
 import (
 	libvirtgo "github.com/libvirt/libvirt-go"
 
-	"github.com/projecteru2/yavirt/errors"
+	"github.com/projecteru2/yavirt/internal/errors"
 )
 
 // Libvirt uses to interact with libvirtd service.
