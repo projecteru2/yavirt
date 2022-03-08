@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	"context"
@@ -50,21 +50,21 @@ type Guest struct {
 
 // Check .
 func (g *Guest) Check() error {
-	if g.CPU < config.Conf.MinCPU || g.CPU > config.Conf.MaxCPU {
+	if g.CPU < configs.Conf.MinCPU || g.CPU > configs.Conf.MaxCPU {
 		return errors.Annotatef(errors.ErrInvalidValue,
 			"invalid CPU num: %d, it should be [%d, %d]",
-			g.CPU, config.Conf.MinCPU, config.Conf.MaxCPU)
+			g.CPU, configs.Conf.MinCPU, configs.Conf.MaxCPU)
 	}
 
-	if g.Memory < config.Conf.MinMemory || g.Memory > config.Conf.MaxMemory {
+	if g.Memory < configs.Conf.MinMemory || g.Memory > configs.Conf.MaxMemory {
 		return errors.Annotatef(errors.ErrInvalidValue,
 			"invalie memory: %d, it shoule be [%d, %d]",
-			g.Memory, config.Conf.MinMemory, config.Conf.MaxMemory)
+			g.Memory, configs.Conf.MinMemory, configs.Conf.MaxMemory)
 	}
 
 	if lab, exists := g.JSONLabels[erucluster.LabelMeta]; exists {
 		obj := map[string]interface{}{}
-		if err := util.JSONDecode([]byte(lab), &obj); err != nil {
+		if err := utils.JSONDecode([]byte(lab), &obj); err != nil {
 			return errors.Annotatef(errors.ErrInvalidValue, "'%s' should be JSON format", lab)
 		}
 	}
@@ -126,8 +126,8 @@ func (g *Guest) RemoveVol(volID string) {
 
 // AppendVols .
 func (g *Guest) AppendVols(vols ...*Volume) error {
-	if g.Vols.Len()+len(vols) > config.Conf.MaxVolumesCount {
-		return errors.Annotatef(errors.ErrTooManyVolumes, "at most %d", config.Conf.MaxVolumesCount)
+	if g.Vols.Len()+len(vols) > configs.Conf.MaxVolumesCount {
+		return errors.Annotatef(errors.ErrTooManyVolumes, "at most %d", configs.Conf.MaxVolumesCount)
 	}
 
 	var res = Volumes(vols)
@@ -255,13 +255,13 @@ func (g *Guest) CIDRs() []string {
 
 // MemoryInMiB .
 func (g *Guest) MemoryInMiB() int64 {
-	return util.ConvToMB(g.Memory)
+	return utils.ConvToMB(g.Memory)
 }
 
 // SocketFilepath shows the socket filepath of the guest on the host.
 func (g *Guest) SocketFilepath() string {
 	var fn = fmt.Sprintf("%s.sock", g.ID)
-	return filepath.Join(config.Conf.VirtSockDir, fn)
+	return filepath.Join(configs.Conf.VirtSockDir, fn)
 }
 
 // NetworkPairName .
@@ -273,7 +273,7 @@ func (g *Guest) NetworkPairName() string {
 		return g.NetworkPair
 
 	default:
-		return config.Conf.VirtBridge
+		return configs.Conf.VirtBridge
 	}
 }
 
@@ -345,7 +345,7 @@ func (m *Manager) CreateGuest(opts types.GuestCreateOption, host *Host, vols []*
 	guest.JSONLabels = opts.Labels
 
 	if guest.NetworkMode == vnet.NetworkCalico {
-		guest.EnabledCalicoCNI = config.Conf.EnabledCalicoCNI
+		guest.EnabledCalicoCNI = configs.Conf.EnabledCalicoCNI
 	}
 
 	if opts.Lambda {
@@ -440,7 +440,7 @@ func (m *Manager) GetAllGuests() ([]*Guest, error) {
 		}
 
 		var g = newGuest()
-		if err := util.JSONDecode(val, g); err != nil {
+		if err := utils.JSONDecode(val, g); err != nil {
 			return nil, errors.Trace(err)
 		}
 

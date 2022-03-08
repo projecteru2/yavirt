@@ -19,10 +19,10 @@ type Virt interface {
 	IsSys() bool
 	Amplify(cap int64, dom domain.Domain, ga agent.Interface, devPath string) (delta int64, err error)
 	Filepath() string
-	Model() *model.Volume
-	Alloc(model.Image) error
+	Model() *models.Volume
+	Alloc(models.Image) error
 	Undefine() error
-	ConvertImage(user, name string) (uimg *model.UserImage, err error)
+	ConvertImage(user, name string) (uimg *models.UserImage, err error)
 	Attach(dom domain.Domain, ga agent.Interface, devName string) (rollback func(), err error)
 	Check() error
 	Repair() error
@@ -34,12 +34,12 @@ type Virt interface {
 
 // Volume .
 type Volume struct {
-	*model.Volume
+	*models.Volume
 	newBot func(*Volume) (Bot, error)
 }
 
 // New .
-func New(mod *model.Volume) *Volume {
+func New(mod *models.Volume) *Volume {
 	return &Volume{
 		Volume: mod,
 		newBot: newVirtVol,
@@ -47,7 +47,7 @@ func New(mod *model.Volume) *Volume {
 }
 
 // Model .
-func (vol *Volume) Model() *model.Volume {
+func (vol *Volume) Model() *models.Volume {
 	return vol.Volume
 }
 
@@ -69,7 +69,7 @@ func (vol *Volume) Undefine() error {
 }
 
 // ConvertImage .
-func (vol *Volume) ConvertImage(user, name string) (uimg *model.UserImage, err error) {
+func (vol *Volume) ConvertImage(user, name string) (uimg *models.UserImage, err error) {
 	if !vol.IsSys() {
 		return nil, errors.Annotatef(errors.ErrNotSysVolume, vol.ID)
 	}
@@ -97,7 +97,7 @@ func (vol *Volume) Attach(dom domain.Domain, ga agent.Interface, devName string)
 
 	var st libvirt.DomainState
 	if st, err = dom.AttachVolume(vol.Filepath(), devName); err == nil && st == libvirt.DomainRunning {
-		err = vol.Mount(ga, model.GetDevicePathByName(devName))
+		err = vol.Mount(ga, models.GetDevicePathByName(devName))
 	}
 
 	return
@@ -129,16 +129,16 @@ func (vol *Volume) create() (func(), error) {
 }
 
 // Alloc .
-func (vol *Volume) Alloc(img model.Image) error {
+func (vol *Volume) Alloc(img models.Image) error {
 	return vol.botOperate(func(bot Bot) error {
 		switch vol.Type {
-		case model.VolSysType:
+		case models.VolSysType:
 			if img == nil {
 				return errors.Annotatef(errors.ErrInvalidValue, "nil *Image")
 			}
 			return bot.AllocFromImage(img)
 
-		case model.VolDataType:
+		case models.VolDataType:
 			return bot.Alloc()
 
 		default:
@@ -149,15 +149,15 @@ func (vol *Volume) Alloc(img model.Image) error {
 
 // Amplify .
 func (vol *Volume) Amplify(delta int64, dom domain.Domain, ga agent.Interface, devPath string) (normDelta int64, err error) {
-	normDelta = util.NormalizeMultiple1024(delta)
+	normDelta = utils.NormalizeMultiple1024(delta)
 	newCap := vol.Capacity + normDelta
-	if newCap > config.Conf.MaxVolumeCap {
-		return 0, errors.Annotatef(errors.ErrInvalidValue, "exceeds the max cap: %d", config.Conf.MaxVolumeCap)
+	if newCap > configs.Conf.MaxVolumeCap {
+		return 0, errors.Annotatef(errors.ErrInvalidValue, "exceeds the max cap: %d", configs.Conf.MaxVolumeCap)
 	}
 
-	least := util.MaxInt64(
-		config.Conf.ResizeVolumeMinSize,
-		int64(float64(vol.Capacity)*config.Conf.ResizeVolumeMinRatio),
+	least := utils.MaxInt64(
+		configs.Conf.ResizeVolumeMinSize,
+		int64(float64(vol.Capacity)*configs.Conf.ResizeVolumeMinRatio),
 	)
 	if least > normDelta {
 		return 0, errors.Annotatef(errors.ErrInvalidValue, "invalid cap: at least %d, but %d",
@@ -191,7 +191,7 @@ func (vol *Volume) Repair() error {
 // CreateSnapshot .
 func (vol *Volume) CreateSnapshot() error {
 
-	snapmod := model.NewSnapShot(vol.ID)
+	snapmod := models.NewSnapShot(vol.ID)
 	snapmod.GenerateID()
 
 	if err := vol.botOperate(func(bot Bot) error {

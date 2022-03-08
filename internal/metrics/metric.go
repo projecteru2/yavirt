@@ -1,4 +1,4 @@
-package metric
+package metrics
 
 import (
 	"net/http"
@@ -23,7 +23,7 @@ var (
 )
 
 func init() { //nolint
-	hn, err := util.Hostname()
+	hn, err := utils.Hostname()
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +56,7 @@ func (m *Metrics) RegisterCounter(name, desc string, labels []string) error {
 			Name: name,
 			Help: desc,
 		},
-		util.MergeStrings(labels, DefaultLabels),
+		utils.MergeStrings(labels, DefaultLabels),
 	)
 
 	if err := prometheus.Register(col); err != nil {
@@ -75,7 +75,7 @@ func (m *Metrics) RegisterGauge(name, desc string, labels []string) error {
 			Name: name,
 			Help: desc,
 		},
-		util.MergeStrings(labels, DefaultLabels),
+		utils.MergeStrings(labels, DefaultLabels),
 	)
 
 	if err := prometheus.Register(col); err != nil {

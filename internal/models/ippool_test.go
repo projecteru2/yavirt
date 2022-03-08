@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	"context"
@@ -41,7 +41,7 @@ func TestIPPoolMultipleBlocks(t *testing.T) {
 	for size := MinMaskBits; size <= MaxMaskBitsForBlocks; size++ {
 		cidr := fmt.Sprintf("1.1.1.1/%d", size)
 		ipp := newTestIPP(t, cidr)
-		assert.Equal(t, 1<<uint(util.Max(0, ipp.blockBits()-5)), len(ipp.Flags.Slices))
+		assert.Equal(t, 1<<uint(utils.Max(0, ipp.blockBits()-5)), len(ipp.Flags.Slices))
 		assert.Equal(t, 1<<uint(MaxMaskBitsForBlocks-size+1), ipp.blockCount())
 		assert.Equal(t, MaxMaskBitsForBlocks-size+1, ipp.blockBits())
 	}
@@ -179,7 +179,7 @@ func TestIPPoolAssignSingleBlock(t *testing.T) {
 		assert.NotNil(t, ipp.blocks[0])
 
 		mapIndex, bitIndex := getBitmapIndex(i)
-		expIPs[mapIndex] |= util.SetBitFlags[bitIndex]
+		expIPs[mapIndex] |= utils.SetBitFlags[bitIndex]
 		assert.Equal(t, expIPs, ipp.blocks[0].IPs.Slices)
 	}
 
@@ -196,7 +196,7 @@ func TestIPPoolAssignSingleBlock(t *testing.T) {
 		assert.NilErr(t, ipp.Release(ipn))
 
 		mapIndex, bitIndex := getBitmapIndex(i)
-		expIPs[mapIndex] &= util.UnsetBitFlags[bitIndex]
+		expIPs[mapIndex] &= utils.UnsetBitFlags[bitIndex]
 		assert.Equal(t, expIPs, ipp.blocks[0].IPs.Slices)
 	}
 
@@ -308,7 +308,7 @@ func TestIPPoolAssignCrossBlocks(t *testing.T) {
 		expIPs := make([]uint32, 8)
 
 		mapIndex, bitIndex := getBitmapIndex(blockIndex)
-		expFlags[mapIndex] |= util.SetBitFlags[bitIndex]
+		expFlags[mapIndex] |= utils.SetBitFlags[bitIndex]
 
 		for ipIndex := 0; ipIndex < MaxBlockIPCount; ipIndex++ {
 			ipnet, err := ipp.Assign()
@@ -323,7 +323,7 @@ func TestIPPoolAssignCrossBlocks(t *testing.T) {
 			assert.Equal(t, expFlags, ipp.Flags.Slices)
 
 			ipMapIndex, ipBitIndex := getBitmapIndex(ipIndex)
-			expIPs[ipMapIndex] |= util.SetBitFlags[ipBitIndex]
+			expIPs[ipMapIndex] |= utils.SetBitFlags[ipBitIndex]
 			assert.Equal(t, expIPs, ipp.blocks[blockIndex].IPs.Slices)
 		}
 	}
@@ -346,7 +346,7 @@ func TestIPPoolAssignCrossBlocks(t *testing.T) {
 			assert.NilErr(t, ipp.Release(ipn))
 
 			ipMapIndex, ipBitIndex := getBitmapIndex(ipIndex)
-			expIPs[ipMapIndex] &= util.UnsetBitFlags[ipBitIndex]
+			expIPs[ipMapIndex] &= utils.UnsetBitFlags[ipBitIndex]
 			assert.Equal(t, expIPs, ipp.blocks[blockIndex].IPs.Slices)
 		}
 	}
@@ -505,7 +505,7 @@ func TestIPPoolSingleBlockBitmapCount(t *testing.T) {
 }
 
 func mockMutex() *utilmocks.Locker {
-	var unlock util.Unlocker = func(context.Context) error {
+	var unlock utils.Unlocker = func(context.Context) error {
 		return nil
 	}
 
@@ -526,12 +526,12 @@ func newTestIPP(t *testing.T, cidr string) *IPPool {
 }
 
 func encjson(t *testing.T, v interface{}) []byte {
-	bytes, err := util.JSONEncode(v)
+	bytes, err := utils.JSONEncode(v)
 	assert.NilErr(t, err)
 	return bytes
 }
 
 func getBitmapIndex(offset int) (mi, bi int) {
-	bm := util.NewBitmap32(256)
+	bm := utils.NewBitmap32(256)
 	return bm.GetIndex(offset)
 }

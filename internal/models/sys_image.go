@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	"context"
@@ -57,7 +57,7 @@ func parseSysImages(data map[string][]byte, vers map[string]int64) ([]Image, err
 		}
 
 		img := NewSysImage()
-		if err := util.JSONDecode(bytes, img); err != nil {
+		if err := utils.JSONDecode(bytes, img); err != nil {
 			return nil, errors.Annotatef(err, "decode SysImage bytes %s failed", bytes)
 		}
 

@@ -95,7 +95,7 @@ func (h *Handler) bindGatewayIPs(ips ...meta.IP) error {
 }
 
 func (h *Handler) addGatewayEndpoint(ip meta.IP) error {
-	hn, err := util.Hostname()
+	hn, err := utils.Hostname()
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -105,7 +105,7 @@ func (h *Handler) addGatewayEndpoint(ip meta.IP) error {
 	args.Device = h.gateway
 	args.MAC = h.gateway.MAC()
 	args.Hostname = hn
-	args.EndpointID = config.Conf.CalicoGatewayName
+	args.EndpointID = configs.Conf.CalicoGatewayName
 
 	gwIPs, err := h.gatewayIPs()
 	if err != nil {
@@ -141,14 +141,14 @@ func (h *Handler) RefreshGateway() error {
 }
 
 func (h *Handler) loadGateway() error {
-	hn, err := util.Hostname()
+	hn, err := utils.Hostname()
 	if err != nil {
 		return errors.Trace(err)
 	}
 
 	var args types.EndpointArgs
 	args.Hostname = hn
-	args.EndpointID = config.Conf.CalicoGatewayName
+	args.EndpointID = configs.Conf.CalicoGatewayName
 
 	wep, err := h.cali.WorkloadEndpoint().Get(args)
 	if err != nil {

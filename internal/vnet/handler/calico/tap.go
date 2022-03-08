@@ -34,7 +34,7 @@ func (h *Handler) randTapName() (string, error) {
 		return "", errors.Trace(err)
 	}
 
-	var name = fmt.Sprintf("yap%s", endpID[:util.Min(12, len(endpID))]) //nolint
+	var name = fmt.Sprintf("yap%s", endpID[:utils.Min(12, len(endpID))]) //nolint
 
 	return name, nil
 }

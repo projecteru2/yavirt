@@ -45,7 +45,7 @@ func newHardwareAddr(linkType string) (net.HardwareAddr, error) {
 }
 
 func newTuntapMAC() (string, error) {
-	var buf, err = util.RandBuf(3) //nolint
+	var buf, err = utils.RandBuf(3) //nolint
 	if err != nil {
 		return "", errors.Trace(err)
 	}
@@ -53,5 +53,5 @@ func newTuntapMAC() (string, error) {
 }
 
 func newDummyMAC() (string, error) {
-	return util.QemuMAC()
+	return utils.QemuMAC()
 }

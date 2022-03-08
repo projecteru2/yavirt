@@ -96,7 +96,7 @@ func (h *Handler) GetEndpointDevice(name string) (device.VirtLink, error) {
 }
 
 func (h *Handler) generateEndpointID() (string, error) {
-	var uuid, err = util.UUIDStr()
+	var uuid, err = utils.UUIDStr()
 	if err != nil {
 		return "", errors.Trace(err)
 	}

@@ -45,7 +45,7 @@ func main() {
 
 	if err := app.Run(os.Args); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 		os.Exit(1)
 	}
 
@@ -61,7 +61,7 @@ func Run(c *cli.Context) error {
 	defer defers()
 	defer store.Close()
 
-	dump, err := config.Conf.Dump()
+	dump, err := configs.Conf.Dump()
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -87,14 +87,14 @@ func Run(c *cli.Context) error {
 		return errors.Trace(err)
 	}
 
-	go prof(config.Conf.ProfHTTPPort)
+	go prof(configs.Conf.ProfHTTPPort)
 
-	run([]yavirtd.Server{grpcSrv, httpSrv})
+	run([]server.Server{grpcSrv, httpSrv})
 
 	return nil
 }
 
-func run(servers []yavirtd.Server) {
+func run(servers []server.Server) {
 	defer log.Warnf("[main] yavirtd proc exit")
 
 	var wg sync.WaitGroup
@@ -103,11 +103,11 @@ func run(servers []yavirtd.Server) {
 
 		go handleSigns(srv)
 
-		go func(server yavirtd.Server) {
+		go func(server server.Server) {
 			defer wg.Done()
 			if err := server.Serve(); err != nil {
 				log.ErrorStack(err)
-				metric.IncrError()
+				metrics.IncrError()
 			}
 		}(srv)
 	}
@@ -119,7 +119,7 @@ func run(servers []yavirtd.Server) {
 	wg.Wait()
 }
 
-func notify(servers []yavirtd.Server) {
+func notify(servers []server.Server) {
 	defer log.Infof("[main] exit notify loop exit")
 
 	var wg sync.WaitGroup
@@ -147,26 +147,26 @@ func notify(servers []yavirtd.Server) {
 	wg.Wait()
 }
 
-func setup(configFiles []string) (deferSentry func(), svc *yavirtd.Service, err error) {
-	if err = config.Conf.Load(configFiles); err != nil {
+func setup(configFiles []string) (deferSentry func(), svc *server.Service, err error) {
+	if err = configs.Conf.Load(configFiles); err != nil {
 		return
 	}
 
-	if deferSentry, err = log.Setup(config.Conf.LogLevel, config.Conf.LogFile, config.Conf.LogSentry); err != nil {
+	if deferSentry, err = log.Setup(configs.Conf.LogLevel, configs.Conf.LogFile, configs.Conf.LogSentry); err != nil {
 		return
 	}
 
-	if err = store.Setup(config.Conf.MetaType); err != nil {
+	if err = store.Setup(configs.Conf.MetaType); err != nil {
 		return
 	}
 
-	if svc, err = yavirtd.SetupYavirtdService(); err != nil {
+	if svc, err = server.SetupYavirtdService(); err != nil {
 		return
 	}
 
 	idgen.Setup(svc.Host.ID, time.Now())
 
-	model.Setup()
+	models.Setup()
 
 	return
 }
@@ -179,7 +179,7 @@ var signs = []os.Signal{
 	syscall.SIGUSR2,
 }
 
-func handleSigns(srv yavirtd.Server) {
+func handleSigns(srv server.Server) {
 	defer func() {
 		log.Warnf("[main] signal handler for %p exit", srv)
 		srv.Close()

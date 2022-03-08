@@ -4,7 +4,7 @@ import "github.com/projecteru2/yavirt/pkg/utils"
 
 // Ver .
 type Ver struct {
-	ver util.AtomicInt64
+	ver utils.AtomicInt64
 }
 
 // NewVer .

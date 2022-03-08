@@ -53,7 +53,7 @@ func (t *Templates) parse(fpth string) (*text.Template, error) {
 		return nil, errors.Errorf("%s is not a template file", fpth)
 	}
 
-	buf, err := util.ReadAll(fpth)
+	buf, err := utils.ReadAll(fpth)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}

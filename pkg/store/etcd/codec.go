@@ -6,7 +6,7 @@ import (
 )
 
 func encode(v interface{}) (string, error) { //nolint
-	var buf, err = util.JSONEncode(v, "\t")
+	var buf, err = utils.JSONEncode(v, "\t")
 	if err != nil {
 		return "", errors.Trace(err)
 	}
@@ -14,5 +14,5 @@ func encode(v interface{}) (string, error) { //nolint
 }
 
 func decode(data []byte, v interface{}) error {
-	return util.JSONDecode(data, v)
+	return utils.JSONDecode(data, v)
 }

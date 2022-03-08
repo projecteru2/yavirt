@@ -1,4 +1,4 @@
-package yavirtd
+package server
 
 import (
 	"context"
@@ -26,28 +26,28 @@ import (
 
 // Service .
 type Service struct {
-	Host        *model.Host
+	Host        *models.Host
 	BootGuestCh chan<- string
 	caliHandler *calihandler.Handler
 	guest       manager.Manageable
 
-	pid2ExitCode   *util.ExitCodeMap
+	pid2ExitCode   *utils.ExitCodeMap
 	RecoverGuestCh chan<- string
 }
 
 // SetupYavirtdService .
 func SetupYavirtdService() (*Service, error) {
-	svc := &Service{guest: manager.New(), pid2ExitCode: util.NewSyncMap()}
+	svc := &Service{guest: manager.New(), pid2ExitCode: utils.NewSyncMap()}
 	return svc, svc.setup()
 }
 
 func (svc *Service) setup() error {
-	hn, err := util.Hostname()
+	hn, err := utils.Hostname()
 	if err != nil {
 		return errors.Trace(err)
 	}
 
-	if svc.Host, err = model.LoadHost(hn); err != nil {
+	if svc.Host, err = models.LoadHost(hn); err != nil {
 		return errors.Trace(err)
 	}
 
@@ -85,10 +85,10 @@ func (svc *Service) ScheduleSnapshotCreate() error {
 }
 
 func (svc *Service) batchCreateSnapshot() {
-	guests, err := model.GetAllGuests()
+	guests, err := models.GetAllGuests()
 	if err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 		return
 	}
 
@@ -103,17 +103,17 @@ func (svc *Service) batchCreateSnapshot() {
 				virt.NewContext(context.Background(), svc.caliHandler), req,
 			); err != nil {
 				log.ErrorStack(err)
-				metric.IncrError()
+				metrics.IncrError()
 			}
 		}
 	}
 }
 
 func (svc *Service) batchCommitSnapshot() {
-	guests, err := model.GetAllGuests()
+	guests, err := models.GetAllGuests()
 	if err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 		return
 	}
 
@@ -123,10 +123,10 @@ func (svc *Service) batchCommitSnapshot() {
 				virt.NewContext(context.Background(), svc.caliHandler),
 				g.ID,
 				volID,
-				config.Conf.SnapshotRestorableDay,
+				configs.Conf.SnapshotRestorableDay,
 			); err != nil {
 				log.ErrorStack(err)
-				metric.IncrError()
+				metrics.IncrError()
 			}
 		}
 	}
@@ -157,7 +157,7 @@ func (svc *Service) GetGuest(ctx virt.Context, id string) (*types.Guest, error) 
 	vg, err := svc.guest.Load(ctx, id)
 	if err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 		return nil, err
 	}
 	return convGuestResp(vg.Guest), nil
@@ -168,7 +168,7 @@ func (svc *Service) GetGuestUUID(ctx virt.Context, id string) (string, error) {
 	uuid, err := svc.guest.LoadUUID(ctx, id)
 	if err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 		return "", err
 	}
 	return uuid, nil
@@ -176,9 +176,9 @@ func (svc *Service) GetGuestUUID(ctx virt.Context, id string) (string, error) {
 
 // CreateGuest .
 func (svc *Service) CreateGuest(ctx virt.Context, opts virtypes.GuestCreateOption) (*types.Guest, error) {
-	var vols []*model.Volume
+	var vols []*models.Volume
 	for mnt, capacity := range opts.Volumes {
-		vol, err := model.NewDataVolume(mnt, capacity)
+		vol, err := models.NewDataVolume(mnt, capacity)
 		if err != nil {
 			return nil, errors.Trace(err)
 		}
@@ -186,16 +186,16 @@ func (svc *Service) CreateGuest(ctx virt.Context, opts virtypes.GuestCreateOptio
 	}
 
 	if opts.CPU == 0 {
-		opts.CPU = util.Min(svc.Host.CPU, config.Conf.MaxCPU)
+		opts.CPU = utils.Min(svc.Host.CPU, configs.Conf.MaxCPU)
 	}
 	if opts.Mem == 0 {
-		opts.Mem = util.MinInt64(svc.Host.Memory, config.Conf.MaxMemory)
+		opts.Mem = utils.MinInt64(svc.Host.Memory, configs.Conf.MaxMemory)
 	}
 
 	g, err := svc.guest.Create(ctx, opts, svc.Host, vols)
 	if err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 		return nil, err
 	}
 
@@ -207,10 +207,10 @@ func (svc *Service) CreateGuest(ctx virt.Context, opts virtypes.GuestCreateOptio
 }
 
 // CaptureGuest .
-func (svc *Service) CaptureGuest(ctx virt.Context, req types.CaptureGuestReq) (uimg *model.UserImage, err error) {
+func (svc *Service) CaptureGuest(ctx virt.Context, req types.CaptureGuestReq) (uimg *models.UserImage, err error) {
 	if uimg, err = svc.guest.Capture(ctx, req.VirtID(), req.User, req.Name, req.Overridden); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -219,7 +219,7 @@ func (svc *Service) CaptureGuest(ctx virt.Context, req types.CaptureGuestReq) (u
 func (svc *Service) ResizeGuest(ctx virt.Context, req types.ResizeGuestReq) (err error) {
 	if err = svc.guest.Resize(ctx, req.VirtID(), req.CPU, req.Mem, req.Volumes); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -237,7 +237,7 @@ func (svc *Service) ControlGuest(ctx virt.Context, id, operation string, force b
 
 	if err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 		return errors.Trace(err)
 	}
 
@@ -249,7 +249,7 @@ func (svc *Service) ListSnapshot(ctx virt.Context, req types.ListSnapshotReq) (s
 	volSnap, err := svc.guest.ListSnapshot(ctx, req.ID, req.VolID)
 	if err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 
 	for vol, s := range volSnap {
@@ -270,7 +270,7 @@ func (svc *Service) ListSnapshot(ctx virt.Context, req types.ListSnapshotReq) (s
 func (svc *Service) CreateSnapshot(ctx virt.Context, req types.CreateSnapshotReq) (err error) {
 	if err = svc.guest.CreateSnapshot(ctx, req.ID, req.VolID); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -279,7 +279,7 @@ func (svc *Service) CreateSnapshot(ctx virt.Context, req types.CreateSnapshotReq
 func (svc *Service) CommitSnapshot(ctx virt.Context, req types.CommitSnapshotReq) (err error) {
 	if err = svc.guest.CommitSnapshot(ctx, req.ID, req.VolID, req.SnapID); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -288,7 +288,7 @@ func (svc *Service) CommitSnapshot(ctx virt.Context, req types.CommitSnapshotReq
 func (svc *Service) CommitSnapshotByDay(ctx virt.Context, id, volID string, day int) (err error) {
 	if err = svc.guest.CommitSnapshotByDay(ctx, id, volID, day); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -297,7 +297,7 @@ func (svc *Service) CommitSnapshotByDay(ctx virt.Context, id, volID string, day 
 func (svc *Service) RestoreSnapshot(ctx virt.Context, req types.RestoreSnapshotReq) (err error) {
 	if err = svc.guest.RestoreSnapshot(ctx, req.ID, req.VolID, req.SnapID); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -306,7 +306,7 @@ func (svc *Service) RestoreSnapshot(ctx virt.Context, req types.RestoreSnapshotR
 func (svc *Service) ConnectNetwork(ctx virt.Context, id, network, ipv4 string) (cidr string, err error) {
 	if cidr, err = svc.guest.ConnectExtraNetwork(ctx, id, network, ipv4); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -315,7 +315,7 @@ func (svc *Service) ConnectNetwork(ctx virt.Context, id, network, ipv4 string) (
 func (svc *Service) DisconnectNetwork(ctx virt.Context, id, network string) (err error) {
 	if err = svc.guest.DisconnectExtraNetwork(ctx, id, network); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -337,7 +337,7 @@ func (svc *Service) NetworkList(ctx virt.Context, drivers []string) ([]*types.Ne
 			subnet, err := svc.caliHandler.GetIPPoolCidr(ctx.Context, poolName)
 			if err != nil {
 				log.ErrorStack(err)
-				metric.IncrError()
+				metrics.IncrError()
 				return nil, err
 			}
 
@@ -365,7 +365,7 @@ func (svc *Service) NetworkList(ctx virt.Context, drivers []string) ([]*types.Ne
 func (svc *Service) AttachGuest(ctx virt.Context, id string, stream io.ReadWriteCloser, flags virtypes.OpenConsoleFlags) (err error) {
 	if err = svc.guest.AttachConsole(ctx, id, stream, flags); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -374,7 +374,7 @@ func (svc *Service) AttachGuest(ctx virt.Context, id string, stream io.ReadWrite
 func (svc *Service) ResizeConsoleWindow(ctx virt.Context, id string, height, width uint) (err error) {
 	if err = svc.guest.ResizeConsoleWindow(ctx, id, height, width); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -384,7 +384,7 @@ func (svc *Service) ExecuteGuest(ctx virt.Context, id string, commands []string)
 	stdout, exitCode, pid, err := svc.guest.ExecuteCommand(ctx, id, commands)
 	if err != nil {
 		log.WarnStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	svc.pid2ExitCode.Put(id, pid, exitCode)
 	return &types.ExecuteGuestMessage{
@@ -399,7 +399,7 @@ func (svc *Service) ExecExitCode(id string, pid int) (int, error) {
 	exitCode, err := svc.pid2ExitCode.Get(id, pid)
 	if err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 		return 0, err
 	}
 	return exitCode, nil
@@ -409,7 +409,7 @@ func (svc *Service) ExecExitCode(id string, pid int) (int, error) {
 func (svc *Service) Cat(ctx virt.Context, id, path string, dest io.WriteCloser) (err error) {
 	if err = svc.guest.Cat(ctx, id, path, dest); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -418,7 +418,7 @@ func (svc *Service) Cat(ctx virt.Context, id, path string, dest io.WriteCloser) 
 func (svc *Service) CopyToGuest(ctx virt.Context, id, dest string, content chan []byte, override bool) (err error) {
 	if err = svc.guest.CopyToGuest(ctx, id, dest, content, override); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -427,7 +427,7 @@ func (svc *Service) CopyToGuest(ctx virt.Context, id, dest string, content chan 
 func (svc *Service) Log(ctx virt.Context, id, logPath string, n int, dest io.WriteCloser) (err error) {
 	if err = svc.guest.Log(ctx, id, logPath, n, dest); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -437,12 +437,12 @@ func (svc *Service) Wait(ctx virt.Context, id string, block bool) (msg string, c
 	err = svc.guest.Stop(ctx, id, !block)
 	if err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 		return "stop error", -1, err
 	}
 	if msg, code, err = svc.guest.Wait(ctx, id, block); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -455,7 +455,7 @@ func (svc *Service) PushImage(ctx virt.Context, imgName, user string) (err error
 func (svc *Service) RemoveImage(ctx virt.Context, imageName, user string, force, prune bool) (removed []string, err error) {
 	if removed, err = svc.guest.RemoveImage(ctx, imageName, user, force, prune); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }
@@ -464,7 +464,7 @@ func (svc *Service) ListImage(ctx virt.Context, filter string) ([]types.SysImage
 	imgs, err := svc.guest.ListImage(ctx, filter)
 	if err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 
 	images := []types.SysImage{}
@@ -489,7 +489,7 @@ func (svc *Service) PullImage(ctx virt.Context, imgName string, all bool) (msg s
 func (svc *Service) DigestImage(ctx virt.Context, imageName string, local bool) (digest []string, err error) {
 	if digest, err = svc.guest.DigestImage(ctx, imageName, local); err != nil {
 		log.ErrorStack(err)
-		metric.IncrError()
+		metrics.IncrError()
 	}
 	return
 }

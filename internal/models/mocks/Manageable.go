@@ -15,20 +15,20 @@ type Manageable struct {
 }
 
 // CreateGuest provides a mock function with given fields: opts, host, vols
-func (_m *Manageable) CreateGuest(opts types.GuestCreateOption, host *model.Host, vols []*model.Volume) (*model.Guest, error) {
+func (_m *Manageable) CreateGuest(opts types.GuestCreateOption, host *models.Host, vols []*models.Volume) (*models.Guest, error) {
 	ret := _m.Called(opts, host, vols)
 
-	var r0 *model.Guest
-	if rf, ok := ret.Get(0).(func(types.GuestCreateOption, *model.Host, []*model.Volume) *model.Guest); ok {
+	var r0 *models.Guest
+	if rf, ok := ret.Get(0).(func(types.GuestCreateOption, *models.Host, []*models.Volume) *models.Guest); ok {
 		r0 = rf(opts, host, vols)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Guest)
+			r0 = ret.Get(0).(*models.Guest)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(types.GuestCreateOption, *model.Host, []*model.Volume) error); ok {
+	if rf, ok := ret.Get(1).(func(types.GuestCreateOption, *models.Host, []*models.Volume) error); ok {
 		r1 = rf(opts, host, vols)
 	} else {
 		r1 = ret.Error(1)
@@ -38,15 +38,15 @@ func (_m *Manageable) CreateGuest(opts types.GuestCreateOption, host *model.Host
 }
 
 // GetAllGuests provides a mock function with given fields:
-func (_m *Manageable) GetAllGuests() ([]*model.Guest, error) {
+func (_m *Manageable) GetAllGuests() ([]*models.Guest, error) {
 	ret := _m.Called()
 
-	var r0 []*model.Guest
-	if rf, ok := ret.Get(0).(func() []*model.Guest); ok {
+	var r0 []*models.Guest
+	if rf, ok := ret.Get(0).(func() []*models.Guest); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Guest)
+			r0 = ret.Get(0).([]*models.Guest)
 		}
 	}
 
@@ -61,15 +61,15 @@ func (_m *Manageable) GetAllGuests() ([]*model.Guest, error) {
 }
 
 // GetNodeGuests provides a mock function with given fields: nodename
-func (_m *Manageable) GetNodeGuests(nodename string) ([]*model.Guest, error) {
+func (_m *Manageable) GetNodeGuests(nodename string) ([]*models.Guest, error) {
 	ret := _m.Called(nodename)
 
-	var r0 []*model.Guest
-	if rf, ok := ret.Get(0).(func(string) []*model.Guest); ok {
+	var r0 []*models.Guest
+	if rf, ok := ret.Get(0).(func(string) []*models.Guest); ok {
 		r0 = rf(nodename)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Guest)
+			r0 = ret.Get(0).([]*models.Guest)
 		}
 	}
 
@@ -84,15 +84,15 @@ func (_m *Manageable) GetNodeGuests(nodename string) ([]*model.Guest, error) {
 }
 
 // LoadGuest provides a mock function with given fields: id
-func (_m *Manageable) LoadGuest(id string) (*model.Guest, error) {
+func (_m *Manageable) LoadGuest(id string) (*models.Guest, error) {
 	ret := _m.Called(id)
 
-	var r0 *model.Guest
-	if rf, ok := ret.Get(0).(func(string) *model.Guest); ok {
+	var r0 *models.Guest
+	if rf, ok := ret.Get(0).(func(string) *models.Guest); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Guest)
+			r0 = ret.Get(0).(*models.Guest)
 		}
 	}
 
@@ -107,20 +107,20 @@ func (_m *Manageable) LoadGuest(id string) (*model.Guest, error) {
 }
 
 // NewGuest provides a mock function with given fields: host, img
-func (_m *Manageable) NewGuest(host *model.Host, img model.Image) (*model.Guest, error) {
+func (_m *Manageable) NewGuest(host *models.Host, img models.Image) (*models.Guest, error) {
 	ret := _m.Called(host, img)
 
-	var r0 *model.Guest
-	if rf, ok := ret.Get(0).(func(*model.Host, model.Image) *model.Guest); ok {
+	var r0 *models.Guest
+	if rf, ok := ret.Get(0).(func(*models.Host, models.Image) *models.Guest); ok {
 		r0 = rf(host, img)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Guest)
+			r0 = ret.Get(0).(*models.Guest)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Host, model.Image) error); ok {
+	if rf, ok := ret.Get(1).(func(*models.Host, models.Image) error); ok {
 		r1 = rf(host, img)
 	} else {
 		r1 = ret.Error(1)

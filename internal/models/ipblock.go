@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	"net"
@@ -24,7 +24,7 @@ func (bs *IPBlocks) Append(block ...*IPBlock) {
 type IPBlock struct {
 	*Generic
 
-	IPs *util.Bitmap32 `json:"ips"`
+	IPs *utils.Bitmap32 `json:"ips"`
 
 	ippool *IPPool
 	ipnet  *net.IPNet
@@ -38,7 +38,7 @@ func newIPBlock(ipp *IPPool, ipn *net.IPNet) *IPBlock {
 	}
 
 	block.Status = StatusRunning
-	block.IPs = util.NewBitmap32(block.ipCount())
+	block.IPs = utils.NewBitmap32(block.ipCount())
 
 	return block
 }
@@ -140,7 +140,7 @@ func (b *IPBlock) BlockIP() net.IP {
 
 // Marshal .
 func (b *IPBlock) Marshal() ([]byte, error) {
-	return util.JSONEncode(b)
+	return utils.JSONEncode(b)
 }
 
 // CIDR .
@@ -153,7 +153,7 @@ func (b *IPBlock) ipCount() int {
 }
 
 func (b *IPBlock) ipBits() int {
-	return util.Min(8, 32-b.MaskBits()) //nolint
+	return utils.Min(8, 32-b.MaskBits()) //nolint
 }
 
 // MaskBits .

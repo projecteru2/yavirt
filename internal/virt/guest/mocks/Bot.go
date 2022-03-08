@@ -11,7 +11,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/projecteru2/yavirt/internal/models"
+	models "github.com/projecteru2/yavirt/internal/models"
 
 	types "github.com/projecteru2/yavirt/internal/virt/types"
 
@@ -38,11 +38,11 @@ func (_m *Bot) AmplifyVolume(vol volume.Virt, cap int64, devPath string) error {
 }
 
 // AttachVolume provides a mock function with given fields: volmod, devName
-func (_m *Bot) AttachVolume(volmod *model.Volume, devName string) (func(), error) {
+func (_m *Bot) AttachVolume(volmod *models.Volume, devName string) (func(), error) {
 	ret := _m.Called(volmod, devName)
 
 	var r0 func()
-	if rf, ok := ret.Get(0).(func(*model.Volume, string) func()); ok {
+	if rf, ok := ret.Get(0).(func(*models.Volume, string) func()); ok {
 		r0 = rf(volmod, devName)
 	} else {
 		if ret.Get(0) != nil {
@@ -51,7 +51,7 @@ func (_m *Bot) AttachVolume(volmod *model.Volume, devName string) (func(), error
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Volume, string) error); ok {
+	if rf, ok := ret.Get(1).(func(*models.Volume, string) error); ok {
 		r1 = rf(volmod, devName)
 	} else {
 		r1 = ret.Error(1)
@@ -89,15 +89,15 @@ func (_m *Bot) Boot() error {
 }
 
 // Capture provides a mock function with given fields: user, name
-func (_m *Bot) Capture(user string, name string) (*model.UserImage, error) {
+func (_m *Bot) Capture(user string, name string) (*models.UserImage, error) {
 	ret := _m.Called(user, name)
 
-	var r0 *model.UserImage
-	if rf, ok := ret.Get(0).(func(string, string) *model.UserImage); ok {
+	var r0 *models.UserImage
+	if rf, ok := ret.Get(0).(func(string, string) *models.UserImage); ok {
 		r0 = rf(user, name)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.UserImage)
+			r0 = ret.Get(0).(*models.UserImage)
 		}
 	}
 
@@ -112,11 +112,11 @@ func (_m *Bot) Capture(user string, name string) (*model.UserImage, error) {
 }
 
 // CheckVolume provides a mock function with given fields: _a0
-func (_m *Bot) CheckVolume(_a0 *model.Volume) error {
+func (_m *Bot) CheckVolume(_a0 *models.Volume) error {
 	ret := _m.Called(_a0)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Volume) error); ok {
+	if rf, ok := ret.Get(0).(func(*models.Volume) error); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
@@ -140,11 +140,11 @@ func (_m *Bot) Close() error {
 }
 
 // CommitSnapshot provides a mock function with given fields: _a0, _a1
-func (_m *Bot) CommitSnapshot(_a0 *model.Volume, _a1 string) error {
+func (_m *Bot) CommitSnapshot(_a0 *models.Volume, _a1 string) error {
 	ret := _m.Called(_a0, _a1)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Volume, string) error); ok {
+	if rf, ok := ret.Get(0).(func(*models.Volume, string) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)
@@ -154,11 +154,11 @@ func (_m *Bot) CommitSnapshot(_a0 *model.Volume, _a1 string) error {
 }
 
 // CommitSnapshotByDay provides a mock function with given fields: _a0, _a1
-func (_m *Bot) CommitSnapshotByDay(_a0 *model.Volume, _a1 int) error {
+func (_m *Bot) CommitSnapshotByDay(_a0 *models.Volume, _a1 int) error {
 	ret := _m.Called(_a0, _a1)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Volume, int) error); ok {
+	if rf, ok := ret.Get(0).(func(*models.Volume, int) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)
@@ -182,11 +182,11 @@ func (_m *Bot) Create() error {
 }
 
 // CreateSnapshot provides a mock function with given fields: _a0
-func (_m *Bot) CreateSnapshot(_a0 *model.Volume) error {
+func (_m *Bot) CreateSnapshot(_a0 *models.Volume) error {
 	ret := _m.Called(_a0)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Volume) error); ok {
+	if rf, ok := ret.Get(0).(func(*models.Volume) error); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
@@ -384,11 +384,11 @@ func (_m *Bot) RemoveAll(_a0 context.Context, _a1 string) error {
 }
 
 // RepairVolume provides a mock function with given fields: _a0
-func (_m *Bot) RepairVolume(_a0 *model.Volume) error {
+func (_m *Bot) RepairVolume(_a0 *models.Volume) error {
 	ret := _m.Called(_a0)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Volume) error); ok {
+	if rf, ok := ret.Get(0).(func(*models.Volume) error); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
@@ -412,11 +412,11 @@ func (_m *Bot) Resize(cpu int, mem int64) error {
 }
 
 // RestoreSnapshot provides a mock function with given fields: _a0, _a1
-func (_m *Bot) RestoreSnapshot(_a0 *model.Volume, _a1 string) error {
+func (_m *Bot) RestoreSnapshot(_a0 *models.Volume, _a1 string) error {
 	ret := _m.Called(_a0, _a1)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Volume, string) error); ok {
+	if rf, ok := ret.Get(0).(func(*models.Volume, string) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)

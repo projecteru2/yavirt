@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	"context"
@@ -49,7 +49,7 @@ func LoadVolume(id string) (*Volume, error) {
 func NewDataVolume(mnt string, cap int64) (*Volume, error) {
 	mnt = strings.TrimSpace(mnt)
 
-	src, dest := util.PartRight(mnt, ":")
+	src, dest := utils.PartRight(mnt, ":")
 	src = strings.TrimSpace(src)
 	dest = filepath.Join("/", strings.TrimSpace(dest))
 
@@ -115,8 +115,8 @@ func (v *Volume) Amplify(cap int64) error {
 
 // AppendSnaps .
 func (v *Volume) AppendSnaps(snaps ...*Snapshot) error {
-	if v.Snaps.Len()+len(snaps) > config.Conf.MaxSnapshotsCount {
-		return errors.Annotatef(errors.ErrTooManyVolumes, "at most %d", config.Conf.MaxSnapshotsCount)
+	if v.Snaps.Len()+len(snaps) > configs.Conf.MaxSnapshotsCount {
+		return errors.Annotatef(errors.ErrTooManyVolumes, "at most %d", configs.Conf.MaxSnapshotsCount)
 	}
 
 	res := Snapshots(snaps)
@@ -187,7 +187,7 @@ func GetDevicePathByName(name string) string {
 
 // GetDeviceName .
 func GetDeviceName(sn int) string {
-	return fmt.Sprintf("vd%s", string(util.LowerLetters[sn]))
+	return fmt.Sprintf("vd%s", string(utils.LowerLetters[sn]))
 }
 
 func (v *Volume) GetMountDir() string {
@@ -221,7 +221,7 @@ func (v *Volume) Name() string {
 // Check .
 func (v *Volume) Check() error {
 	switch {
-	case v.Capacity < config.Conf.MinVolumeCap || v.Capacity > config.Conf.MaxVolumeCap:
+	case v.Capacity < configs.Conf.MinVolumeCap || v.Capacity > configs.Conf.MaxVolumeCap:
 		return errors.Annotatef(errors.ErrInvalidValue, "capacity: %d", v.Capacity)
 	case v.HostDir == "/":
 		return errors.Annotatef(errors.ErrInvalidValue, "host dir: %s", v.HostDir)

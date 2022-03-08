@@ -9,7 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	model "github.com/projecteru2/yavirt/internal/models"
+	models "github.com/projecteru2/yavirt/internal/models"
 
 	types "github.com/projecteru2/yavirt/internal/virt/types"
 
@@ -36,15 +36,15 @@ func (_m *Manageable) AttachConsole(ctx virt.Context, id string, stream io.ReadW
 }
 
 // Capture provides a mock function with given fields: ctx, guestID, user, name, overridden
-func (_m *Manageable) Capture(ctx virt.Context, guestID string, user string, name string, overridden bool) (*model.UserImage, error) {
+func (_m *Manageable) Capture(ctx virt.Context, guestID string, user string, name string, overridden bool) (*models.UserImage, error) {
 	ret := _m.Called(ctx, guestID, user, name, overridden)
 
-	var r0 *model.UserImage
-	if rf, ok := ret.Get(0).(func(virt.Context, string, string, string, bool) *model.UserImage); ok {
+	var r0 *models.UserImage
+	if rf, ok := ret.Get(0).(func(virt.Context, string, string, string, bool) *models.UserImage); ok {
 		r0 = rf(ctx, guestID, user, name, overridden)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.UserImage)
+			r0 = ret.Get(0).(*models.UserImage)
 		}
 	}
 
@@ -136,11 +136,11 @@ func (_m *Manageable) CopyToGuest(ctx virt.Context, id string, dest string, cont
 }
 
 // Create provides a mock function with given fields: ctx, opts, host, vols
-func (_m *Manageable) Create(ctx virt.Context, opts types.GuestCreateOption, host *model.Host, vols []*model.Volume) (*guest.Guest, error) {
+func (_m *Manageable) Create(ctx virt.Context, opts types.GuestCreateOption, host *models.Host, vols []*models.Volume) (*guest.Guest, error) {
 	ret := _m.Called(ctx, opts, host, vols)
 
 	var r0 *guest.Guest
-	if rf, ok := ret.Get(0).(func(virt.Context, types.GuestCreateOption, *model.Host, []*model.Volume) *guest.Guest); ok {
+	if rf, ok := ret.Get(0).(func(virt.Context, types.GuestCreateOption, *models.Host, []*models.Volume) *guest.Guest); ok {
 		r0 = rf(ctx, opts, host, vols)
 	} else {
 		if ret.Get(0) != nil {
@@ -149,7 +149,7 @@ func (_m *Manageable) Create(ctx virt.Context, opts types.GuestCreateOption, hos
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(virt.Context, types.GuestCreateOption, *model.Host, []*model.Volume) error); ok {
+	if rf, ok := ret.Get(1).(func(virt.Context, types.GuestCreateOption, *models.Host, []*models.Volume) error); ok {
 		r1 = rf(ctx, opts, host, vols)
 	} else {
 		r1 = ret.Error(1)
@@ -270,15 +270,15 @@ func (_m *Manageable) ExecuteCommand(ctx virt.Context, id string, commands []str
 }
 
 // ListImage provides a mock function with given fields: ctx, filter
-func (_m *Manageable) ListImage(ctx virt.Context, filter string) ([]model.Image, error) {
+func (_m *Manageable) ListImage(ctx virt.Context, filter string) ([]models.Image, error) {
 	ret := _m.Called(ctx, filter)
 
-	var r0 []model.Image
-	if rf, ok := ret.Get(0).(func(virt.Context, string) []model.Image); ok {
+	var r0 []models.Image
+	if rf, ok := ret.Get(0).(func(virt.Context, string) []models.Image); ok {
 		r0 = rf(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]model.Image)
+			r0 = ret.Get(0).([]models.Image)
 		}
 	}
 
@@ -293,15 +293,15 @@ func (_m *Manageable) ListImage(ctx virt.Context, filter string) ([]model.Image,
 }
 
 // ListSnapshot provides a mock function with given fields: ctx, guestID, volID
-func (_m *Manageable) ListSnapshot(ctx virt.Context, guestID string, volID string) (map[*model.Volume]model.Snapshots, error) {
+func (_m *Manageable) ListSnapshot(ctx virt.Context, guestID string, volID string) (map[*models.Volume]models.Snapshots, error) {
 	ret := _m.Called(ctx, guestID, volID)
 
-	var r0 map[*model.Volume]model.Snapshots
-	if rf, ok := ret.Get(0).(func(virt.Context, string, string) map[*model.Volume]model.Snapshots); ok {
+	var r0 map[*models.Volume]models.Snapshots
+	if rf, ok := ret.Get(0).(func(virt.Context, string, string) map[*models.Volume]models.Snapshots); ok {
 		r0 = rf(ctx, guestID, volID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[*model.Volume]model.Snapshots)
+			r0 = ret.Get(0).(map[*models.Volume]models.Snapshots)
 		}
 	}
 
@@ -366,41 +366,6 @@ func (_m *Manageable) Log(ctx virt.Context, id string, logPath string, n int, de
 	var r0 error
 	if rf, ok := ret.Get(0).(func(virt.Context, string, string, int, io.WriteCloser) error); ok {
 		r0 = rf(ctx, id, logPath, n, dest)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// PullImage provides a mock function with given fields: ctx, imgName, all
-func (_m *Manageable) PullImage(ctx virt.Context, imgName string, all bool) (string, error) {
-	ret := _m.Called(ctx, imgName, all)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(virt.Context, string, bool) string); ok {
-		r0 = rf(ctx, imgName, all)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(virt.Context, string, bool) error); ok {
-		r1 = rf(ctx, imgName, all)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// PushImage provides a mock function with given fields: ctx, imgName, user
-func (_m *Manageable) PushImage(ctx virt.Context, imgName string, user string) error {
-	ret := _m.Called(ctx, imgName, user)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(virt.Context, string, string) error); ok {
-		r0 = rf(ctx, imgName, user)
 	} else {
 		r0 = ret.Error(0)
 	}

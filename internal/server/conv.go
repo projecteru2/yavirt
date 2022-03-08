@@ -1,4 +1,4 @@
-package yavirtd
+package server
 
 import (
 	"strings"
@@ -9,7 +9,7 @@ import (
 	"github.com/projecteru2/yavirt/internal/models"
 )
 
-func convGuestResp(g *model.Guest) (resp *types.Guest) {
+func convGuestResp(g *models.Guest) (resp *types.Guest) {
 	resp = &types.Guest{}
 	resp.ID = types.EruID(g.ID)
 	resp.Status = g.Status

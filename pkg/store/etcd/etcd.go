@@ -21,7 +21,7 @@ type Etcd struct {
 
 // New .
 func New() (*Etcd, error) {
-	etcdcnf, err := config.Conf.NewEtcdConfig()
+	etcdcnf, err := configs.Conf.NewEtcdConfig()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -36,12 +36,12 @@ func New() (*Etcd, error) {
 
 // IncrUint32 .
 func (e *Etcd) IncrUint32(ctx context.Context, key string) (n uint32, err error) {
-	var mutex util.Locker
+	var mutex utils.Locker
 	if mutex, err = e.NewMutex(key); err != nil {
 		return
 	}
 
-	var unlock util.Unlocker
+	var unlock utils.Unlocker
 	if unlock, err = mutex.Lock(ctx); err != nil {
 		return
 	}
@@ -201,7 +201,7 @@ func (e *Etcd) Get(ctx context.Context, key string, obj interface{}, opts ...cli
 }
 
 // NewMutex .
-func (e *Etcd) NewMutex(key string) (util.Locker, error) {
+func (e *Etcd) NewMutex(key string) (utils.Locker, error) {
 	return NewMutex(e.cli, key)
 }
 

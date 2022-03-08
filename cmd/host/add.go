@@ -54,9 +54,9 @@ func add(c *cli.Context, runtime run.Runtime) error {
 		return errors.Errorf("--network is invalid: %s", network)
 	}
 
-	host := model.NewHost()
+	host := models.NewHost()
 	host.Name = hn
-	host.Type = model.HostVirtType
+	host.Type = models.HostVirtType
 	host.Subnet = subnet
 	host.CPU = cpu
 	host.Memory = mem

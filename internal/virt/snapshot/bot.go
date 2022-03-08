@@ -7,7 +7,7 @@ import (
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/models"
-	virtutil "github.com/projecteru2/yavirt/internal/virt/util"
+	virtutils "github.com/projecteru2/yavirt/internal/virt/utils"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/sh"
 	"github.com/projecteru2/yavirt/pkg/utils"
@@ -16,18 +16,18 @@ import (
 // Bot .
 type Bot interface {
 	Close() error
-	Create(vol *model.Volume) error
-	Commit(model.Snapshots) error
-	Restore(vol *model.Volume, chain model.Snapshots) error
+	Create(vol *models.Volume) error
+	Commit(models.Snapshots) error
+	Restore(vol *models.Volume, chain models.Snapshots) error
 	Delete() error
 	Upload(force bool) error
-	Download(*model.Snapshot) error
+	Download(*models.Snapshot) error
 	DeleteFromBackupStorage() error
 }
 
 type bot struct {
 	snap  *Snapshot
-	flock *util.Flock
+	flock *utils.Flock
 }
 
 func newVirtSnap(snap *Snapshot) (Bot, error) {
@@ -44,10 +44,10 @@ func newVirtSnap(snap *Snapshot) (Bot, error) {
 }
 
 // Create .
-func (v *bot) Create(vol *model.Volume) error {
+func (v *bot) Create(vol *models.Volume) error {
 	tempFilepath := getTemporaryFilepath(vol.Filepath())
 
-	if err := virtutil.CreateSnapshot(context.Background(), vol.Filepath(), tempFilepath); err != nil {
+	if err := virtutils.CreateSnapshot(context.Background(), vol.Filepath(), tempFilepath); err != nil {
 		return errors.Trace(err)
 	}
 
@@ -55,7 +55,7 @@ func (v *bot) Create(vol *model.Volume) error {
 		return errors.Trace(err)
 	}
 
-	if err := virtutil.RebaseImage(context.Background(), tempFilepath, v.snap.Filepath()); err != nil {
+	if err := virtutils.RebaseImage(context.Background(), tempFilepath, v.snap.Filepath()); err != nil {
 		return errors.Trace(err)
 	}
 
@@ -63,7 +63,7 @@ func (v *bot) Create(vol *model.Volume) error {
 }
 
 // Commit .
-func (v *bot) Commit(chain model.Snapshots) error {
+func (v *bot) Commit(chain models.Snapshots) error {
 
 	if chain.Len() == 1 {
 		return nil
@@ -71,7 +71,7 @@ func (v *bot) Commit(chain model.Snapshots) error {
 
 	for i := 0; i < chain.Len()-1; i++ {
 
-		if err := virtutil.CommitImage(context.Background(), chain[i].Filepath()); err != nil {
+		if err := virtutils.CommitImage(context.Background(), chain[i].Filepath()); err != nil {
 			return errors.Trace(err)
 		}
 
@@ -85,7 +85,7 @@ func (v *bot) Commit(chain model.Snapshots) error {
 }
 
 // Restore .
-func (v *bot) Restore(vol *model.Volume, chain model.Snapshots) error {
+func (v *bot) Restore(vol *models.Volume, chain models.Snapshots) error {
 
 	for i := 0; i < chain.Len(); i++ {
 		if err := sh.Copy(chain[i].Filepath(), getTemporaryFilepath(chain[i].Filepath())); err != nil {
@@ -95,7 +95,7 @@ func (v *bot) Restore(vol *model.Volume, chain model.Snapshots) error {
 
 	for i := 0; i < chain.Len()-1; i++ {
 
-		if err := virtutil.CommitImage(context.Background(), chain[i].Filepath()); err != nil {
+		if err := virtutils.CommitImage(context.Background(), chain[i].Filepath()); err != nil {
 			return errors.Trace(err)
 		}
 
@@ -130,7 +130,7 @@ func (v *bot) Upload(force bool) error {
 }
 
 // Download .
-func (v *bot) Download(snapmod *model.Snapshot) error {
+func (v *bot) Download(snapmod *models.Snapshot) error {
 	// TODO: implement
 	// Need to check whether file already exist
 	return nil
@@ -146,10 +146,10 @@ func getTemporaryFilepath(filepath string) string {
 	return filepath + ".temp"
 }
 
-func (v *bot) newFlock() *util.Flock {
+func (v *bot) newFlock() *utils.Flock {
 	fn := fmt.Sprintf("%s.flock", v.snap.ID)
-	fpth := filepath.Join(config.Conf.VirtFlockDir, fn)
-	return util.NewFlock(fpth)
+	fpth := filepath.Join(configs.Conf.VirtFlockDir, fn)
+	return utils.NewFlock(fpth)
 }
 
 func (v *bot) Close() error {

@@ -34,17 +34,16 @@ deps:
 	GO111MODULE=on go mod vendor
 
 mock: deps
-	mockery --dir api/image --output api/image/mocks --name PushPuller
-	mockery --dir libvirt --output libvirt/mocks --all
-	mockery --dir sh --output sh/mocks --name Shell
-	mockery --dir store --output store/mocks --name Store
-	mockery --dir util --output util/mocks --name Locker
-	mockery --dir virt/agent --output virt/agent/mocks --all
-	mockery --dir virt/domain --output virt/domain/mocks --name Domain
-	mockery --dir virt/guest/manager --output virt/guest/manager/mocks --name Manageable
-	mockery --dir virt/guest --output virt/guest/mocks --name Bot
-	mockery --dir virt/guestfs --output virt/guestfs/mocks --name Guestfs
-	mockery --dir virt/volume --output virt/volume/mocks --name Bot
+	mockery --dir pkg/libvirt --output pkg/libvirt/mocks --all
+	mockery --dir pkg/sh --output pkg/sh/mocks --name Shell
+	mockery --dir pkg/store --output pkg/store/mocks --name Store
+	mockery --dir pkg/utils --output pkg/utils/mocks --name Locker
+	mockery --dir internal/virt/agent --output internal/virt/agent/mocks --all
+	mockery --dir internal/virt/domain --output internal/virt/domain/mocks --name Domain
+	mockery --dir internal/virt/guest/manager --output internal/virt/guest/manager/mocks --name Manageable
+	mockery --dir internal/virt/guest --output internal/virt/guest/mocks --name Bot
+	mockery --dir internal/virt/guestfs --output internal/virt/guestfs/mocks --name Guestfs
+	mockery --dir internal/virt/volume --output internal/virt/volume/mocks --name Bot
 
 clean:
 	rm -fr bin/*

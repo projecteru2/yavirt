@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	"context"
@@ -21,7 +21,7 @@ type IPPool struct {
 	Name  string         `json:"name"`
 	Raw   string         `json:"raw"`
 	CIDR  string         `json:"cidr"`
-	Flags *util.Bitmap32 `json:"flags"`
+	Flags *utils.Bitmap32 `json:"flags"`
 
 	ipnet  *net.IPNet
 	blocks IPBlocks
@@ -76,14 +76,14 @@ func (ipp *IPPool) parse() (err error) {
 	}
 
 	ipp.CIDR = fmt.Sprintf("%s/%d", ipp.Subnet().String(), ipp.MaskBits())
-	ipp.Flags = util.NewBitmap32(ipp.blockCount())
+	ipp.Flags = utils.NewBitmap32(ipp.blockCount())
 
 	return
 }
 
 // Assign .
 func (ipp *IPPool) Assign() (ipn *net.IPNet, err error) {
-	var unlock util.Unlocker
+	var unlock utils.Unlocker
 	if unlock, err = ipp.Lock(context.Background()); err != nil {
 		return
 	}
@@ -138,7 +138,7 @@ func (ipp *IPPool) Release(ipn *net.IPNet) (err error) {
 		return errors.Annotatef(errors.ErrInvalidValue, "%s doesn't contain %s", ipp.Name, ipn)
 	}
 
-	var unlock util.Unlocker
+	var unlock utils.Unlocker
 	if unlock, err = ipp.Lock(context.Background()); err != nil {
 		return
 	}
@@ -168,7 +168,7 @@ func (ipp *IPPool) IsAssigned(ipn *net.IPNet) (assigned bool, err error) {
 		return false, errors.Annotatef(errors.ErrInvalidValue, "%s doesn't contain %s", ipp.Name, ipn)
 	}
 
-	var unlock util.Unlocker
+	var unlock utils.Unlocker
 	if unlock, err = ipp.Lock(context.Background()); err != nil {
 		return
 	}
@@ -284,7 +284,7 @@ func (ipp *IPPool) parseBlocksBytes(data map[string][]byte, vers map[string]int6
 		}
 
 		block := newIPBlock(ipp, ipn)
-		if err := util.JSONDecode(bytes, block); err != nil {
+		if err := utils.JSONDecode(bytes, block); err != nil {
 			return errors.Annotatef(err, "decode IPBlock bytes %s failed", bytes)
 		}
 
@@ -329,7 +329,7 @@ func (ipp *IPPool) checkBlocks(blocks IPBlocks) (err error) {
 }
 
 func (ipp *IPPool) parseBlockMetaKey(key string) (*net.IPNet, error) {
-	_, raw := util.PartRight(key, "/")
+	_, raw := utils.PartRight(key, "/")
 	return netx.ParseCIDR2(fmt.Sprintf("%s/%d", raw, ipp.MaskBits()))
 }
 
@@ -378,7 +378,7 @@ func (ipp *IPPool) save(block *IPBlock) error {
 
 // Marshal .
 func (ipp *IPPool) Marshal() ([]byte, error) {
-	return util.JSONEncode(ipp)
+	return utils.JSONEncode(ipp)
 }
 
 // Save .
@@ -407,7 +407,7 @@ func (ipp *IPPool) MaskBits() (ones int) {
 }
 
 // Lock .
-func (ipp *IPPool) Lock(ctx context.Context) (util.Unlocker, error) {
+func (ipp *IPPool) Lock(ctx context.Context) (utils.Unlocker, error) {
 	return store.Lock(ctx, meta.IPPoolLockKey(ipp.Name))
 }
 
@@ -446,5 +446,5 @@ func (ipp *IPPool) blockCount() int {
 
 func (ipp *IPPool) blockBits() int {
 	bits := MaxMaskBitsForBlocks - ipp.MaskBits() + 1
-	return util.Max(bits, 0)
+	return utils.Max(bits, 0)
 }

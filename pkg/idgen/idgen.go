@@ -12,7 +12,7 @@ import (
 type Generator struct {
 	prefix  uint32
 	suffix  uint64
-	counter util.AtomicInt64
+	counter utils.AtomicInt64
 }
 
 // New .

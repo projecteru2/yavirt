@@ -63,5 +63,5 @@ func Save(res Resources) error {
 
 // Context .
 func Context(ctx context.Context) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(ctx, config.Conf.MetaTimeout.Duration())
+	return context.WithTimeout(ctx, configs.Conf.MetaTimeout.Duration())
 }

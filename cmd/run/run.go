@@ -33,7 +33,7 @@ type Runner func(*cli.Context, Runtime) error
 type Runtime struct {
 	ConfigFiles   []string
 	SkipSetupHost bool
-	Host          *model.Host
+	Host          *models.Host
 	Device        *device.Driver
 	CalicoDriver  *calinet.Driver
 	CalicoHandler *calihandler.Handler
@@ -75,7 +75,7 @@ func Run(fn Runner) cli.ActionFunc {
 
 func setup() error {
 	if len(runtime.ConfigFiles) > 0 {
-		if err := config.Conf.Load(runtime.ConfigFiles); err != nil {
+		if err := configs.Conf.Load(runtime.ConfigFiles); err != nil {
 			return errors.Trace(err)
 		}
 	}
@@ -104,12 +104,12 @@ func setup() error {
 }
 
 func setupHost() error {
-	hn, err := util.Hostname()
+	hn, err := utils.Hostname()
 	if err != nil {
 		return errors.Trace(err)
 	}
 
-	if runtime.Host, err = model.LoadHost(hn); err != nil {
+	if runtime.Host, err = models.LoadHost(hn); err != nil {
 		return errors.Annotatef(err, "invalid hostname %s", hn)
 	}
 
@@ -118,7 +118,7 @@ func setupHost() error {
 
 func setupCalico() (err error) {
 	if endps := os.Getenv("ETCD_ENDPOINTS"); len(endps) < 1 {
-		if err = os.Setenv("ETCD_ENDPOINTS", strings.Join(config.Conf.EtcdEndpoints, ",")); err != nil {
+		if err = os.Setenv("ETCD_ENDPOINTS", strings.Join(configs.Conf.EtcdEndpoints, ",")); err != nil {
 			return
 		}
 	}
@@ -127,17 +127,17 @@ func setupCalico() (err error) {
 		return
 	}
 
-	if runtime.CalicoDriver, err = calico.NewDriver(config.Conf.CalicoConfigFile, config.Conf.CalicoPoolNames); err != nil {
+	if runtime.CalicoDriver, err = calico.NewDriver(configs.Conf.CalicoConfigFile, configs.Conf.CalicoPoolNames); err != nil {
 		return
 	}
 
 	var outboundIP string
-	if outboundIP, err = netx.GetOutboundIP(config.Conf.CoreAddr); err != nil {
+	if outboundIP, err = netx.GetOutboundIP(configs.Conf.CoreAddr); err != nil {
 		return
 	}
 
-	runtime.CalicoHandler = calihandler.New(runtime.Device, runtime.CalicoDriver, config.Conf.CalicoPoolNames, outboundIP)
-	err = runtime.CalicoHandler.InitGateway(config.Conf.CalicoGatewayName)
+	runtime.CalicoHandler = calihandler.New(runtime.Device, runtime.CalicoDriver, configs.Conf.CalicoPoolNames, outboundIP)
+	err = runtime.CalicoHandler.InitGateway(configs.Conf.CalicoGatewayName)
 
 	return
 }

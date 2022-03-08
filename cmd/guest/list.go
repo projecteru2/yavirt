@@ -25,18 +25,18 @@ func list(c *cli.Context, runtime run.Runtime) error {
 	all := c.Bool("all")
 
 	var err error
-	var guests []*model.Guest
+	var guests []*models.Guest
 	if all {
-		guests, err = model.GetAllGuests()
+		guests, err = models.GetAllGuests()
 	} else {
 		nodename := c.String("node")
 		if len(nodename) < 1 {
-			nodename, err = util.Hostname()
+			nodename, err = utils.Hostname()
 			if err != nil {
 				return err
 			}
 		}
-		guests, err = model.GetNodeGuests(nodename)
+		guests, err = models.GetNodeGuests(nodename)
 	}
 	if err != nil {
 		return err

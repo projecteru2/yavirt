@@ -13,15 +13,15 @@ import (
 
 // HTTPServer .
 type HTTPServer struct {
-	*yavirtd.ServerBase
+	*server.ServerBase
 
 	httpServer *http.Server
 }
 
 // Listen .
-func Listen(svc *yavirtd.Service) (srv *HTTPServer, err error) {
+func Listen(svc *server.Service) (srv *HTTPServer, err error) {
 	srv = &HTTPServer{}
-	if srv.ServerBase, err = yavirtd.Listen(config.Conf.BindHTTPAddr, svc); err != nil {
+	if srv.ServerBase, err = server.Listen(configs.Conf.BindHTTPAddr, svc); err != nil {
 		return
 	}
 
@@ -32,7 +32,7 @@ func Listen(svc *yavirtd.Service) (srv *HTTPServer, err error) {
 
 func (s *HTTPServer) newHTTPServer() *http.Server {
 	var mux = http.NewServeMux()
-	mux.Handle("/metrics", metric.Handler())
+	mux.Handle("/metrics", metrics.Handler())
 	mux.Handle("/", newAPIHandler(s.Service))
 	return &http.Server{Handler: mux}
 }
@@ -74,11 +74,11 @@ func (s *HTTPServer) Close() {
 		defer func() {
 			if err != nil {
 				log.ErrorStack(err)
-				metric.IncrError()
+				metrics.IncrError()
 			}
 		}()
 
-		var ctx, cancel = context.WithTimeout(context.Background(), config.Conf.GracefulTimeout.Duration())
+		var ctx, cancel = context.WithTimeout(context.Background(), configs.Conf.GracefulTimeout.Duration())
 		defer cancel()
 
 		if err = s.httpServer.Shutdown(ctx); err != nil {

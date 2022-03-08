@@ -27,11 +27,11 @@ func (_m *Bot) Close() error {
 }
 
 // Commit provides a mock function with given fields: _a0
-func (_m *Bot) Commit(_a0 model.Snapshots) error {
+func (_m *Bot) Commit(_a0 models.Snapshots) error {
 	ret := _m.Called(_a0)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(model.Snapshots) error); ok {
+	if rf, ok := ret.Get(0).(func(models.Snapshots) error); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
@@ -41,11 +41,11 @@ func (_m *Bot) Commit(_a0 model.Snapshots) error {
 }
 
 // Create provides a mock function with given fields: vol
-func (_m *Bot) Create(vol *model.Volume) error {
+func (_m *Bot) Create(vol *models.Volume) error {
 	ret := _m.Called(vol)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Volume) error); ok {
+	if rf, ok := ret.Get(0).(func(*models.Volume) error); ok {
 		r0 = rf(vol)
 	} else {
 		r0 = ret.Error(0)
@@ -83,11 +83,11 @@ func (_m *Bot) DeleteFromBackupStorage() error {
 }
 
 // Download provides a mock function with given fields: _a0
-func (_m *Bot) Download(_a0 *model.Snapshot) error {
+func (_m *Bot) Download(_a0 *models.Snapshot) error {
 	ret := _m.Called(_a0)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Snapshot) error); ok {
+	if rf, ok := ret.Get(0).(func(*models.Snapshot) error); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
@@ -97,11 +97,11 @@ func (_m *Bot) Download(_a0 *model.Snapshot) error {
 }
 
 // Restore provides a mock function with given fields: vol, chain
-func (_m *Bot) Restore(vol *model.Volume, chain model.Snapshots) error {
+func (_m *Bot) Restore(vol *models.Volume, chain models.Snapshots) error {
 	ret := _m.Called(vol, chain)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Volume, model.Snapshots) error); ok {
+	if rf, ok := ret.Get(0).(func(*models.Volume, models.Snapshots) error); ok {
 		r0 = rf(vol, chain)
 	} else {
 		r0 = ret.Error(0)

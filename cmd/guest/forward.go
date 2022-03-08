@@ -21,7 +21,7 @@ func forwardFlags() []cli.Flag {
 
 func forward(c *cli.Context, runtime run.Runtime) error {
 	validStatus := func(st string) error {
-		for _, status := range model.AllStatuses {
+		for _, status := range models.AllStatuses {
 			if st == status {
 				return nil
 			}

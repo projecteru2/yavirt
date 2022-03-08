@@ -18,7 +18,7 @@ import (
 
 // GRPCYavirtd .
 type GRPCYavirtd struct {
-	service *yavirtd.Service
+	service *server.Service
 	pb.UnimplementedYavirtdRPCServer
 }
 

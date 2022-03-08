@@ -17,7 +17,7 @@ func (g *Guest) logRunning(ctx context.Context, bot Bot, n int, logPath string, 
 	defer src.Close()
 
 	if n < 0 { // read all
-		_, err = util.CopyIO(ctx, dest, src)
+		_, err = utils.CopyIO(ctx, dest, src)
 		return err
 	}
 

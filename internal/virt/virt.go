@@ -11,7 +11,7 @@ import (
 
 // Cleanup cleans flocks up.
 func Cleanup() error {
-	files, err := ioutil.ReadDir(config.Conf.VirtFlockDir)
+	files, err := ioutil.ReadDir(configs.Conf.VirtFlockDir)
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -20,7 +20,7 @@ func Cleanup() error {
 		if f.IsDir() {
 			continue
 		}
-		if err := os.Remove(filepath.Join(config.Conf.VirtFlockDir, f.Name())); err != nil {
+		if err := os.Remove(filepath.Join(configs.Conf.VirtFlockDir, f.Name())); err != nil {
 			return errors.Trace(err)
 		}
 	}

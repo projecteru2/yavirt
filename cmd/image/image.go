@@ -96,7 +96,7 @@ func digestFlags() []cli.Flag {
 }
 
 func list(c *cli.Context, runtime run.Runtime) error {
-	imgs, err := model.ListImages(c.String("user"))
+	imgs, err := models.ListImages(c.String("user"))
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -114,7 +114,7 @@ func get(c *cli.Context, runtime run.Runtime) error {
 		return errors.New("image name is required")
 	}
 
-	img, err := model.LoadImage(name, c.String("user"))
+	img, err := models.LoadImage(name, c.String("user"))
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -136,7 +136,7 @@ func add(c *cli.Context, runtime run.Runtime) error {
 		return errors.New("--size is required")
 	}
 
-	img := model.NewSysImage()
+	img := models.NewSysImage()
 	img.Name = name
 	img.Size = size
 
@@ -163,7 +163,7 @@ func rm(c *cli.Context, runtime run.Runtime) error {
 	}
 
 	user := c.String("user")
-	img, err := model.LoadImage(name, user)
+	img, err := models.LoadImage(name, user)
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -188,7 +188,7 @@ func digest(c *cli.Context, runtime run.Runtime) error {
 		return nil
 	}
 
-	img, err := model.LoadSysImage(name)
+	img, err := models.LoadSysImage(name)
 	if err != nil {
 		return errors.Trace(err)
 	}

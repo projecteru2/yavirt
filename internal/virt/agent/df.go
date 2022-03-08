@@ -26,7 +26,7 @@ func (a *Agent) GetDiskfree(ctx context.Context, mnt string) (*types.Diskfree, e
 
 func (a *Agent) parseDiskfree(so string) (*types.Diskfree, error) {
 	so = strings.Trim(so, " \n")
-	_, line := util.PartRight(so, "\n")
+	_, line := utils.PartRight(so, "\n")
 
 	fields := dfRegex.FindStringSubmatch(line)
 	if len(fields) != 7 { //nolint
@@ -38,9 +38,9 @@ func (a *Agent) parseDiskfree(so string) (*types.Diskfree, error) {
 		Filesystem: fields[1],
 		Mount:      fields[6],
 	}
-	df.Blocks, _ = util.Atoi64(fields[2])
-	df.UsedBlocks, _ = util.Atoi64(fields[3])
-	df.AvailableBlocks, _ = util.Atoi64(fields[4])
+	df.Blocks, _ = utils.Atoi64(fields[2])
+	df.UsedBlocks, _ = utils.Atoi64(fields[3])
+	df.AvailableBlocks, _ = utils.Atoi64(fields[4])
 	df.UsedPercent, _ = strconv.Atoi(fields[5])
 
 	return df, nil

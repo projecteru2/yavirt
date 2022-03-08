@@ -26,7 +26,7 @@ func createFlags() []cli.Flag {
 		},
 		&cli.Int64Flag{
 			Name:  "memory",
-			Value: util.GB,
+			Value: utils.GB,
 		},
 		&cli.StringFlag{
 			Name:  "storage",
@@ -92,22 +92,22 @@ func create(c *cli.Context, runtime run.Runtime) error {
 	return nil
 }
 
-func getVols(mounts string) ([]*model.Volume, error) {
+func getVols(mounts string) ([]*models.Volume, error) {
 	if len(mounts) < 1 {
 		return nil, nil
 	}
 
-	var vols = []*model.Volume{}
+	var vols = []*models.Volume{}
 
 	for _, raw := range strings.Split(mounts, ",") {
-		mnt, rawCap := util.PartRight(raw, ":")
+		mnt, rawCap := utils.PartRight(raw, ":")
 
-		volCap, err := util.Atoi64(rawCap)
+		volCap, err := utils.Atoi64(rawCap)
 		if err != nil {
 			return nil, errors.Trace(err)
 		}
 
-		vol, err := model.NewDataVolume(mnt, volCap)
+		vol, err := models.NewDataVolume(mnt, volCap)
 		if err != nil {
 			return nil, errors.Trace(err)
 		}

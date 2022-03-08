@@ -1,4 +1,4 @@
-package util
+package utils
 
 import (
 	"github.com/projecteru2/yavirt/pkg/errors"

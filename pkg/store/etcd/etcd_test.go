@@ -24,7 +24,7 @@ func TestRealEtcdBacthOperate(t *testing.T) {
 		return
 	}
 
-	config.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
+	configs.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
 	etcd, err := New()
 	assert.NilErr(t, err)
 
@@ -49,7 +49,7 @@ func TestRealEtcdIncrUint32(t *testing.T) {
 		return
 	}
 
-	config.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
+	configs.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
 	etcd, err := New()
 	assert.NilErr(t, err)
 
@@ -91,14 +91,14 @@ func TestRealEtcdCreateSerialization(t *testing.T) {
 		return
 	}
 
-	config.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
+	configs.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
 	var etcd, err = New()
 	assert.NilErr(t, err)
 
 	var wg sync.WaitGroup
 	var key = fmt.Sprintf("/yavirt-dev/v1/hosts/%d", time.Now().UnixNano())
 	var okThread = -1
-	var okCount util.AtomicInt64
+	var okCount utils.AtomicInt64
 
 	for i := 0; i < 3; i++ {
 		wg.Add(1)
@@ -133,7 +133,7 @@ func TestRealEtcdUpdateSerialization(t *testing.T) {
 		return
 	}
 
-	config.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
+	configs.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
 	var etcd, err = New()
 	assert.NilErr(t, err)
 
@@ -144,7 +144,7 @@ func TestRealEtcdUpdateSerialization(t *testing.T) {
 	var wg sync.WaitGroup
 	var vers = map[string]int64{key: 1}
 	var okThread = -1
-	var okCount util.AtomicInt64
+	var okCount utils.AtomicInt64
 
 	for i := 0; i < 5; i++ {
 		wg.Add(1)

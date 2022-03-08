@@ -20,7 +20,7 @@ import (
 
 // Guest .
 type Guest struct {
-	*model.Guest
+	*models.Guest
 
 	ctx virt.Context
 
@@ -28,7 +28,7 @@ type Guest struct {
 }
 
 // New initializes a new Guest.
-func New(ctx virt.Context, g *model.Guest) *Guest {
+func New(ctx virt.Context, g *models.Guest) *Guest {
 	return &Guest{
 		Guest:  g,
 		ctx:    ctx,
@@ -38,7 +38,7 @@ func New(ctx virt.Context, g *model.Guest) *Guest {
 
 // Load .
 func (g *Guest) Load() error {
-	host, err := model.LoadHost(g.HostName)
+	host, err := models.LoadHost(g.HostName)
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -58,18 +58,18 @@ func (g *Guest) Load() error {
 // SyncState .
 func (g *Guest) SyncState() error {
 	switch g.Status {
-	case model.StatusDestroying:
+	case models.StatusDestroying:
 		return g.ProcessDestroy()
 
-	case model.StatusStopping:
+	case models.StatusStopping:
 		return g.stop(true)
 
-	case model.StatusRunning:
+	case models.StatusRunning:
 		fallthrough
-	case model.StatusStarting:
+	case models.StatusStarting:
 		return g.start()
 
-	case model.StatusCreating:
+	case models.StatusCreating:
 		return g.create()
 
 	default:
@@ -80,7 +80,7 @@ func (g *Guest) SyncState() error {
 
 // Start .
 func (g *Guest) Start() error {
-	return util.Invoke([]func() error{
+	return utils.Invoke([]func() error{
 		g.ForwardStarting,
 		g.start,
 	})
@@ -95,7 +95,7 @@ func (g *Guest) start() error {
 			return nil
 		}
 
-		return util.Invoke([]func() error{
+		return utils.Invoke([]func() error{
 			bot.Boot,
 			g.joinEthernet,
 			g.ForwardRunning,
@@ -107,7 +107,7 @@ func (g *Guest) start() error {
 func (g *Guest) Resize(cpu int, mem int64, mntCaps map[string]int64) error {
 	// Only checking, without touch metadata
 	// due to we wanna keep further booting successfully all the time.
-	if !g.CheckForwardStatus(model.StatusResizing) {
+	if !g.CheckForwardStatus(models.StatusResizing) {
 		return errors.Annotatef(errors.ErrForwardStatus, "only stopped/running guest can be resized, but it's %s", g.Status)
 	}
 
@@ -132,9 +132,9 @@ func (g *Guest) Resize(cpu int, mem int64, mntCaps map[string]int64) error {
 }
 
 func (g *Guest) amplifyOrigVols(mntCaps map[string]int64) error {
-	newCapMods := map[string]*model.Volume{}
+	newCapMods := map[string]*models.Volume{}
 	for mnt, cap := range mntCaps {
-		mod, err := model.NewDataVolume(mnt, cap)
+		mod, err := models.NewDataVolume(mnt, cap)
 		if err != nil {
 			return errors.Trace(err)
 		}
@@ -168,7 +168,7 @@ func (g *Guest) amplifyOrigVols(mntCaps map[string]int64) error {
 
 func (g *Guest) attachVols(mntCaps map[string]int64) error {
 	for mnt, cap := range mntCaps {
-		volmod, err := model.NewDataVolume(mnt, cap)
+		volmod, err := models.NewDataVolume(mnt, cap)
 		switch {
 		case err != nil:
 			return errors.Trace(err)
@@ -187,7 +187,7 @@ func (g *Guest) attachVols(mntCaps map[string]int64) error {
 	return nil
 }
 
-func (g *Guest) attachVol(volmod *model.Volume) (err error) {
+func (g *Guest) attachVol(volmod *models.Volume) (err error) {
 	devName := g.nextVolumeName()
 
 	if err = g.AppendVols(volmod); err != nil {
@@ -225,8 +225,8 @@ func (g *Guest) resizeSpec(cpu int, mem int64) error {
 }
 
 // ListSnapshot If volID == "", list snapshots of all vols. Else will find vol with matching volID.
-func (g *Guest) ListSnapshot(volID string) (map[*model.Volume]model.Snapshots, error) {
-	volSnap := make(map[*model.Volume]model.Snapshots)
+func (g *Guest) ListSnapshot(volID string) (map[*models.Volume]models.Snapshots, error) {
+	volSnap := make(map[*models.Volume]models.Snapshots)
 
 	matched := false
 	for _, v := range g.Vols {
@@ -245,7 +245,7 @@ func (g *Guest) ListSnapshot(volID string) (map[*model.Volume]model.Snapshots, e
 
 // CheckVolume .
 func (g *Guest) CheckVolume(volID string) error {
-	if g.Status != model.StatusStopped && g.Status != model.StatusPaused {
+	if g.Status != models.StatusStopped && g.Status != models.StatusPaused {
 		return errors.Annotatef(errors.ErrForwardStatus,
 			"only paused/stopped guest can be perform volume check, but it's %s", g.Status)
 	}
@@ -266,7 +266,7 @@ func (g *Guest) CheckVolume(volID string) error {
 
 // RepairVolume .
 func (g *Guest) RepairVolume(volID string) error {
-	if g.Status != model.StatusStopped {
+	if g.Status != models.StatusStopped {
 		return errors.Annotatef(errors.ErrForwardStatus,
 			"only stopped guest can be perform volume check, but it's %s", g.Status)
 	}
@@ -287,7 +287,7 @@ func (g *Guest) RepairVolume(volID string) error {
 
 // CreateSnapshot .
 func (g *Guest) CreateSnapshot(volID string) error {
-	if g.Status != model.StatusStopped && g.Status != model.StatusPaused {
+	if g.Status != models.StatusStopped && g.Status != models.StatusPaused {
 		return errors.Annotatef(errors.ErrForwardStatus,
 			"only paused/stopped guest can be perform snapshot operation, but it's %s", g.Status)
 	}
@@ -308,7 +308,7 @@ func (g *Guest) CreateSnapshot(volID string) error {
 
 // CommitSnapshot .
 func (g *Guest) CommitSnapshot(volID string, snapID string) error {
-	if g.Status != model.StatusStopped {
+	if g.Status != models.StatusStopped {
 		return errors.Annotatef(errors.ErrForwardStatus,
 			"only stopped guest can be perform snapshot operation, but it's %s", g.Status)
 	}
@@ -329,7 +329,7 @@ func (g *Guest) CommitSnapshot(volID string, snapID string) error {
 
 // CommitSnapshot .
 func (g *Guest) CommitSnapshotByDay(volID string, day int) error {
-	if g.Status != model.StatusStopped {
+	if g.Status != models.StatusStopped {
 		return errors.Annotatef(errors.ErrForwardStatus,
 			"only stopped guest can be perform snapshot operation, but it's %s", g.Status)
 	}
@@ -350,7 +350,7 @@ func (g *Guest) CommitSnapshotByDay(volID string, day int) error {
 
 // RestoreSnapshot .
 func (g *Guest) RestoreSnapshot(volID string, snapID string) error {
-	if g.Status != model.StatusStopped {
+	if g.Status != models.StatusStopped {
 		return errors.Annotatef(errors.ErrForwardStatus,
 			"only stopped guest can be perform snapshot operation, but it's %s", g.Status)
 	}
@@ -370,10 +370,10 @@ func (g *Guest) RestoreSnapshot(volID string, snapID string) error {
 }
 
 // Capture .
-func (g *Guest) Capture(user, name string, overridden bool) (uimg *model.UserImage, err error) {
-	var orig *model.UserImage
+func (g *Guest) Capture(user, name string, overridden bool) (uimg *models.UserImage, err error) {
+	var orig *models.UserImage
 	if overridden {
-		if orig, err = model.LoadUserImage(user, name); err != nil {
+		if orig, err = models.LoadUserImage(user, name); err != nil {
 			return
 		}
 	}
@@ -409,7 +409,7 @@ func (g *Guest) Capture(user, name string, overridden bool) (uimg *model.UserIma
 
 // Migrate .
 func (g *Guest) Migrate() error {
-	return util.Invoke([]func() error{
+	return utils.Invoke([]func() error{
 		g.ForwardMigrating,
 		g.migrate,
 	})
@@ -423,7 +423,7 @@ func (g *Guest) migrate() error {
 
 // Create .
 func (g *Guest) Create() error {
-	return util.Invoke([]func() error{
+	return utils.Invoke([]func() error{
 		g.ForwardCreating,
 		g.create,
 	})
@@ -431,7 +431,7 @@ func (g *Guest) Create() error {
 
 func (g *Guest) create() error {
 	return g.botOperate(func(bot Bot) error {
-		return util.Invoke([]func() error{
+		return utils.Invoke([]func() error{
 			bot.Create,
 		})
 	})
@@ -456,7 +456,7 @@ func (g *Guest) stop(force bool) error {
 
 // Suspend .
 func (g *Guest) Suspend() error {
-	return util.Invoke([]func() error{
+	return utils.Invoke([]func() error{
 		g.ForwardPausing,
 		g.suspend,
 	})
@@ -464,7 +464,7 @@ func (g *Guest) Suspend() error {
 
 func (g *Guest) suspend() error {
 	return g.botOperate(func(bot Bot) error {
-		return util.Invoke([]func() error{
+		return utils.Invoke([]func() error{
 			bot.Suspend,
 			g.ForwardPaused,
 		})
@@ -473,7 +473,7 @@ func (g *Guest) suspend() error {
 
 // Resume .
 func (g *Guest) Resume() error {
-	return util.Invoke([]func() error{
+	return utils.Invoke([]func() error{
 		g.ForwardResuming,
 		g.resume,
 	})
@@ -481,7 +481,7 @@ func (g *Guest) Resume() error {
 
 func (g *Guest) resume() error {
 	return g.botOperate(func(bot Bot) error {
-		return util.Invoke([]func() error{
+		return utils.Invoke([]func() error{
 			bot.Resume,
 			g.ForwardRunning,
 		})
@@ -658,7 +658,7 @@ func (g *Guest) AttachConsole(ctx context.Context, serverStream io.ReadWriteClos
 				wg.Done()
 				log.Infof("[guest.AttachConsole] copy console stream goroutine exited")
 			}()
-			util.CopyIO(ctx, serverStream, epollConsole) //nolint
+			utils.CopyIO(ctx, serverStream, epollConsole) //nolint
 		}()
 
 		// user -> pty
@@ -673,7 +673,7 @@ func (g *Guest) AttachConsole(ctx context.Context, serverStream io.ReadWriteClos
 				wg.Done()
 				log.Infof("[guest.AttachConsole] copy server stream goroutine exited")
 			}()
-			util.CopyIO(ctx, epollConsole, serverStream) //nolint
+			utils.CopyIO(ctx, epollConsole, serverStream) //nolint
 		}()
 
 		// close MPSC chan
@@ -725,7 +725,7 @@ func (g *Guest) Cat(ctx context.Context, path string, dest io.WriteCloser) error
 
 		defer src.Close()
 
-		_, err = util.CopyIO(ctx, dest, src)
+		_, err = utils.CopyIO(ctx, dest, src)
 
 		return err
 	})
@@ -738,9 +738,9 @@ func (g *Guest) Log(ctx context.Context, n int, logPath string, dest io.WriteClo
 			return nil
 		}
 		switch g.Status {
-		case model.StatusRunning:
+		case models.StatusRunning:
 			return g.logRunning(ctx, bot, n, logPath, dest)
-		case model.StatusStopped:
+		case models.StatusStopped:
 			gfx, err := g.getGfx(logPath)
 			if err != nil {
 				return err
@@ -757,11 +757,11 @@ func (g *Guest) Log(ctx context.Context, n int, logPath string, dest io.WriteClo
 func (g *Guest) CopyToGuest(ctx context.Context, dest string, content chan []byte, overrideFolder bool) error {
 	return g.botOperate(func(bot Bot) error {
 		switch g.Status {
-		case model.StatusRunning:
+		case models.StatusRunning:
 			return g.copyToGuestRunning(ctx, dest, content, bot, overrideFolder)
-		case model.StatusStopped:
+		case models.StatusStopped:
 			fallthrough
-		case model.StatusCreating:
+		case models.StatusCreating:
 			gfx, err := g.getGfx(dest)
 			if err != nil {
 				return errors.Trace(err)
@@ -792,5 +792,5 @@ func (g *Guest) ExecuteCommand(ctx context.Context, commands []string) (output [
 
 // nextVolumeName .
 func (g *Guest) nextVolumeName() string {
-	return model.GetDeviceName(g.Vols.Len())
+	return models.GetDeviceName(g.Vols.Len())
 }

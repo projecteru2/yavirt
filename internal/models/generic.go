@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	"path/filepath"
@@ -30,7 +30,7 @@ func newGeneric() *Generic {
 
 // JoinVirtPath .
 func (g *Generic) JoinVirtPath(elem string) string {
-	return filepath.Join(config.Conf.VirtDir, elem)
+	return filepath.Join(configs.Conf.VirtDir, elem)
 }
 
 func (g *Generic) setStatus(st string, force bool) error {

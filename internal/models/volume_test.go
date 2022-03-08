@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 func TestDataVolume(t *testing.T) {
 	fn := fmt.Sprintf("%s-id.vol", VolDataType)
-	defaultFilepath := filepath.Join(config.Conf.VirtDir, fn)
+	defaultFilepath := filepath.Join(configs.Conf.VirtDir, fn)
 	mntFilepath := filepath.Join("/mnt", fn)
 
 	cases := []struct {
@@ -34,7 +34,7 @@ func TestDataVolume(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		vol, err := NewDataVolume(c.in, config.Conf.MinVolumeCap)
+		vol, err := NewDataVolume(c.in, configs.Conf.MinVolumeCap)
 		assert.NilErr(t, err)
 
 		vol.ID = "id"

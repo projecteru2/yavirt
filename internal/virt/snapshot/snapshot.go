@@ -7,22 +7,22 @@ import (
 
 // Interface .
 type Interface interface {
-	Create(vol *model.Volume) error
-	Commit(snaps model.Snapshots) (model.Snapshots, error)
+	Create(vol *models.Volume) error
+	Commit(snaps models.Snapshots) (models.Snapshots, error)
 	Delete() error
-	Restore(vol *model.Volume, snaps model.Snapshots) error
+	Restore(vol *models.Volume, snaps models.Snapshots) error
 	Upload(force bool) error
-	Download(*model.Snapshot) error
+	Download(*models.Snapshot) error
 }
 
 // Snapshot .
 type Snapshot struct {
-	*model.Snapshot
+	*models.Snapshot
 	newBot func(*Snapshot) (Bot, error)
 }
 
 // New .
-func New(mod *model.Snapshot) *Snapshot {
+func New(mod *models.Snapshot) *Snapshot {
 	return &Snapshot{
 		Snapshot: mod,
 		newBot:   newVirtSnap,
@@ -51,7 +51,7 @@ func (snap *Snapshot) Delete() error {
 }
 
 // Create external snapshot and return a list of Volume model represent volume that newly in use.
-func (snap *Snapshot) Create(vol *model.Volume) error {
+func (snap *Snapshot) Create(vol *models.Volume) error {
 	if err := snap.botOperate(func(bot Bot) error {
 		return bot.Create(vol)
 	}); err != nil {
@@ -66,7 +66,7 @@ func (snap *Snapshot) Create(vol *model.Volume) error {
 // After Snap2.Commit()
 // NewRoot(Full snapshot with name same as Snap 2) -> Snap3 -> Vol in-use
 // Return list of snapshot meta that needed to be removed
-func (snap *Snapshot) Commit(snaps model.Snapshots) (model.Snapshots, error) {
+func (snap *Snapshot) Commit(snaps models.Snapshots) (models.Snapshots, error) {
 	chain, err := snap.getChain(snaps)
 	if err != nil {
 		return nil, errors.Trace(err)
@@ -90,7 +90,7 @@ func (snap *Snapshot) Commit(snaps model.Snapshots) (model.Snapshots, error) {
 }
 
 // Restore .
-func (snap *Snapshot) Restore(vol *model.Volume, snaps model.Snapshots) error {
+func (snap *Snapshot) Restore(vol *models.Volume, snaps models.Snapshots) error {
 	chain, err := snap.getChain(snaps)
 	if err != nil {
 		return errors.Trace(err)
@@ -121,7 +121,7 @@ func (snap *Snapshot) Upload(force bool) error {
 }
 
 // Download .
-func (snap *Snapshot) Download(snapmod *model.Snapshot) error {
+func (snap *Snapshot) Download(snapmod *models.Snapshot) error {
 	if err := snap.botOperate(func(bot Bot) error {
 		return bot.Download(snapmod)
 	}); err != nil {
@@ -133,7 +133,7 @@ func (snap *Snapshot) Download(snapmod *model.Snapshot) error {
 
 // // check whether the snapshot is the last snapshot on the chain
 // // (not exist other snapshot use this snapshot as backing file)
-// func (snap *Snapshot) checkSnapshotIsLatest(snaps model.Snapshots) bool {
+// func (snap *Snapshot) checkSnapshotIsLatest(snaps models.Snapshots) bool {
 // 	isLatest := true
 // 	for _, s := range snaps {
 // 		if s.BaseSnapshotID == snap.ID {
@@ -144,18 +144,18 @@ func (snap *Snapshot) Download(snapmod *model.Snapshot) error {
 // }
 
 // calculate the whole chain
-func (snap *Snapshot) getChain(snaps model.Snapshots) (model.Snapshots, error) {
+func (snap *Snapshot) getChain(snaps models.Snapshots) (models.Snapshots, error) {
 
 	if _, err := snaps.Find(snap.ID); err != nil {
 		return nil, errors.Trace(err)
 	}
 
-	snapIDMap := make(map[string]*model.Snapshot)
+	snapIDMap := make(map[string]*models.Snapshot)
 	for _, s := range snaps {
 		snapIDMap[s.ID] = s
 	}
 
-	var chain model.Snapshots
+	var chain models.Snapshots
 	chain = append(chain, snap.Model())
 	currentID := snap.BaseSnapshotID
 	for len(currentID) > 0 {
@@ -167,7 +167,7 @@ func (snap *Snapshot) getChain(snaps model.Snapshots) (model.Snapshots, error) {
 }
 
 // download list of snapshot files
-func (snap *Snapshot) downloadSnapshots(snaps model.Snapshots) error {
+func (snap *Snapshot) downloadSnapshots(snaps models.Snapshots) error {
 	for _, s := range snaps {
 		if err := snap.Download(s); err != nil {
 			return err
@@ -177,7 +177,7 @@ func (snap *Snapshot) downloadSnapshots(snaps model.Snapshots) error {
 }
 
 // Model .
-func (snap *Snapshot) Model() *model.Snapshot {
+func (snap *Snapshot) Model() *models.Snapshot {
 	return snap.Snapshot
 }
 

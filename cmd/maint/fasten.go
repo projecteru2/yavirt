@@ -36,7 +36,7 @@ func fasten(c *cli.Context, runtime run.Runtime) error {
 		return errors.Trace(err)
 	}
 
-	prefix := filepath.Join(config.Conf.EtcdPrefix, "ips", "/")
+	prefix := filepath.Join(configs.Conf.EtcdPrefix, "ips", "/")
 	data, _, err := store.GetPrefix(context.Background(), prefix, (1<<32)-1) //nolint:gomnd // max value of int32
 	if err != nil {
 		return errors.Trace(err)
@@ -45,7 +45,7 @@ func fasten(c *cli.Context, runtime run.Runtime) error {
 		if !strings.Contains(key, "occupied") {
 			continue
 		}
-		key = strings.TrimPrefix(key, config.Conf.EtcdPrefix)
+		key = strings.TrimPrefix(key, configs.Conf.EtcdPrefix)
 		key = strings.TrimLeft(key, "/")
 		parts := strings.Split(key, "/")
 		intSubnet, err := strconv.ParseInt(parts[1], 10, 64) //nolint
@@ -60,7 +60,7 @@ func fasten(c *cli.Context, runtime run.Runtime) error {
 	}
 
 	for _, id := range ids {
-		switch _, err := model.LoadGuest(id); {
+		switch _, err := models.LoadGuest(id); {
 		case err == nil:
 			fmt.Printf("valid guest: %s\n", id)
 			continue
@@ -150,11 +150,11 @@ func fastenDangling(id string, virt *libvirt.Libvirtee) error {
 	}
 	defer dom.Free()
 
-	guest, err := model.NewGuest(nil, nil)
+	guest, err := models.NewGuest(nil, nil)
 	if err != nil {
 		return errors.Trace(err)
 	}
-	if guest.HostName, err = util.Hostname(); err != nil {
+	if guest.HostName, err = utils.Hostname(); err != nil {
 		return errors.Trace(err)
 	}
 	guest.ID = id
@@ -166,9 +166,9 @@ func fastenDangling(id string, virt *libvirt.Libvirtee) error {
 	}
 	switch state {
 	case libvirt.DomainRunning:
-		guest.Status = model.StatusRunning
+		guest.Status = models.StatusRunning
 	case libvirt.DomainShutoff:
-		guest.Status = model.StatusStopped
+		guest.Status = models.StatusStopped
 	default:
 		return errors.Errorf("doesn't support %s", state)
 	}

@@ -18,7 +18,7 @@ import (
 	"github.com/projecteru2/yavirt/internal/virt/nic"
 	"github.com/projecteru2/yavirt/internal/virt/snapshot"
 	"github.com/projecteru2/yavirt/internal/virt/types"
-	virtutil "github.com/projecteru2/yavirt/internal/virt/util"
+	virtutils "github.com/projecteru2/yavirt/internal/virt/utils"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/pkg/log"
@@ -39,24 +39,24 @@ type Bot interface {
 	Close() error
 	Undefine() error
 	Alloc() error
-	AllocFromImage(model.Image) error
+	AllocFromImage(models.Image) error
 	Mount(ga agent.Interface, devPath string) error
 	Amplify(delta int64, dom domain.Domain, ga agent.Interface, devPath string) error
-	ConvertUserImage(user, name string) (*model.UserImage, error)
+	ConvertUserImage(user, name string) (*models.UserImage, error)
 	Check() error
 	Repair() error
-	CreateSnapshot(*model.Snapshot) error
-	CommitSnapshot(*model.Snapshot) error
-	RestoreSnapshot(*model.Snapshot) error
-	DeleteSnapshot(*model.Snapshot) error
+	CreateSnapshot(*models.Snapshot) error
+	CommitSnapshot(*models.Snapshot) error
+	RestoreSnapshot(*models.Snapshot) error
+	DeleteSnapshot(*models.Snapshot) error
 	DeleteAllSnapshots() error
 }
 
 type bot struct {
 	vol         *Volume
-	flock       *util.Flock
+	flock       *utils.Flock
 	newGuestfs  func(string) (guestfs.Guestfs, error)
-	newSnapshot func(*model.Snapshot) snapshot.Interface
+	newSnapshot func(*models.Snapshot) snapshot.Interface
 }
 
 func newVirtVol(vol *Volume) (Bot, error) {
@@ -74,7 +74,7 @@ func newVirtVol(vol *Volume) (Bot, error) {
 	return virt, nil
 }
 
-func newSnapshot(snapmod *model.Snapshot) snapshot.Interface {
+func newSnapshot(snapmod *models.Snapshot) snapshot.Interface {
 	return snapshot.New(snapmod)
 }
 
@@ -97,7 +97,7 @@ func (v *bot) DeleteAllSnapshots() error {
 	return nil
 }
 
-func (v *bot) DeleteSnapshot(snapmod *model.Snapshot) error {
+func (v *bot) DeleteSnapshot(snapmod *models.Snapshot) error {
 	fmt.Println("Destroying snap " + snapmod.ID)
 	v.vol.RemoveSnap(snapmod.ID)
 	if err := v.newSnapshot(snapmod).Delete(); err != nil {
@@ -106,7 +106,7 @@ func (v *bot) DeleteSnapshot(snapmod *model.Snapshot) error {
 	return nil
 }
 
-func (v *bot) CreateSnapshot(snapmod *model.Snapshot) error {
+func (v *bot) CreateSnapshot(snapmod *models.Snapshot) error {
 	snap := v.newSnapshot(snapmod)
 	if err := snap.Create(v.vol.Model()); err != nil {
 		return err
@@ -118,7 +118,7 @@ func (v *bot) CreateSnapshot(snapmod *model.Snapshot) error {
 	return snapmod.Create()
 }
 
-func (v *bot) CommitSnapshot(snapmod *model.Snapshot) error {
+func (v *bot) CommitSnapshot(snapmod *models.Snapshot) error {
 	snap := v.newSnapshot(snapmod)
 	snapsToRemoved, err := snap.Commit(v.vol.Snaps)
 	if err != nil {
@@ -136,7 +136,7 @@ func (v *bot) CommitSnapshot(snapmod *model.Snapshot) error {
 	return snapmod.Save()
 }
 
-func (v *bot) RestoreSnapshot(snapmod *model.Snapshot) error {
+func (v *bot) RestoreSnapshot(snapmod *models.Snapshot) error {
 	snap := v.newSnapshot(snapmod)
 	err := snap.Restore(v.vol.Model(), v.vol.Snaps)
 	if err != nil {
@@ -154,7 +154,7 @@ func (v *bot) Amplify(delta int64, dom domain.Domain, ga agent.Interface, devPat
 		return errors.Trace(err)
 
 	case st == libvirt.DomainShutoff:
-		return virtutil.AmplifyImage(context.Background(), v.vol.Filepath(), delta)
+		return virtutils.AmplifyImage(context.Background(), v.vol.Filepath(), delta)
 
 	case st == libvirt.DomainRunning:
 		return v.amplifyOnline(delta, dom, ga, devPath)
@@ -169,19 +169,19 @@ func (v *bot) amplifyOnline(delta int64, dom domain.Domain, ga agent.Interface, 
 		return errors.Trace(err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), config.Conf.GADiskTimeout.Duration())
+	ctx, cancel := context.WithTimeout(context.Background(), configs.Conf.GADiskTimeout.Duration())
 	defer cancel()
 	return v.amplify(ctx, ga, devPath)
 }
 
-func (v *bot) newFlock() *util.Flock {
+func (v *bot) newFlock() *utils.Flock {
 	var fn = fmt.Sprintf("%s.flock", v.vol.Name())
-	var fpth = filepath.Join(config.Conf.VirtFlockDir, fn)
-	return util.NewFlock(fpth)
+	var fpth = filepath.Join(configs.Conf.VirtFlockDir, fn)
+	return utils.NewFlock(fpth)
 }
 
 func (v *bot) Mount(ga agent.Interface, devPath string) error {
-	var ctx, cancel = context.WithTimeout(context.Background(), config.Conf.GADiskTimeout.Duration())
+	var ctx, cancel = context.WithTimeout(context.Background(), configs.Conf.GADiskTimeout.Duration())
 	defer cancel()
 
 	if err := v.format(ctx, ga, devPath); err != nil {
@@ -219,7 +219,7 @@ func (v *bot) isAmplifying(ctx context.Context, ga agent.Interface, devPath stri
 		return false, errors.Trace(err)
 	}
 
-	mbs = int64(float64(mbs) * (1 + config.Conf.ResizeVolumeMinRatio))
+	mbs = int64(float64(mbs) * (1 + configs.Conf.ResizeVolumeMinRatio))
 	cap >>= 10 // in bytes, aka. 1K-blocks.
 
 	return cap > mbs, nil
@@ -338,16 +338,16 @@ func (v *bot) execCommands(ctx context.Context, ga agent.Interface, cmds [][]str
 
 func (v *bot) Alloc() error {
 	var path = v.vol.Filepath()
-	return virtutil.CreateImage(context.Background(), model.VolQcow2Format, path, v.vol.Capacity)
+	return virtutils.CreateImage(context.Background(), models.VolQcow2Format, path, v.vol.Capacity)
 }
 
-func (v *bot) AllocFromImage(img model.Image) error {
+func (v *bot) AllocFromImage(img models.Image) error {
 	if err := sh.Copy(img.Filepath(), v.vol.Filepath()); err != nil {
 		return errors.Trace(err)
 	}
 
 	// Removes the image file form localhost if it's a user image.
-	if img.GetType() == model.ImageUser {
+	if img.GetType() == models.ImageUser {
 		if err := sh.Remove(img.Filepath()); err != nil {
 			// Prints the error message but it doesn't break the func.
 			log.WarnStack(err)
@@ -357,8 +357,8 @@ func (v *bot) AllocFromImage(img model.Image) error {
 	return nil
 }
 
-func (v *bot) ConvertUserImage(user, name string) (uimg *model.UserImage, err error) {
-	uimg = model.NewUserImage(user, name, v.vol.Capacity)
+func (v *bot) ConvertUserImage(user, name string) (uimg *models.UserImage, err error) {
+	uimg = models.NewUserImage(user, name, v.vol.Capacity)
 	uimg.Distro = types.Unknown
 
 	orig := uimg.Filepath()
@@ -404,15 +404,15 @@ func (v *bot) ConvertUserImage(user, name string) (uimg *model.UserImage, err er
 
 // Check .
 func (v *bot) Check() error {
-	return virtutil.Check(context.Background(), v.vol.Filepath())
+	return virtutils.Check(context.Background(), v.vol.Filepath())
 }
 
 // Repair .
 func (v *bot) Repair() error {
-	return virtutil.Repair(context.Background(), v.vol.Filepath())
+	return virtutils.Repair(context.Background(), v.vol.Filepath())
 }
 
-func (v *bot) cleanObsoleteUserImages(uimg *model.UserImage) error {
+func (v *bot) cleanObsoleteUserImages(uimg *models.UserImage) error {
 	// TODO
 	return nil
 }
@@ -581,7 +581,7 @@ func NewMockedVolume() (Bot, *gfsmocks.Guestfs) {
 
 	vol := &bot{
 		vol: &Volume{
-			Volume: model.NewSysVolume(util.GB, "unitest-image"),
+			Volume: models.NewSysVolume(utils.GB, "unitest-image"),
 		},
 		newGuestfs: func(string) (guestfs.Guestfs, error) { return gfs, nil },
 	}

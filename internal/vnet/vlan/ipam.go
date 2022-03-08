@@ -27,7 +27,7 @@ func NewIpam(guestID string, subnet int64) *Ipam {
 
 // Assign .
 func (ipam *Ipam) Assign(ctx context.Context) (ip meta.IP, err error) {
-	var unlock util.Unlocker
+	var unlock utils.Unlocker
 	if unlock, err = ipam.Lock(ctx); err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -47,7 +47,7 @@ func (ipam *Ipam) Release(ctx context.Context, ips ...meta.IP) (err error) {
 		return
 	}
 
-	var unlock util.Unlocker
+	var unlock utils.Unlocker
 	if unlock, err = ipam.Lock(ctx); err != nil {
 		return errors.Trace(err)
 	}
@@ -67,7 +67,7 @@ func (ipam *Ipam) Insert(ctx context.Context, ip *IP) (err error) {
 		return
 	}
 
-	var unlock util.Unlocker
+	var unlock utils.Unlocker
 	if unlock, err = ipam.Lock(ctx); err != nil {
 		return errors.Trace(err)
 	}
@@ -187,7 +187,7 @@ func (ipam *Ipam) occupy(ctx context.Context, ip *IP) error {
 }
 
 func (ipam *Ipam) doop(ctx context.Context, ip meta.IP, putkey, delkey string) error {
-	var enc, err = util.JSONEncode(ip, "\t")
+	var enc, err = utils.JSONEncode(ip, "\t")
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -227,7 +227,7 @@ func (ipam *Ipam) pickup(ctx context.Context) (*IP, error) {
 			return nil, errors.Annotatef(errors.ErrKeyBadVersion, key)
 		}
 
-		if err := util.JSONDecode(val, ip); err != nil {
+		if err := utils.JSONDecode(val, ip); err != nil {
 			return nil, errors.Trace(err)
 		}
 
@@ -238,6 +238,6 @@ func (ipam *Ipam) pickup(ctx context.Context) (*IP, error) {
 }
 
 // Lock .
-func (ipam *Ipam) Lock(ctx context.Context) (util.Unlocker, error) {
+func (ipam *Ipam) Lock(ctx context.Context) (utils.Unlocker, error) {
 	return store.Lock(ctx, meta.IPALocKey(ipam.subnet))
 }

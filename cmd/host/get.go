@@ -16,7 +16,7 @@ func get(c *cli.Context, runtime run.Runtime) error {
 		return errors.New("host name is required")
 	}
 
-	h, err := model.LoadHost(hn)
+	h, err := models.LoadHost(hn)
 	if err != nil {
 		return errors.Trace(err)
 

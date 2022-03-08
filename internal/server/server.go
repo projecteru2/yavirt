@@ -1,4 +1,4 @@
-package yavirtd
+package server
 
 import (
 	"net"
@@ -42,7 +42,7 @@ func (s *ServerBase) Listen(addr string) (lis net.Listener, ip string, err error
 		return
 	}
 
-	if ip, err = netx.GetOutboundIP(config.Conf.CoreAddr); err != nil {
+	if ip, err = netx.GetOutboundIP(configs.Conf.CoreAddr); err != nil {
 		return
 	}
 

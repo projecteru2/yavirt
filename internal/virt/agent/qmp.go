@@ -14,7 +14,7 @@ import (
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
-const maxBytesPerRead = 32 * util.MB // ref https://www.qemu.org/docs/master/interop/qemu-ga-ref.html
+const maxBytesPerRead = 32 * utils.MB // ref https://www.qemu.org/docs/master/interop/qemu-ga-ref.html
 
 // Qmp .
 type Qmp interface {
@@ -117,7 +117,7 @@ func (q *qmp) ReadFile(handle int, p []byte) (read int, eof bool, err error) {
 	pcap := int64(cap(p))
 	args := map[string]interface{}{
 		"handle": handle,
-		"count":  util.MinInt64(maxBytesPerRead, pcap),
+		"count":  utils.MinInt64(maxBytesPerRead, pcap),
 	}
 
 	q.Lock()
@@ -221,7 +221,7 @@ func (q *qmp) connect() error {
 		return nil
 	}
 
-	var sock, err = net.DialTimeout("unix", q.sockfile, config.Conf.QMPConnectTimeout.Duration())
+	var sock, err = net.DialTimeout("unix", q.sockfile, configs.Conf.QMPConnectTimeout.Duration())
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -241,7 +241,7 @@ func (q *qmp) connect() error {
 }
 
 func (q *qmp) handshake() error {
-	return util.Invoke([]func() error{
+	return utils.Invoke([]func() error{
 		q.greet,
 		q.capabilities,
 	})

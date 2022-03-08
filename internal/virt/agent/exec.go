@@ -59,7 +59,7 @@ func (a *Agent) Ping(ctx context.Context) error {
 }
 
 // ExecBatch .
-func (a *Agent) ExecBatch(bat *config.Batch) error {
+func (a *Agent) ExecBatch(bat *configs.Batch) error {
 	var ctx = context.Background()
 	var cancel context.CancelFunc
 	if timeout := bat.Timeout.Duration(); timeout > 0 {
@@ -97,7 +97,7 @@ func (a *Agent) isFolder(ctx context.Context, path string) (bool, error) {
 	return st.CheckReturnCode()
 }
 
-func (a *Agent) execBatch(ctx context.Context, bat *config.Batch) error {
+func (a *Agent) execBatch(ctx context.Context, bat *configs.Batch) error {
 	var cmds, err = bat.GetCommands()
 	if err != nil {
 		return errors.Trace(err)
@@ -112,7 +112,7 @@ func (a *Agent) execBatch(ctx context.Context, bat *config.Batch) error {
 	return nil
 }
 
-func (a *Agent) execRetry(ctx context.Context, prog string, args []string, bat *config.Batch) error {
+func (a *Agent) execRetry(ctx context.Context, prog string, args []string, bat *configs.Batch) error {
 	for {
 		var st = <-a.exec(ctx, prog, args, true)
 

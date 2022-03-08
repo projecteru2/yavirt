@@ -69,9 +69,9 @@ func (n *Nic) SaveFile(ctx context.Context, distro string, dev, fn string) (err 
 	var file ConfigFile
 
 	switch distro {
-	case model.DistroUbuntu:
+	case models.DistroUbuntu:
 		file, err = OpenUbuntuConfigFile(n.ga, dev, fn, n.IP)
-	case model.DistroCentOS:
+	case models.DistroCentOS:
 		file, err = OpenCentosConfigFile(n.ga, dev, n.IP)
 	default:
 		err = errors.Annotatef(errors.ErrInvalidValue, "invalid distro: %s", distro)

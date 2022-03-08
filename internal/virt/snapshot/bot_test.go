@@ -25,11 +25,11 @@ func TestBotCreate(t *testing.T) {
 
 	sbot := &bot{
 		snap: &Snapshot{
-			Snapshot: model.NewSnapShot("vol-id-test"),
+			Snapshot: models.NewSnapShot("vol-id-test"),
 		},
 	}
 
-	err := sbot.Create(model.NewVolume("vtype", 1))
+	err := sbot.Create(models.NewVolume("vtype", 1))
 	assert.NilErr(t, err)
 }
 
@@ -41,7 +41,7 @@ func TestBotCommit(t *testing.T) {
 
 	sbot := &bot{
 		snap: &Snapshot{
-			Snapshot: model.NewSnapShot("vol-id-test"),
+			Snapshot: models.NewSnapShot("vol-id-test"),
 		},
 	}
 
@@ -69,7 +69,7 @@ func TestBotRestore(t *testing.T) {
 
 	sbot := &bot{
 		snap: &Snapshot{
-			Snapshot: model.NewSnapShot("vol-id-test"),
+			Snapshot: models.NewSnapShot("vol-id-test"),
 		},
 	}
 
@@ -80,7 +80,7 @@ func TestBotRestore(t *testing.T) {
 	shx.On("Copy", mock.Anything, mock.Anything).Return(nil).Times(n)
 	shx.On("Exec", mock.Anything, "qemu-img", "commit", mock.Anything).Return(nil).Times(n - 1)
 
-	err := sbot.Restore(model.NewVolume("vtype", 1), chain)
+	err := sbot.Restore(models.NewVolume("vtype", 1), chain)
 	assert.NilErr(t, err)
 
 	n = 1
@@ -90,7 +90,7 @@ func TestBotRestore(t *testing.T) {
 	shx.On("Copy", mock.Anything, mock.Anything).Return(nil).Times(n)
 	shx.On("Exec", mock.Anything, "qemu-img", "commit", mock.Anything).Return(nil).Times(n - 1)
 
-	err = sbot.Restore(model.NewVolume("vtype", 1), chain)
+	err = sbot.Restore(models.NewVolume("vtype", 1), chain)
 	assert.NilErr(t, err)
 }
 
@@ -106,10 +106,10 @@ func TestBotDeleteFromBackupStorage(t *testing.T) {
 	// TODO
 }
 
-func generateMockedSnapshots(length int) model.Snapshots {
-	var chain model.Snapshots
+func generateMockedSnapshots(length int) models.Snapshots {
+	var chain models.Snapshots
 	for i := 0; i < length; i++ {
-		snap := model.NewSnapShot("vol-id-test")
+		snap := models.NewSnapShot("vol-id-test")
 		snap.ID = fmt.Sprintf("id-%d", i)
 		chain = append(chain, snap)
 	}

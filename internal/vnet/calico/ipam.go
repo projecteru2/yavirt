@@ -26,7 +26,7 @@ func newIpam(driver *Driver) *Ipam {
 
 // Assign .
 func (ipam *Ipam) Assign(ctx context.Context) (meta.IP, error) {
-	hn, err := util.Hostname()
+	hn, err := utils.Hostname()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}

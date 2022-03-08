@@ -43,7 +43,7 @@ func (e *execution) push(t *task) {
 
 			if err := t.run(); err != nil {
 				log.ErrorStack(err)
-				metric.IncrError()
+				metrics.IncrError()
 
 				e.Lock()
 				defer e.Unlock()

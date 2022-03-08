@@ -13,16 +13,16 @@ import (
 
 // GRPCServer .
 type GRPCServer struct {
-	*yavirtd.ServerBase
+	*server.ServerBase
 
 	server *grpc.Server
 	app    pb.YavirtdRPCServer
 }
 
 // Listen .
-func Listen(svc *yavirtd.Service) (srv *GRPCServer, err error) {
+func Listen(svc *server.Service) (srv *GRPCServer, err error) {
 	srv = &GRPCServer{}
-	if srv.ServerBase, err = yavirtd.Listen(config.Conf.BindGRPCAddr, svc); err != nil {
+	if srv.ServerBase, err = server.Listen(configs.Conf.BindGRPCAddr, svc); err != nil {
 		return
 	}
 
@@ -60,7 +60,7 @@ func (s *GRPCServer) Close() {
 			s.server.GracefulStop()
 		}()
 
-		gracefulTimer := time.NewTimer(config.Conf.GracefulTimeout.Duration())
+		gracefulTimer := time.NewTimer(configs.Conf.GracefulTimeout.Duration())
 		select {
 		case <-gracefulDone:
 			log.Infof("[grpcserver] terminate grpc server gracefully")

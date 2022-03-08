@@ -33,7 +33,7 @@ type Manageable interface {
 
 // Creatable wraps a group of methods about creation.
 type Creatable interface {
-	Create(ctx virt.Context, opts types.GuestCreateOption, host *model.Host, vols []*model.Volume) (vg *guest.Guest, err error)
+	Create(ctx virt.Context, opts types.GuestCreateOption, host *models.Host, vols []*models.Volume) (vg *guest.Guest, err error)
 }
 
 // Networkable wraps a group of networking methods.
@@ -73,15 +73,15 @@ var imageMutex sync.Mutex
 
 // Imageable wraps a group of methods about images.
 type Imageable interface {
-	Capture(ctx virt.Context, guestID, user, name string, overridden bool) (*model.UserImage, error)
+	Capture(ctx virt.Context, guestID, user, name string, overridden bool) (*models.UserImage, error)
 	RemoveImage(ctx virt.Context, imageName, user string, force, prune bool) ([]string, error)
-	ListImage(ctx virt.Context, filter string) ([]model.Image, error)
+	ListImage(ctx virt.Context, filter string) ([]models.Image, error)
 	DigestImage(ctx virt.Context, name string, local bool) ([]string, error)
 }
 
 // Snapshotable wraps a group a methods about snapshots.
 type Snapshotable interface {
-	ListSnapshot(ctx virt.Context, guestID, volID string) (map[*model.Volume]model.Snapshots, error)
+	ListSnapshot(ctx virt.Context, guestID, volID string) (map[*models.Volume]models.Snapshots, error)
 	CreateSnapshot(ctx virt.Context, id, volID string) error
 	CommitSnapshot(ctx virt.Context, id, volID, snapID string) error
 	CommitSnapshotByDay(ctx virt.Context, id, volID string, day int) error
@@ -145,7 +145,7 @@ func (m Manager) Start(ctx virt.Context, id string) error {
 // Wait for a guest.
 func (m Manager) Wait(ctx virt.Context, id string, block bool) (msg string, code int, err error) {
 	err = m.ctrl(ctx, id, miscOp, func(g *guest.Guest) error {
-		if err = g.Wait(model.StatusStopped, block); err != nil {
+		if err = g.Wait(models.StatusStopped, block); err != nil {
 			return err
 		}
 
@@ -181,7 +181,7 @@ func (m Manager) Resize(ctx virt.Context, id string, cpu int, mem int64, vols ma
 }
 
 // List snapshots of volume.
-func (m Manager) ListSnapshot(ctx virt.Context, guestID, volID string) (map[*model.Volume]model.Snapshots, error) {
+func (m Manager) ListSnapshot(ctx virt.Context, guestID, volID string) (map[*models.Volume]models.Snapshots, error) {
 	g, err := m.Load(ctx, guestID)
 	if err != nil {
 		return nil, errors.Trace(err)
@@ -195,7 +195,7 @@ func (m Manager) CreateSnapshot(ctx virt.Context, id, volID string) error {
 	return m.ctrl(ctx, id, createSnapshotOp, func(g *guest.Guest) error {
 		suspended := false
 		stopped := false
-		if g.Status == model.StatusRunning {
+		if g.Status == models.StatusRunning {
 			if err := g.Suspend(); err != nil {
 				return err
 			}
@@ -234,7 +234,7 @@ func (m Manager) CreateSnapshot(ctx virt.Context, id, volID string) error {
 func (m Manager) CommitSnapshot(ctx virt.Context, id, volID, snapID string) error {
 	return m.ctrl(ctx, id, commitSnapshotOp, func(g *guest.Guest) error {
 		stopped := false
-		if g.Status == model.StatusRunning {
+		if g.Status == models.StatusRunning {
 			if err := g.Stop(true); err != nil {
 				return err
 			}
@@ -256,7 +256,7 @@ func (m Manager) CommitSnapshot(ctx virt.Context, id, volID, snapID string) erro
 func (m Manager) CommitSnapshotByDay(ctx virt.Context, id, volID string, day int) error {
 	return m.ctrl(ctx, id, commitSnapshotOp, func(g *guest.Guest) error {
 		stopped := false
-		if g.Status == model.StatusRunning {
+		if g.Status == models.StatusRunning {
 			if err := g.Stop(true); err != nil {
 				return err
 			}
@@ -278,7 +278,7 @@ func (m Manager) CommitSnapshotByDay(ctx virt.Context, id, volID string, day int
 func (m Manager) RestoreSnapshot(ctx virt.Context, id, volID, snapID string) error {
 	return m.ctrl(ctx, id, restoreSnapshotOp, func(g *guest.Guest) error {
 		stopped := false
-		if g.Status == model.StatusRunning {
+		if g.Status == models.StatusRunning {
 			if err := g.Stop(true); err != nil {
 				return err
 			}
@@ -297,7 +297,7 @@ func (m Manager) RestoreSnapshot(ctx virt.Context, id, volID, snapID string) err
 }
 
 // Capture captures an image from a guest.
-func (m Manager) Capture(ctx virt.Context, guestID, user, name string, overridden bool) (*model.UserImage, error) {
+func (m Manager) Capture(ctx virt.Context, guestID, user, name string, overridden bool) (*models.UserImage, error) {
 	g, err := m.Load(ctx, guestID)
 	if err != nil {
 		return nil, errors.Trace(err)
@@ -313,7 +313,7 @@ func (m Manager) Capture(ctx virt.Context, guestID, user, name string, overridde
 
 // RemoveImage removes a local image.
 func (m Manager) RemoveImage(ctx virt.Context, imageName, user string, force, prune bool) ([]string, error) {
-	img, err := model.LoadImage(imageName, user)
+	img, err := models.LoadImage(imageName, user)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -321,7 +321,7 @@ func (m Manager) RemoveImage(ctx virt.Context, imageName, user string, force, pr
 	imageMutex.Lock()
 	defer imageMutex.Unlock()
 
-	if exists, err := model.ImageExists(img); err != nil {
+	if exists, err := models.ImageExists(img); err != nil {
 		return nil, errors.Trace(err)
 	} else if exists {
 		if err = os.Remove(img.Filepath()); err != nil {
@@ -333,8 +333,8 @@ func (m Manager) RemoveImage(ctx virt.Context, imageName, user string, force, pr
 }
 
 // ListImage .
-func (m Manager) ListImage(ctx virt.Context, filter string) ([]model.Image, error) {
-	imgs, err := model.ListSysImages()
+func (m Manager) ListImage(ctx virt.Context, filter string) ([]models.Image, error) {
+	imgs, err := models.ListSysImages()
 	if err != nil {
 		return nil, err
 	}
@@ -343,7 +343,7 @@ func (m Manager) ListImage(ctx virt.Context, filter string) ([]model.Image, erro
 		return imgs, nil
 	}
 
-	images := []model.Image{}
+	images := []models.Image{}
 	var regExp *regexp.Regexp
 	filter = strings.ReplaceAll(filter, "*", ".*")
 	if regExp, err = regexp.Compile(fmt.Sprintf("%s%s%s", "^", filter, "$")); err != nil {
@@ -369,7 +369,7 @@ func (m Manager) DigestImage(ctx virt.Context, name string, local bool) ([]strin
 	// If not exists return error
 	// If exists return digests
 
-	img, err := model.LoadSysImage(name)
+	img, err := models.LoadSysImage(name)
 	if err != nil {
 		return nil, err
 	}
@@ -383,9 +383,9 @@ func (m Manager) DigestImage(ctx virt.Context, name string, local bool) ([]strin
 }
 
 // Create creates a new guest.
-func (m Manager) Create(ctx virt.Context, opts types.GuestCreateOption, host *model.Host, vols []*model.Volume) (*guest.Guest, error) {
+func (m Manager) Create(ctx virt.Context, opts types.GuestCreateOption, host *models.Host, vols []*models.Volume) (*guest.Guest, error) {
 	// Creates metadata.
-	g, err := model.CreateGuest(opts, host, vols)
+	g, err := models.CreateGuest(opts, host, vols)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -427,13 +427,13 @@ func (m Manager) Create(ctx virt.Context, opts types.GuestCreateOption, host *mo
 	return res.(*guest.Guest), nil
 }
 
-func (m Manager) create(ctx virt.Context, g *model.Guest) (vg *guest.Guest, err error) {
+func (m Manager) create(ctx virt.Context, g *models.Guest) (vg *guest.Guest, err error) {
 	vg = guest.New(ctx, g)
 	if err := vg.CacheImage(&imageMutex); err != nil {
 		return nil, errors.Trace(err)
 	}
 
-	if vg.MAC, err = util.QemuMAC(); err != nil {
+	if vg.MAC, err = utils.QemuMAC(); err != nil {
 		return nil, errors.Trace(err)
 	}
 
@@ -460,7 +460,7 @@ func (m Manager) AttachConsole(ctx virt.Context, id string, stream io.ReadWriteC
 	}
 
 	if g.LambdaOption != nil {
-		if err = g.Wait(model.StatusRunning, false); err != nil {
+		if err = g.Wait(models.StatusRunning, false); err != nil {
 			return errors.Trace(err)
 		}
 		flags.Commands = g.LambdaOption.Cmd
@@ -588,7 +588,7 @@ func (m Manager) LoadUUID(ctx virt.Context, id string) (string, error) {
 
 // Load read a guest from metadata.
 func (m Manager) Load(ctx virt.Context, id string) (*guest.Guest, error) {
-	g, err := model.LoadGuest(id)
+	g, err := models.LoadGuest(id)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -611,7 +611,7 @@ func (m Manager) do(ctx virt.Context, id string, op op, fn doFunc, rollback roll
 		ctx: ctx,
 	}
 
-	dur := config.Conf.VirtTimeout.Duration()
+	dur := configs.Conf.VirtTimeout.Duration()
 	timeout := time.After(dur)
 
 	noti := m.serializer.Serialize(id, t)

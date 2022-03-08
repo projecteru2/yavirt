@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ func (g *Guest) healthCheckBridge() (*HealthCheckBridge, error) {
 	}
 
 	hcb := &HealthCheckBridge{}
-	return hcb, util.JSONDecode([]byte(raw), hcb)
+	return hcb, utils.JSONDecode([]byte(raw), hcb)
 }
 
 // HealthCheckBridge .

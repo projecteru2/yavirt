@@ -1,4 +1,4 @@
-package model
+package models
 
 type LambdaOptions struct {
 	Cmd       []string `json:"cmd,omitempty"`

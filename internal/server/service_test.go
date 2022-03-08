@@ -1,4 +1,4 @@
-package yavirtd
+package server
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	model.Setup()
+	models.Setup()
 }
 
 func TestCreateGuest(t *testing.T) {
@@ -34,7 +34,7 @@ func TestCreateGuest(t *testing.T) {
 	).Return(testVirtGuest(t), nil)
 	_, err := svc.CreateGuest(testVirtContext(t), virtypes.GuestCreateOption{
 		CPU:       1,
-		Mem:       util.GB,
+		Mem:       utils.GB,
 		ImageName: "ubuntu",
 		ImageUser: "anrs",
 		Volumes:   nil,
@@ -72,7 +72,7 @@ func TestCopyToGuest(t *testing.T) {
 }
 
 func testVirtGuest(t *testing.T) *vg.Guest {
-	mg, err := model.NewGuest(nil, nil)
+	mg, err := models.NewGuest(nil, nil)
 	assert.NilErr(t, err)
 	assert.NotNil(t, mg)
 	return vg.New(testVirtContext(t), mg)
@@ -84,7 +84,7 @@ func testVirtContext(t *testing.T) virt.Context {
 
 func testService(t *testing.T) *Service {
 	return &Service{
-		Host:        &model.Host{},
+		Host:        &models.Host{},
 		guest:       &managerocks.Manageable{},
 		BootGuestCh: make(chan string, 1),
 	}

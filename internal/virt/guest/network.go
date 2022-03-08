@@ -89,7 +89,7 @@ func (g *Guest) CreateEthernet() (rollback func() error, err error) {
 
 func (g *Guest) createEndpoint() (rollback func() error, err error) {
 	var hn string
-	hn, err = util.Hostname()
+	hn, err = utils.Hostname()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -147,7 +147,7 @@ func (g *Guest) joinEthernet() (err error) {
 	args.MAC = g.MAC
 	args.EndpointID = g.EndpointID
 
-	if args.Hostname, err = util.Hostname(); err != nil {
+	if args.Hostname, err = utils.Hostname(); err != nil {
 		return errors.Trace(err)
 	}
 
@@ -186,7 +186,7 @@ func (g *Guest) deleteEthernet() error {
 		return g.calicoCNIDel()
 	}
 
-	hn, err := util.Hostname()
+	hn, err := utils.Hostname()
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -208,7 +208,7 @@ func (g *Guest) deleteEthernet() error {
 		return errors.Trace(err)
 	}
 
-	g.IPs = model.IPs{}
+	g.IPs = models.IPs{}
 	g.IPNets = meta.IPNets{}
 
 	return nil
@@ -228,7 +228,7 @@ func (g *Guest) releaseIPs(ips ...meta.IP) error {
 }
 
 // NetworkHandler .
-func (g *Guest) NetworkHandler(host *model.Host) (handler.Handler, error) {
+func (g *Guest) NetworkHandler(host *models.Host) (handler.Handler, error) {
 	switch g.NetworkMode {
 	case vnet.NetworkCalico:
 		return g.ctx.CalicoHandler()
@@ -252,19 +252,19 @@ func (g *Guest) calicoCNIDel() error {
 		return errors.Trace(err)
 	}
 
-	_, err = execCNIPlugin(env, bytes.NewBuffer(dat), config.Conf.CNIPluginPath)
+	_, err = execCNIPlugin(env, bytes.NewBuffer(dat), configs.Conf.CNIPluginPath)
 	return err
 }
 
 func (g *Guest) calicoCNICreate() (func() error, error) {
-	endpointID, err := util.UUIDStr()
+	endpointID, err := utils.UUIDStr()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
 	endpointID = strings.ReplaceAll(endpointID, "-", "")
 
 	g.EndpointID = endpointID
-	g.NetworkPair = "yap" + g.EndpointID[:util.Min(12, len(g.EndpointID))] //nolint
+	g.NetworkPair = "yap" + g.EndpointID[:utils.Min(12, len(g.EndpointID))] //nolint
 
 	stdout, execDel, err := g.calicoCNIAdd(true)
 	if err != nil {
@@ -289,13 +289,13 @@ func (g *Guest) calicoCNIAdd(needRollback bool) (stdout []byte, rollback func() 
 		return nil, nil, errors.Trace(err)
 	}
 
-	if stdout, err = execCNIPlugin(env, bytes.NewBuffer(dat), config.Conf.CNIPluginPath); err != nil {
+	if stdout, err = execCNIPlugin(env, bytes.NewBuffer(dat), configs.Conf.CNIPluginPath); err != nil {
 		return nil, nil, errors.Trace(err)
 	}
 
 	execDel := func() error {
 		env["CNI_COMMAND"] = cniCmdDel
-		_, err := execCNIPlugin(env, bytes.NewBuffer(dat), config.Conf.CNIPluginPath)
+		_, err := execCNIPlugin(env, bytes.NewBuffer(dat), configs.Conf.CNIPluginPath)
 		return err
 	}
 
@@ -356,7 +356,7 @@ func (g *Guest) populateIPFromAddResult(dat []byte) error {
 
 func (g *Guest) readCNIConfig() ([]byte, error) {
 	// TODO: follows the CNI policy, rather than hard code absolute path here.
-	return ioutil.ReadFile(config.Conf.CNIConfigPath)
+	return ioutil.ReadFile(configs.Conf.CNIConfigPath)
 }
 
 func (g *Guest) makeCNIEnv() map[string]string {
@@ -364,7 +364,7 @@ func (g *Guest) makeCNIEnv() map[string]string {
 		"CNI_CONTAINERID": g.ID,
 		"CNI_ARGS":        "IgnoreUnknown=1;MAC=" + g.MAC,
 		"CNI_IFNAME":      g.NetworkPair,
-		"CNI_PATH":        filepath.Dir(config.Conf.CNIPluginPath),
+		"CNI_PATH":        filepath.Dir(configs.Conf.CNIPluginPath),
 		"CNI_NETNS":       "yap",
 	}
 }

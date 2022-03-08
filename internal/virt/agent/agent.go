@@ -13,7 +13,7 @@ type Interface interface {
 	Close() error
 	Exec(ctx context.Context, prog string, args ...string) <-chan types.ExecStatus
 	ExecOutput(ctx context.Context, prog string, args ...string) <-chan types.ExecStatus
-	ExecBatch(bat *config.Batch) error
+	ExecBatch(bat *configs.Batch) error
 	Ping(ctx context.Context) error
 	Touch(ctx context.Context, filepath string) error
 	IsFile(ctx context.Context, filepath string) (bool, error)

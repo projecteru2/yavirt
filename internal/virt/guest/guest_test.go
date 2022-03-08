@@ -26,21 +26,21 @@ const (
 
 func init() {
 	idgen.Setup(0, time.Now())
-	model.Setup()
+	models.Setup()
 }
 
 func TestCreate_WithExtVolumes(t *testing.T) {
 	var guest, bot = newMockedGuest(t)
 	defer bot.AssertExpectations(t)
 
-	var genvol = func(id int64, cap int64) *model.Volume {
-		vol, err := model.NewDataVolume("/data", cap)
+	var genvol = func(id int64, cap int64) *models.Volume {
+		vol, err := models.NewDataVolume("/data", cap)
 		assert.NilErr(t, err)
 		return vol
 	}
-	var extVols = []*model.Volume{genvol(1, util.GB*10), genvol(2, util.GB*20)}
+	var extVols = []*models.Volume{genvol(1, utils.GB*10), genvol(2, utils.GB*20)}
 	guest.AppendVols(extVols...)
-	guest.rangeVolumes(checkVolsStatus(t, model.StatusPending))
+	guest.rangeVolumes(checkVolsStatus(t, models.StatusPending))
 
 	var meta, metaCancel = storemocks.Mock()
 	defer metaCancel()
@@ -52,16 +52,16 @@ func TestCreate_WithExtVolumes(t *testing.T) {
 	bot.On("Trylock").Return(nil)
 	bot.On("Unlock").Return()
 	assert.NilErr(t, guest.Create())
-	assert.Equal(t, model.StatusCreating, guest.Status)
-	guest.rangeVolumes(checkVolsStatus(t, model.StatusCreating))
+	assert.Equal(t, models.StatusCreating, guest.Status)
+	guest.rangeVolumes(checkVolsStatus(t, models.StatusCreating))
 }
 
 func TestLifecycle(t *testing.T) {
 	var guest, bot = newMockedGuest(t)
 	defer bot.AssertExpectations(t)
 
-	assert.Equal(t, model.StatusPending, guest.Status)
-	guest.rangeVolumes(checkVolsStatus(t, model.StatusPending))
+	assert.Equal(t, models.StatusPending, guest.Status)
+	guest.rangeVolumes(checkVolsStatus(t, models.StatusPending))
 
 	var meta, metaCancel = storemocks.Mock()
 	defer metaCancel()
@@ -73,46 +73,46 @@ func TestLifecycle(t *testing.T) {
 	bot.On("Create").Return(nil).Once()
 	bot.On("Close").Return(nil).Once()
 	assert.NilErr(t, guest.Create())
-	assert.Equal(t, model.StatusCreating, guest.Status)
-	guest.rangeVolumes(checkVolsStatus(t, model.StatusCreating))
+	assert.Equal(t, models.StatusCreating, guest.Status)
+	guest.rangeVolumes(checkVolsStatus(t, models.StatusCreating))
 
 	bot.On("Boot").Return(nil).Once()
 	bot.On("Close").Return(nil).Once()
 	bot.On("GetState").Return(libvirt.DomainShutoff, nil).Once()
 	assert.NilErr(t, guest.Start())
-	assert.Equal(t, model.StatusRunning, guest.Status)
-	guest.rangeVolumes(checkVolsStatus(t, model.StatusRunning))
+	assert.Equal(t, models.StatusRunning, guest.Status)
+	guest.rangeVolumes(checkVolsStatus(t, models.StatusRunning))
 
 	bot.On("Shutdown", mock.Anything).Return(nil).Once()
 	bot.On("Close").Return(nil).Once()
 	assert.NilErr(t, guest.Stop(true))
-	assert.Equal(t, model.StatusStopped, guest.Status)
-	guest.rangeVolumes(checkVolsStatus(t, model.StatusStopped))
+	assert.Equal(t, models.StatusStopped, guest.Status)
+	guest.rangeVolumes(checkVolsStatus(t, models.StatusStopped))
 
 	assert.NilErr(t, guest.Resize(guest.CPU, guest.Memory, map[string]int64{}))
-	assert.Equal(t, model.StatusStopped, guest.Status)
-	guest.rangeVolumes(checkVolsStatus(t, model.StatusStopped))
+	assert.Equal(t, models.StatusStopped, guest.Status)
+	guest.rangeVolumes(checkVolsStatus(t, models.StatusStopped))
 
-	bot.On("Capture", mock.Anything, mock.Anything).Return(model.NewUserImage("anrs", "aa", 1024), nil).Once()
+	bot.On("Capture", mock.Anything, mock.Anything).Return(models.NewUserImage("anrs", "aa", 1024), nil).Once()
 	bot.On("Close").Return(nil).Once()
 	meta.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(int64(0), nil)
 	_, err := guest.Capture("anrs", "aa", true)
 	assert.NilErr(t, err)
-	assert.Equal(t, model.StatusStopped, guest.Status)
-	guest.rangeVolumes(checkVolsStatus(t, model.StatusStopped))
+	assert.Equal(t, models.StatusStopped, guest.Status)
+	guest.rangeVolumes(checkVolsStatus(t, models.StatusStopped))
 
 	bot.On("Boot").Return(nil).Once()
 	bot.On("Close").Return(nil).Once()
 	bot.On("GetState").Return(libvirt.DomainShutoff, nil).Once()
 	assert.NilErr(t, guest.Start())
-	assert.Equal(t, model.StatusRunning, guest.Status)
-	guest.rangeVolumes(checkVolsStatus(t, model.StatusRunning))
+	assert.Equal(t, models.StatusRunning, guest.Status)
+	guest.rangeVolumes(checkVolsStatus(t, models.StatusRunning))
 
 	bot.On("Shutdown", mock.Anything).Return(nil).Once()
 	bot.On("Close").Return(nil).Once()
 	assert.NilErr(t, guest.Stop(true))
-	assert.Equal(t, model.StatusStopped, guest.Status)
-	guest.rangeVolumes(checkVolsStatus(t, model.StatusStopped))
+	assert.Equal(t, models.StatusStopped, guest.Status)
+	guest.rangeVolumes(checkVolsStatus(t, models.StatusStopped))
 
 	bot.On("Undefine").Return(nil).Once()
 	bot.On("Close").Return(nil).Once()
@@ -138,7 +138,7 @@ func TestLifecycle_InvalidStatus(t *testing.T) {
 	var guest, bot = newMockedGuest(t)
 	defer bot.AssertExpectations(t)
 
-	guest.Status = model.StatusDestroyed
+	guest.Status = models.StatusDestroyed
 	assert.Err(t, guest.Create())
 	assert.Err(t, guest.Stop(false))
 	assert.Err(t, guest.Start())
@@ -151,12 +151,12 @@ func TestLifecycle_InvalidStatus(t *testing.T) {
 	_, err := guest.Capture("anrs", "aa", true)
 	assert.Err(t, err)
 
-	guest.Status = model.StatusResizing
+	guest.Status = models.StatusResizing
 	done, err := guest.Destroy(false)
 	assert.Err(t, err)
 	assert.Nil(t, done)
 
-	guest.Status = model.StatusPending
+	guest.Status = models.StatusPending
 	assert.Err(t, guest.Resize(guest.CPU, guest.Memory, map[string]int64{}))
 }
 
@@ -169,17 +169,17 @@ func TestSyncState(t *testing.T) {
 	defer meta.AssertExpectations(t)
 	meta.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-	guest.Status = model.StatusCreating
+	guest.Status = models.StatusCreating
 	bot.On("Create").Return(nil).Once()
 	bot.On("Close").Return(nil).Once()
 	bot.On("Trylock").Return(nil)
 	bot.On("Unlock").Return()
 	assert.NilErr(t, guest.SyncState())
 
-	guest.Status = model.StatusDestroying
+	guest.Status = models.StatusDestroying
 	guest.rangeVolumes(func(_ int, v volume.Virt) bool {
 		mod := v.Model()
-		mod.Status = model.StatusDestroying
+		mod.Status = models.StatusDestroying
 		return true
 	})
 
@@ -192,20 +192,20 @@ func TestSyncState(t *testing.T) {
 	meta.On("Delete", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 	assert.NilErr(t, guest.SyncState())
 
-	guest.Status = model.StatusStopping
+	guest.Status = models.StatusStopping
 	guest.rangeVolumes(func(_ int, v volume.Virt) bool {
 		mod := v.Model()
-		mod.Status = model.StatusStopping
+		mod.Status = models.StatusStopping
 		return true
 	})
 	bot.On("Shutdown", mock.Anything).Return(nil).Once()
 	bot.On("Close").Return(nil).Once()
 	assert.NilErr(t, guest.SyncState())
 
-	guest.Status = model.StatusStarting
+	guest.Status = models.StatusStarting
 	guest.rangeVolumes(func(_ int, v volume.Virt) bool {
 		mod := v.Model()
-		mod.Status = model.StatusStarting
+		mod.Status = models.StatusStarting
 		return true
 	})
 	bot.On("Boot").Return(nil).Once()
@@ -228,7 +228,7 @@ func TestForceDestroy(t *testing.T) {
 	meta.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	meta.On("Delete", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
-	guest.Status = model.StatusRunning
+	guest.Status = models.StatusRunning
 	bot.On("Shutdown", true).Return(nil).Once()
 	bot.On("Undefine").Return(nil).Once()
 	bot.On("Close").Return(nil)
@@ -241,7 +241,7 @@ func TestForceDestroy(t *testing.T) {
 }
 
 func mockMutex() *utilmocks.Locker {
-	var unlock util.Unlocker = func(context.Context) error {
+	var unlock utils.Unlocker = func(context.Context) error {
 		return nil
 	}
 
@@ -260,7 +260,7 @@ func TestSyncStateSkipsRunning(t *testing.T) {
 	bot.On("Trylock").Return(nil)
 	bot.On("Unlock").Return()
 
-	guest.Status = model.StatusRunning
+	guest.Status = models.StatusRunning
 	assert.NilErr(t, guest.SyncState())
 }
 
@@ -268,7 +268,7 @@ func TestAmplifyOrigVols_HostDirMount(t *testing.T) {
 	guest, bot := newMockedGuest(t)
 	defer bot.AssertExpectations(t)
 
-	volmod, err := model.NewDataVolume("/tmp:/data", util.GB)
+	volmod, err := models.NewDataVolume("/tmp:/data", utils.GB)
 	assert.NilErr(t, err)
 
 	bot.On("Close").Return(nil).Once()
@@ -276,8 +276,8 @@ func TestAmplifyOrigVols_HostDirMount(t *testing.T) {
 	bot.On("Unlock").Return()
 	bot.On("AmplifyVolume", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
-	guest.Vols = model.Volumes{volmod}
-	mnt := map[string]int64{"/tmp:/data": util.GB * 10}
+	guest.Vols = models.Volumes{volmod}
+	mnt := map[string]int64{"/tmp:/data": utils.GB * 10}
 	assert.NilErr(t, guest.amplifyOrigVols(mnt))
 }
 
@@ -294,20 +294,20 @@ func TestAttachVolumes_CheckVolumeModel(t *testing.T) {
 	defer cancel()
 	meta.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
-	guest.Status = model.StatusRunning
+	guest.Status = models.StatusRunning
 	guest.HostName = "lo"
 	guest.ID = "guestid"
-	vols := map[string]int64{"/data": util.GB}
+	vols := map[string]int64{"/data": utils.GB}
 	assert.NilErr(t, guest.Resize(guest.CPU, guest.Memory, vols))
 
 	volmod := guest.Vols[1] // guest.Vols[0] is the sys volume.
 	assert.True(t, len(volmod.ID) > 0)
 	assert.Equal(t, guest.Status, volmod.Status)
-	assert.Equal(t, model.VolDataType, volmod.Type)
+	assert.Equal(t, models.VolDataType, volmod.Type)
 	assert.Equal(t, "/data", volmod.MountDir)
 	assert.Equal(t, "", volmod.HostDir)
-	assert.Equal(t, util.GB, volmod.Capacity)
-	assert.Equal(t, model.VolQcow2Format, volmod.Format)
+	assert.Equal(t, utils.GB, volmod.Capacity)
+	assert.Equal(t, models.VolQcow2Format, volmod.Format)
 	assert.Equal(t, guest.HostName, volmod.HostName)
 	assert.Equal(t, guest.ID, volmod.GuestID)
 }
@@ -328,11 +328,11 @@ func TestAttachVolumes_Rollback(t *testing.T) {
 	defer cancel()
 	meta.On("Update", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("faked-error")).Once()
 
-	guest.Status = model.StatusRunning
-	vols := map[string]int64{"/data": util.GB}
+	guest.Status = models.StatusRunning
+	vols := map[string]int64{"/data": utils.GB}
 	assert.Err(t, guest.Resize(guest.CPU, guest.Memory, vols))
 	assert.Equal(t, 1, guest.Vols.Len())
-	assert.Equal(t, model.VolSysType, guest.Vols[0].Type)
+	assert.Equal(t, models.VolSysType, guest.Vols[0].Type)
 	assert.True(t, rolled)
 }
 
@@ -349,12 +349,12 @@ func TestCannotShrinkOrigVolumes(t *testing.T) {
 
 	for _, tc := range testcases {
 		guest, _ := newMockedGuest(t)
-		volmod, err := model.NewDataVolume(tc.exists, util.GB*2)
+		volmod, err := models.NewDataVolume(tc.exists, utils.GB*2)
 		assert.NilErr(t, err)
 		assert.NilErr(t, guest.AppendVols(volmod))
 
-		guest.Status = model.StatusRunning
-		vols := map[string]int64{tc.resizing: util.GB}
+		guest.Status = models.StatusRunning
+		vols := map[string]int64{tc.resizing: utils.GB}
 		assert.True(t, errors.Contain(
 			guest.Resize(guest.CPU, guest.Memory, vols),
 			errors.ErrCannotShrinkVolume,
@@ -365,7 +365,7 @@ func TestCannotShrinkOrigVolumes(t *testing.T) {
 func newMockedGuest(t *testing.T) (*Guest, *mocks.Bot) {
 	var bot = &mocks.Bot{}
 
-	gmod, err := model.NewGuest(model.NewHost(), model.NewSysImage())
+	gmod, err := models.NewGuest(models.NewHost(), models.NewSysImage())
 	assert.NilErr(t, err)
 
 	var guest = &Guest{

@@ -41,5 +41,5 @@ func (p Parted) getSize(so string) (int64, error) {
 		return 0, errors.Annotatef(errors.ErrInvalidValue, "invalid parted: %s", so)
 	}
 
-	return util.Atoi64(mat[1])
+	return utils.Atoi64(mat[1])
 }

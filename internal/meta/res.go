@@ -26,7 +26,7 @@ func (res Resources) Encode() (map[string]string, error) {
 	var data = map[string]string{}
 
 	for _, r := range res {
-		var enc, err = util.JSONEncode(r, "\t")
+		var enc, err = utils.JSONEncode(r, "\t")
 		if err != nil {
 			return nil, errors.Trace(err)
 		}

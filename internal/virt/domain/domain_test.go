@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	model.Setup()
+	models.Setup()
 }
 
 func TestSetSpec(t *testing.T) {
@@ -26,14 +26,14 @@ func TestSetSpec(t *testing.T) {
 	libdom.On("Free").Return().Once()
 	libdom.On("SetVcpusFlags", uint(1), libvirt.DomainVcpuConfig|libvirt.DomainVcpuMaximum).Return(nil).Once()
 	libdom.On("SetVcpusFlags", uint(1), libvirt.DomainVcpuConfig|libvirt.DomainVcpuCurrent).Return(nil).Once()
-	libdom.On("SetMemoryFlags", uint64(util.GB>>10), libvirt.DomainMemConfig|libvirt.DomainMemMaximum).Return(nil).Once()
-	libdom.On("SetMemoryFlags", uint64(util.GB>>10), libvirt.DomainMemConfig|libvirt.DomainMemCurrent).Return(nil).Once()
+	libdom.On("SetMemoryFlags", uint64(utils.GB>>10), libvirt.DomainMemConfig|libvirt.DomainMemMaximum).Return(nil).Once()
+	libdom.On("SetMemoryFlags", uint64(utils.GB>>10), libvirt.DomainMemConfig|libvirt.DomainMemCurrent).Return(nil).Once()
 
-	assert.NilErr(t, dom.SetSpec(1, util.GB))
+	assert.NilErr(t, dom.SetSpec(1, utils.GB))
 }
 
 func newMockedDomain(t *testing.T) *VirtDomain {
-	gmod, err := model.NewGuest(nil, nil)
+	gmod, err := models.NewGuest(nil, nil)
 	assert.NilErr(t, err)
 
 	return &VirtDomain{

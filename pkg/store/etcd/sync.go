@@ -17,7 +17,7 @@ type Mutex struct {
 }
 
 // NewMutex .
-func NewMutex(cli *clientv3.Client, key string) (util.Locker, error) {
+func NewMutex(cli *clientv3.Client, key string) (utils.Locker, error) {
 	var sess, err = concurrency.NewSession(cli)
 	if err != nil {
 		return nil, errors.Trace(err)
@@ -30,7 +30,7 @@ func NewMutex(cli *clientv3.Client, key string) (util.Locker, error) {
 }
 
 // Lock .
-func (m *Mutex) Lock(ctx context.Context) (util.Unlocker, error) {
+func (m *Mutex) Lock(ctx context.Context) (utils.Unlocker, error) {
 	if err := m.mutex.Lock(ctx); err != nil {
 		return nil, errors.Trace(err)
 	}

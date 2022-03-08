@@ -25,7 +25,7 @@ type Store interface {
 	Close() error
 
 	IncrUint32(ctx context.Context, key string) (uint32, error)
-	NewMutex(key string) (util.Locker, error)
+	NewMutex(key string) (utils.Locker, error)
 }
 
 // New .
@@ -105,7 +105,7 @@ func IncrUint32(ctx context.Context, key string) (uint32, error) {
 }
 
 // Lock .
-func Lock(ctx context.Context, key string) (util.Unlocker, error) {
+func Lock(ctx context.Context, key string) (utils.Unlocker, error) {
 	mutex, err := store.NewMutex(key)
 	if err != nil {
 		return nil, errors.Annotatef(err, "create mutex %s failed", key)

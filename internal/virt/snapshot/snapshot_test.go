@@ -10,7 +10,7 @@ import (
 )
 
 func TestCreate(t *testing.T) {
-	snapmod := model.NewSnapShot("vol-id-123")
+	snapmod := models.NewSnapShot("vol-id-123")
 
 	sbot := &snapmock.Bot{}
 	sbot.On("Create", mock.Anything).Return(nil).Once()
@@ -22,12 +22,12 @@ func TestCreate(t *testing.T) {
 		newBot:   func(v *Snapshot) (Bot, error) { return sbot, nil },
 	}
 
-	err := snap.Create(model.NewVolume("vol-id-123", 1))
+	err := snap.Create(models.NewVolume("vol-id-123", 1))
 	assert.NilErr(t, err)
 }
 
 func TestCommit(t *testing.T) {
-	snapmod := model.NewSnapShot("vol-id")
+	snapmod := models.NewSnapShot("vol-id")
 	snapmod.ID = "id-8"
 	snapmod.BaseSnapshotID = "id-4"
 
@@ -56,7 +56,7 @@ func TestCommit(t *testing.T) {
 }
 
 func TestCommitRoot(t *testing.T) {
-	snapmod := model.NewSnapShot("vol-id-123")
+	snapmod := models.NewSnapShot("vol-id-123")
 	snapmod.ID = "id-8"
 
 	sbot := &snapmock.Bot{}
@@ -78,7 +78,7 @@ func TestCommitRoot(t *testing.T) {
 }
 
 func TestRestore(t *testing.T) {
-	snapmod := model.NewSnapShot("vol-id-123")
+	snapmod := models.NewSnapShot("vol-id-123")
 	snapmod.ID = "id-123"
 
 	sbot := &snapmock.Bot{}
@@ -94,6 +94,6 @@ func TestRestore(t *testing.T) {
 	snaps := generateMockedSnapshots(3)
 	snaps[0].ID = "id-123"
 
-	err := snap.Restore(model.NewVolume("vol-id-123", 1), snaps)
+	err := snap.Restore(models.NewVolume("vol-id-123", 1), snaps)
 	assert.NilErr(t, err)
 }

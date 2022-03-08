@@ -13,7 +13,7 @@ import (
 	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
-func newAPIHandler(svc *yavirtd.Service) http.Handler {
+func newAPIHandler(svc *server.Service) http.Handler {
 	gin.SetMode(gin.ReleaseMode)
 
 	var api = &apiServer{service: svc}
@@ -44,10 +44,10 @@ func newAPIHandler(svc *yavirtd.Service) http.Handler {
 }
 
 type apiServer struct {
-	service *yavirtd.Service
+	service *server.Service
 }
 
-func (s *apiServer) host() *model.Host { //nolint
+func (s *apiServer) host() *models.Host { //nolint
 	return s.service.Host
 }
 

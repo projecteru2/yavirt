@@ -41,12 +41,12 @@ type Domain interface {
 
 // VirtDomain .
 type VirtDomain struct {
-	guest *model.Guest
+	guest *models.Guest
 	virt  libvirt.Libvirt
 }
 
 // New .
-func New(guest *model.Guest, virt libvirt.Libvirt) *VirtDomain {
+func New(guest *models.Guest, virt libvirt.Libvirt) *VirtDomain {
 	return &VirtDomain{
 		guest: guest,
 		virt:  virt,
@@ -319,7 +319,7 @@ func (d *VirtDomain) render() ([]byte, error) {
 		"interface":         d.getInterfaceType(),
 		"pair":              d.guest.NetworkPairName(),
 		"mac":               d.guest.MAC,
-		"cache_passthrough": config.Conf.VirtCPUCachePassthrough,
+		"cache_passthrough": configs.Conf.VirtCPUCachePassthrough,
 	}
 
 	return template.Render(d.guestTemplateFilepath(), args)
@@ -327,10 +327,10 @@ func (d *VirtDomain) render() ([]byte, error) {
 
 func (d *VirtDomain) checkUUID(raw string) (string, error) {
 	if len(raw) < 1 {
-		return util.UUIDStr()
+		return utils.UUIDStr()
 	}
 
-	if err := util.CheckUUID(raw); err != nil {
+	if err := utils.CheckUUID(raw); err != nil {
 		return "", errors.Trace(err)
 	}
 
@@ -346,7 +346,7 @@ func (d *VirtDomain) getInterfaceType() string {
 	}
 }
 
-func (d *VirtDomain) dataVols(vols model.Volumes) []map[string]string {
+func (d *VirtDomain) dataVols(vols models.Volumes) []map[string]string {
 	var dat = []map[string]string{}
 
 	for i, v := range vols {
@@ -440,10 +440,10 @@ func (d *VirtDomain) setCPU(cpu int, dom libvirt.Domain) error {
 }
 
 func (d *VirtDomain) setMemory(mem int64, dom libvirt.Domain) error {
-	if mem < config.Conf.MinMemory || mem > config.Conf.MaxMemory {
+	if mem < configs.Conf.MinMemory || mem > configs.Conf.MaxMemory {
 		return errors.Annotatef(errors.ErrInvalidValue,
 			"invalid memory: %d, it shoule be [%d, %d]",
-			mem, config.Conf.MinMemory, config.Conf.MaxMemory)
+			mem, configs.Conf.MinMemory, configs.Conf.MaxMemory)
 	}
 
 	// converts bytes unit to kilobytes
@@ -505,11 +505,11 @@ func (d *VirtDomain) lookup() (libvirt.Domain, error) {
 }
 
 func (d *VirtDomain) diskTemplateFilepath() string {
-	return filepath.Join(config.Conf.VirtTmplDir, "disk.xml")
+	return filepath.Join(configs.Conf.VirtTmplDir, "disk.xml")
 }
 
 func (d *VirtDomain) guestTemplateFilepath() string {
-	return filepath.Join(config.Conf.VirtTmplDir, "guest.xml")
+	return filepath.Join(configs.Conf.VirtTmplDir, "guest.xml")
 }
 
 // GetState .

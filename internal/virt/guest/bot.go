@@ -38,20 +38,20 @@ type Bot interface {
 	IsFolder(context.Context, string) (bool, error)
 	RemoveAll(context.Context, string) error
 	Resize(cpu int, mem int64) error
-	Capture(user, name string) (*model.UserImage, error)
+	Capture(user, name string) (*models.UserImage, error)
 	AmplifyVolume(vol volume.Virt, cap int64, devPath string) error
-	AttachVolume(volmod *model.Volume, devName string) (rollback func(), err error)
+	AttachVolume(volmod *models.Volume, devName string) (rollback func(), err error)
 	BindExtraNetwork() error
 	OpenFile(path, mode string) (agent.File, error)
 	MakeDirectory(ctx context.Context, path string, parent bool) error
 	Trylock() error
 	Unlock()
-	CreateSnapshot(*model.Volume) error
-	CommitSnapshot(*model.Volume, string) error
-	CommitSnapshotByDay(*model.Volume, int) error
-	RestoreSnapshot(*model.Volume, string) error
-	CheckVolume(*model.Volume) error
-	RepairVolume(*model.Volume) error
+	CreateSnapshot(*models.Volume) error
+	CommitSnapshot(*models.Volume, string) error
+	CommitSnapshotByDay(*models.Volume, int) error
+	RestoreSnapshot(*models.Volume, string) error
+	CheckVolume(*models.Volume) error
+	RepairVolume(*models.Volume) error
 }
 
 type bot struct {
@@ -59,8 +59,8 @@ type bot struct {
 	virt      libvirt.Libvirt
 	dom       domain.Domain
 	ga        *agent.Agent
-	flock     *util.Flock
-	newVolume func(*model.Volume) volume.Virt
+	flock     *utils.Flock
+	newVolume func(*models.Volume) volume.Virt
 }
 
 func newVirtGuest(guest *Guest) (Bot, error) {
@@ -81,7 +81,7 @@ func newVirtGuest(guest *Guest) (Bot, error) {
 	return vg, nil
 }
 
-func newVolume(volmod *model.Volume) volume.Virt {
+func newVolume(volmod *models.Volume) volume.Virt {
 	return volume.New(volmod)
 }
 
@@ -103,7 +103,7 @@ func (v *bot) Migrate() error {
 }
 
 func (v *bot) Boot() error {
-	return util.Invoke([]func() error{
+	return utils.Invoke([]func() error{
 		v.dom.Boot,
 		v.waitGA,
 		v.setupNics,
@@ -114,7 +114,7 @@ func (v *bot) Boot() error {
 }
 
 func (v *bot) waitGA() error {
-	var ctx, cancel = context.WithTimeout(context.Background(), config.Conf.GABootTimeout.Duration())
+	var ctx, cancel = context.WithTimeout(context.Background(), configs.Conf.GABootTimeout.Duration())
 	defer cancel()
 
 	for i := 1; ; i++ {
@@ -162,14 +162,14 @@ func (v *bot) Undefine() error {
 		return
 	}
 
-	return util.Invoke([]func() error{
+	return utils.Invoke([]func() error{
 		v.dom.Undefine,
 		undeVols,
 	})
 }
 
 func (v *bot) Create() error {
-	return util.Invoke([]func() error{
+	return utils.Invoke([]func() error{
 		v.allocVols,
 		v.allocGuest,
 	})
@@ -190,38 +190,38 @@ func (v *bot) allocGuest() error {
 	return nil
 }
 
-func (v *bot) CheckVolume(volmod *model.Volume) error {
+func (v *bot) CheckVolume(volmod *models.Volume) error {
 	vol := v.newVolume(volmod)
 	return vol.Check()
 }
 
-func (v *bot) RepairVolume(volmod *model.Volume) error {
+func (v *bot) RepairVolume(volmod *models.Volume) error {
 	vol := v.newVolume(volmod)
 	return vol.Repair()
 }
 
-func (v *bot) CreateSnapshot(volmod *model.Volume) error {
+func (v *bot) CreateSnapshot(volmod *models.Volume) error {
 	vol := v.newVolume(volmod)
 	return vol.CreateSnapshot()
 }
 
-func (v *bot) CommitSnapshot(volmod *model.Volume, snapID string) error {
+func (v *bot) CommitSnapshot(volmod *models.Volume, snapID string) error {
 	vol := v.newVolume(volmod)
 	return vol.CommitSnapshot(snapID)
 }
 
-func (v *bot) CommitSnapshotByDay(volmod *model.Volume, day int) error {
+func (v *bot) CommitSnapshotByDay(volmod *models.Volume, day int) error {
 	vol := v.newVolume(volmod)
 	return vol.CommitSnapshotByDay(day)
 }
 
-func (v *bot) RestoreSnapshot(volmod *model.Volume, snapID string) error {
+func (v *bot) RestoreSnapshot(volmod *models.Volume, snapID string) error {
 	vol := v.newVolume(volmod)
 	return vol.RestoreSnapshot(snapID)
 }
 
 // AttachVolume .
-func (v *bot) AttachVolume(volmod *model.Volume, devName string) (func(), error) {
+func (v *bot) AttachVolume(volmod *models.Volume, devName string) (func(), error) {
 	vol := v.newVolume(volmod)
 	return vol.Attach(v.dom, v.ga, devName)
 }
@@ -233,18 +233,18 @@ func (v *bot) AmplifyVolume(vol volume.Virt, cap int64, devPath string) (err err
 	return err
 }
 
-func (v *bot) newFlock() *util.Flock {
+func (v *bot) newFlock() *utils.Flock {
 	var fn = fmt.Sprintf("%s.flock", v.guest.ID)
-	var fpth = filepath.Join(config.Conf.VirtFlockDir, fn)
-	return util.NewFlock(fpth)
+	var fpth = filepath.Join(configs.Conf.VirtFlockDir, fn)
+	return utils.NewFlock(fpth)
 }
 
 func (v *bot) execBatches() error {
-	for _, bat := range config.Conf.Batches {
+	for _, bat := range configs.Conf.Batches {
 		if err := v.ga.ExecBatch(bat); err != nil {
 			if bat.ForceOK {
 				log.ErrorStackf(err, "forced batch error")
-				metric.IncrError()
+				metrics.IncrError()
 				break
 			}
 
@@ -369,7 +369,7 @@ func (v *bot) GetUUID() (string, error) {
 	return v.dom.GetUUID()
 }
 
-func (v *bot) Capture(user, name string) (*model.UserImage, error) {
+func (v *bot) Capture(user, name string) (*models.UserImage, error) {
 	if err := v.dom.CheckShutoff(); err != nil {
 		return nil, errors.Trace(err)
 	}
