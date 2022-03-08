@@ -5,7 +5,7 @@ import (
 	"net"
 
 	"github.com/projecteru2/yavirt/pkg/netx"
-	"github.com/projecteru2/yavirt/vnet/device"
+	"github.com/projecteru2/yavirt/internal/vnet/device"
 )
 
 // IP .

@@ -10,8 +10,8 @@ import (
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/meta"
 	"github.com/projecteru2/yavirt/pkg/netx"
-	"github.com/projecteru2/yavirt/vnet"
-	"github.com/projecteru2/yavirt/vnet/device"
+	"github.com/projecteru2/yavirt/internal/vnet"
+	"github.com/projecteru2/yavirt/internal/vnet/device"
 )
 
 // IP .

@@ -7,8 +7,8 @@ import (
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	"github.com/projecteru2/yavirt/vnet/device"
-	"github.com/projecteru2/yavirt/vnet/types"
+	"github.com/projecteru2/yavirt/internal/vnet/device"
+	"github.com/projecteru2/yavirt/internal/vnet/types"
 )
 
 // CreateEndpointNetwork .

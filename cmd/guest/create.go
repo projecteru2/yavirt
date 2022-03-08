@@ -11,7 +11,7 @@ import (
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/projecteru2/yavirt/internal/virt/types"
-	"github.com/projecteru2/yavirt/vnet"
+	"github.com/projecteru2/yavirt/internal/vnet"
 )
 
 func createFlags() []cli.Flag {

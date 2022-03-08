@@ -5,8 +5,8 @@ import (
 
 	libcaliapi "github.com/projectcalico/libcalico-go/lib/apis/v3"
 
-	calinet "github.com/projecteru2/yavirt/vnet/calico"
-	"github.com/projecteru2/yavirt/vnet/device"
+	calinet "github.com/projecteru2/yavirt/internal/vnet/calico"
+	"github.com/projecteru2/yavirt/internal/vnet/device"
 )
 
 // Handler .

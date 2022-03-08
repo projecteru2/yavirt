@@ -17,11 +17,11 @@ import (
 	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/projecteru2/yavirt/internal/virt"
 	"github.com/projecteru2/yavirt/internal/virt/guest/manager"
-	"github.com/projecteru2/yavirt/vnet"
-	"github.com/projecteru2/yavirt/vnet/calico"
-	calinet "github.com/projecteru2/yavirt/vnet/calico"
-	"github.com/projecteru2/yavirt/vnet/device"
-	calihandler "github.com/projecteru2/yavirt/vnet/handler/calico"
+	"github.com/projecteru2/yavirt/internal/vnet"
+	"github.com/projecteru2/yavirt/internal/vnet/calico"
+	calinet "github.com/projecteru2/yavirt/internal/vnet/calico"
+	"github.com/projecteru2/yavirt/internal/vnet/device"
+	calihandler "github.com/projecteru2/yavirt/internal/vnet/handler/calico"
 )
 
 var runtime Runtime

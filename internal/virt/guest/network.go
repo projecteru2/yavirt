@@ -19,12 +19,12 @@ import (
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/pkg/sh"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	"github.com/projecteru2/yavirt/vnet"
-	calinet "github.com/projecteru2/yavirt/vnet/calico"
-	"github.com/projecteru2/yavirt/vnet/handler"
-	calihandler "github.com/projecteru2/yavirt/vnet/handler/calico"
-	vlanhandler "github.com/projecteru2/yavirt/vnet/handler/vlan"
-	"github.com/projecteru2/yavirt/vnet/types"
+	"github.com/projecteru2/yavirt/internal/vnet"
+	calinet "github.com/projecteru2/yavirt/internal/vnet/calico"
+	"github.com/projecteru2/yavirt/internal/vnet/handler"
+	calihandler "github.com/projecteru2/yavirt/internal/vnet/handler/calico"
+	vlanhandler "github.com/projecteru2/yavirt/internal/vnet/handler/vlan"
+	"github.com/projecteru2/yavirt/internal/vnet/types"
 )
 
 const (

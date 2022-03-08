@@ -15,8 +15,8 @@ import (
 	"github.com/projecteru2/yavirt/pkg/store"
 	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/projecteru2/yavirt/internal/virt/types"
-	"github.com/projecteru2/yavirt/vnet"
-	"github.com/projecteru2/yavirt/vnet/handler"
+	"github.com/projecteru2/yavirt/internal/vnet"
+	"github.com/projecteru2/yavirt/internal/vnet/handler"
 )
 
 // Guest indicates a virtual machine.

@@ -5,10 +5,10 @@ import (
 
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/meta"
-	"github.com/projecteru2/yavirt/vnet/device"
-	"github.com/projecteru2/yavirt/vnet/ipam"
-	"github.com/projecteru2/yavirt/vnet/types"
-	vlannet "github.com/projecteru2/yavirt/vnet/vlan"
+	"github.com/projecteru2/yavirt/internal/vnet/device"
+	"github.com/projecteru2/yavirt/internal/vnet/ipam"
+	"github.com/projecteru2/yavirt/internal/vnet/types"
+	vlannet "github.com/projecteru2/yavirt/internal/vnet/vlan"
 )
 
 // Handler .

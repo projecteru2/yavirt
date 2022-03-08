@@ -9,9 +9,9 @@ import (
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/meta"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	calinet "github.com/projecteru2/yavirt/vnet/calico"
-	"github.com/projecteru2/yavirt/vnet/device"
-	"github.com/projecteru2/yavirt/vnet/types"
+	calinet "github.com/projecteru2/yavirt/internal/vnet/calico"
+	"github.com/projecteru2/yavirt/internal/vnet/device"
+	"github.com/projecteru2/yavirt/internal/vnet/types"
 )
 
 // InitGateway .

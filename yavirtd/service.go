@@ -19,9 +19,9 @@ import (
 	"github.com/projecteru2/yavirt/internal/virt"
 	"github.com/projecteru2/yavirt/internal/virt/guest/manager"
 	virtypes "github.com/projecteru2/yavirt/internal/virt/types"
-	"github.com/projecteru2/yavirt/vnet"
-	calihandler "github.com/projecteru2/yavirt/vnet/handler/calico"
-	vlanhandler "github.com/projecteru2/yavirt/vnet/handler/vlan"
+	"github.com/projecteru2/yavirt/internal/vnet"
+	calihandler "github.com/projecteru2/yavirt/internal/vnet/handler/calico"
+	vlanhandler "github.com/projecteru2/yavirt/internal/vnet/handler/vlan"
 )
 
 // Service .

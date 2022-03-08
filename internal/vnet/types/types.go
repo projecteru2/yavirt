@@ -3,7 +3,7 @@ package types
 import (
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/meta"
-	"github.com/projecteru2/yavirt/vnet/device"
+	"github.com/projecteru2/yavirt/internal/vnet/device"
 )
 
 // EndpointArgs .

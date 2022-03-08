@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/projecteru2/yavirt/pkg/errors"
-	calihandler "github.com/projecteru2/yavirt/vnet/handler/calico"
+	calihandler "github.com/projecteru2/yavirt/internal/vnet/handler/calico"
 )
 
 type key string

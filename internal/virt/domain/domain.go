@@ -12,7 +12,7 @@ import (
 	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/projecteru2/yavirt/internal/virt/template"
 	"github.com/projecteru2/yavirt/internal/virt/types"
-	"github.com/projecteru2/yavirt/vnet"
+	"github.com/projecteru2/yavirt/internal/vnet"
 )
 
 const (
