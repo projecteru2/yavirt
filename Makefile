@@ -2,9 +2,9 @@ NS := github.com/projecteru2/yavirt
 BUILD := go build -race
 TEST := go test -count=1 -race -cover
 
-LDFLAGS += -X "$(NS)/ver.Git=$(shell git rev-parse HEAD)"
-LDFLAGS += -X "$(NS)/ver.Compile=$(shell go version)"
-LDFLAGS += -X "$(NS)/ver.Date=$(shell date +'%F %T %z')"
+LDFLAGS += -X "$(NS)/internal/ver.Git=$(shell git rev-parse HEAD)"
+LDFLAGS += -X "$(NS)/internal/ver.Compile=$(shell go version)"
+LDFLAGS += -X "$(NS)/internal/ver.Date=$(shell date +'%F %T %z')"
 
 PKGS := $$(go list ./... | grep -v -P '$(NS)/guestfs|vendor/')
 
