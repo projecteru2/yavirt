@@ -8,7 +8,7 @@ import (
 	"github.com/vishvananda/netlink"
 
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/netx"
+	"github.com/projecteru2/yavirt/pkg/netx"
 )
 
 // Route .

@@ -5,7 +5,7 @@ import (
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/netx"
+	"github.com/projecteru2/yavirt/pkg/netx"
 	"github.com/projecteru2/yavirt/vnet"
 	"github.com/projecteru2/yavirt/vnet/calico"
 	"github.com/projecteru2/yavirt/vnet/device"

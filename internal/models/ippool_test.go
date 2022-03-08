@@ -6,7 +6,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/projecteru2/yavirt/netx"
+	"github.com/projecteru2/yavirt/pkg/netx"
 	storemocks "github.com/projecteru2/yavirt/store/mocks"
 	"github.com/projecteru2/yavirt/test/assert"
 	"github.com/projecteru2/yavirt/test/mock"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/projecteru2/yavirt/meta"
-	"github.com/projecteru2/yavirt/netx"
+	"github.com/projecteru2/yavirt/pkg/netx"
 )
 
 // Subnet .

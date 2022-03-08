@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/projecteru2/yavirt/configs"
-	"github.com/projecteru2/yavirt/netx"
+	"github.com/projecteru2/yavirt/pkg/netx"
 )
 
 // Server .
