@@ -6,7 +6,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/projecteru2/yavirt/ctl/run"
+	"github.com/projecteru2/yavirt/cmd/run"
 	"github.com/projecteru2/yavirt/errors"
 	"github.com/projecteru2/yavirt/virt"
 )

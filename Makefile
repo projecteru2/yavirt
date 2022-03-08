@@ -18,7 +18,7 @@ build-srv:
 	$(BUILD) -ldflags '$(LDFLAGS)' -o bin/yavirtd yavirtd.go
 
 build-ctl:
-	$(BUILD) -ldflags '$(LDFLAGS)' -o bin/yavirtctl ctl/ctl.go
+	$(BUILD) -ldflags '$(LDFLAGS)' -o bin/yavirtctl cmd/cmd.go
 
 lint: format
 	golangci-lint run --skip-dirs-use-default --skip-dirs=guestfs

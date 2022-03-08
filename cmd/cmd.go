@@ -6,11 +6,11 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/projecteru2/yavirt/ctl/guest"
-	"github.com/projecteru2/yavirt/ctl/host"
-	"github.com/projecteru2/yavirt/ctl/image"
-	"github.com/projecteru2/yavirt/ctl/maint"
-	"github.com/projecteru2/yavirt/ctl/network"
+	"github.com/projecteru2/yavirt/cmd/guest"
+	"github.com/projecteru2/yavirt/cmd/host"
+	"github.com/projecteru2/yavirt/cmd/image"
+	"github.com/projecteru2/yavirt/cmd/maint"
+	"github.com/projecteru2/yavirt/cmd/network"
 	"github.com/projecteru2/yavirt/errors"
 	"github.com/projecteru2/yavirt/ver"
 )

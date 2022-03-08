@@ -9,7 +9,7 @@ import (
 	libcaliopt "github.com/projectcalico/libcalico-go/lib/options"
 	"github.com/urfave/cli/v2"
 
-	"github.com/projecteru2/yavirt/ctl/run"
+	"github.com/projecteru2/yavirt/cmd/run"
 	"github.com/projecteru2/yavirt/errors"
 )
 
