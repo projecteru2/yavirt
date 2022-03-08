@@ -8,7 +8,7 @@ import (
 	pb "github.com/projecteru2/libyavirt/grpc/gen"
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/log"
-	"github.com/projecteru2/yavirt/yavirtd"
+	"github.com/projecteru2/yavirt/internal/server"
 )
 
 // GRPCServer .

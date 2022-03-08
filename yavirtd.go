@@ -24,9 +24,9 @@ import (
 	"github.com/projecteru2/yavirt/internal/ver"
 	"github.com/projecteru2/yavirt/internal/virt"
 	"github.com/projecteru2/yavirt/internal/virt/guest"
-	"github.com/projecteru2/yavirt/yavirtd"
-	grpcserver "github.com/projecteru2/yavirt/yavirtd/grpc"
-	httpserver "github.com/projecteru2/yavirt/yavirtd/http"
+	"github.com/projecteru2/yavirt/internal/server"
+	grpcserver "github.com/projecteru2/yavirt/internal/server/grpc"
+	httpserver "github.com/projecteru2/yavirt/internal/server/http"
 )
 
 func main() {

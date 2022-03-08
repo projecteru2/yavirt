@@ -10,7 +10,7 @@ import (
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/internal/virt"
-	"github.com/projecteru2/yavirt/yavirtd"
+	"github.com/projecteru2/yavirt/internal/server"
 )
 
 func newAPIHandler(svc *yavirtd.Service) http.Handler {
