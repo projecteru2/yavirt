@@ -6,7 +6,7 @@ import (
 	"syscall"
 
 	"github.com/projecteru2/yavirt/internal/errors"
-	"github.com/projecteru2/yavirt/log"
+	"github.com/projecteru2/yavirt/pkg/log"
 )
 
 const perm = os.FileMode(0600)

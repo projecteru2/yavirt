@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/projecteru2/yavirt/libvirt"
-	"github.com/projecteru2/yavirt/log"
+	"github.com/projecteru2/yavirt/pkg/log"
 )
 
 type Console interface {

@@ -10,7 +10,7 @@ import (
 	"github.com/projecteru2/libyavirt/types"
 
 	"github.com/projecteru2/yavirt/internal/errors"
-	"github.com/projecteru2/yavirt/log"
+	"github.com/projecteru2/yavirt/pkg/log"
 	virtypes "github.com/projecteru2/yavirt/virt/types"
 
 	"github.com/projecteru2/yavirt/yavirtd"

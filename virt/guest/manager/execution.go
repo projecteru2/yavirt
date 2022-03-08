@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"sync"
 
-	"github.com/projecteru2/yavirt/log"
+	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/metric"
 )
 
