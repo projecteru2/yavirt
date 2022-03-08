@@ -7,7 +7,7 @@ import (
 	libcaliipam "github.com/projectcalico/libcalico-go/lib/ipam"
 	libcalinet "github.com/projectcalico/libcalico-go/lib/net"
 
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/meta"
 	"github.com/projecteru2/yavirt/netx"

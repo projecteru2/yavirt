@@ -12,7 +12,7 @@ import (
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/cmd/run"
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/libvirt"
 	"github.com/projecteru2/yavirt/meta"
 	"github.com/projecteru2/yavirt/internal/models"

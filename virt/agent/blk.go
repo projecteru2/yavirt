@@ -4,7 +4,7 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
 var blkidRegex = regexp.MustCompile(`(?i)uuid="([-a-f0-9]{36})"`)

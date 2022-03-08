@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/util"
 	"github.com/projecteru2/yavirt/virt/guestfs"
 )

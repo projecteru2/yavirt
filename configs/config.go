@@ -8,7 +8,7 @@ import (
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/pkg/transport"
 
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
 )
 

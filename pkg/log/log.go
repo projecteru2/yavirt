@@ -8,7 +8,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/sirupsen/logrus"
 
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
 // Setup .

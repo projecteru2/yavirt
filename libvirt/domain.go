@@ -3,7 +3,7 @@ package libvirt
 import (
 	libvirtgo "github.com/libvirt/libvirt-go"
 
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
 )
 

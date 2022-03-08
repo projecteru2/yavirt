@@ -3,7 +3,7 @@ package calico
 import (
 	"context"
 
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/meta"
 	calinet "github.com/projecteru2/yavirt/vnet/calico"

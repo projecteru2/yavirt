@@ -3,7 +3,7 @@ package util
 import (
 	"github.com/google/uuid"
 
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
 // UUIDStr .

@@ -10,7 +10,7 @@ import (
 	"github.com/robfig/cron/v3"
 
 	"github.com/projecteru2/yavirt/configs"
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/internal/metrics"
 	"github.com/projecteru2/yavirt/internal/models"

@@ -9,7 +9,7 @@ import (
 	pb "github.com/projecteru2/libyavirt/grpc/gen"
 	"github.com/projecteru2/libyavirt/types"
 
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
 	virtypes "github.com/projecteru2/yavirt/virt/types"
 

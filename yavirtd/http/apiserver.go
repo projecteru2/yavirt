@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/projecteru2/libyavirt/types"
-	"github.com/projecteru2/yavirt/internal/errors"
+	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/virt"
 	"github.com/projecteru2/yavirt/yavirtd"
