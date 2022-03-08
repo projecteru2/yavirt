@@ -3,7 +3,7 @@ package ipam
 import (
 	"context"
 
-	"github.com/projecteru2/yavirt/pkg/meta"
+	"github.com/projecteru2/yavirt/internal/meta"
 )
 
 // Ipam .

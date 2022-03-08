@@ -1,6 +1,6 @@
 package model
 
-import "github.com/projecteru2/yavirt/pkg/meta"
+import "github.com/projecteru2/yavirt/internal/meta"
 
 // Networks .
 type Networks []*Network

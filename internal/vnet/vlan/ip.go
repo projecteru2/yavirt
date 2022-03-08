@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/projecteru2/yavirt/pkg/meta"
+	"github.com/projecteru2/yavirt/internal/meta"
 	"github.com/projecteru2/yavirt/pkg/netx"
 	"github.com/projecteru2/yavirt/internal/vnet"
 	"github.com/projecteru2/yavirt/internal/vnet/device"

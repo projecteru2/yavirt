@@ -8,7 +8,7 @@ import (
 	calinet "github.com/projectcalico/libcalico-go/lib/net"
 
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/meta"
+	"github.com/projecteru2/yavirt/internal/meta"
 	"github.com/projecteru2/yavirt/pkg/netx"
 	"github.com/projecteru2/yavirt/internal/vnet"
 	"github.com/projecteru2/yavirt/internal/vnet/device"

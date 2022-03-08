@@ -6,7 +6,7 @@ import (
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/meta"
+	"github.com/projecteru2/yavirt/internal/meta"
 )
 
 // Generic .

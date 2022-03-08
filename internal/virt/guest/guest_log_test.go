@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/projecteru2/yavirt/pkg/meta"
+	"github.com/projecteru2/yavirt/internal/meta"
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/pkg/test/mock"
 	"github.com/projecteru2/yavirt/internal/virt/agent/mocks"
