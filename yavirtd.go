@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/urfave/cli/v2"
+	cli "github.com/urfave/cli/v2"
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/metrics"
@@ -89,12 +89,12 @@ func Run(c *cli.Context) error {
 
 	go prof(configs.Conf.ProfHTTPPort)
 
-	run([]server.Server{grpcSrv, httpSrv})
+	run([]server.Serverable{grpcSrv, httpSrv})
 
 	return nil
 }
 
-func run(servers []server.Server) {
+func run(servers []server.Serverable) {
 	defer log.Warnf("[main] yavirtd proc exit")
 
 	var wg sync.WaitGroup
@@ -103,7 +103,7 @@ func run(servers []server.Server) {
 
 		go handleSigns(srv)
 
-		go func(server server.Server) {
+		go func(server server.Serverable) {
 			defer wg.Done()
 			if err := server.Serve(); err != nil {
 				log.ErrorStack(err)
@@ -119,7 +119,7 @@ func run(servers []server.Server) {
 	wg.Wait()
 }
 
-func notify(servers []server.Server) {
+func notify(servers []server.Serverable) {
 	defer log.Infof("[main] exit notify loop exit")
 
 	var wg sync.WaitGroup
@@ -179,7 +179,7 @@ var signs = []os.Signal{
 	syscall.SIGUSR2,
 }
 
-func handleSigns(srv server.Server) {
+func handleSigns(srv server.Serverable) {
 	defer func() {
 		log.Warnf("[main] signal handler for %p exit", srv)
 		srv.Close()

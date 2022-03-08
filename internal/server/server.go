@@ -9,15 +9,15 @@ import (
 )
 
 // Server .
-type Server interface {
+type Serverable interface {
 	Reload() error
 	Serve() error
 	Close()
 	ExitCh() chan struct{}
 }
 
-// ServerBase .
-type ServerBase struct {
+// Server .
+type Server struct {
 	Addr     string
 	Listener net.Listener
 	Service  *Service
@@ -28,15 +28,15 @@ type ServerBase struct {
 }
 
 // Listen .
-func Listen(addr string, svc *Service) (srv *ServerBase, err error) {
-	srv = &ServerBase{Service: svc}
+func Listen(addr string, svc *Service) (srv *Server, err error) {
+	srv = &Server{Service: svc}
 	srv.Exit.Ch = make(chan struct{}, 1)
 	srv.Listener, srv.Addr, err = srv.Listen(addr)
 	return
 }
 
 // Listen .
-func (s *ServerBase) Listen(addr string) (lis net.Listener, ip string, err error) {
+func (s *Server) Listen(addr string) (lis net.Listener, ip string, err error) {
 	var network = "tcp"
 	if lis, err = net.Listen(network, addr); err != nil {
 		return

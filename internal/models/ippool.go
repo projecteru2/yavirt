@@ -18,9 +18,9 @@ import (
 type IPPool struct {
 	*Generic
 
-	Name  string         `json:"name"`
-	Raw   string         `json:"raw"`
-	CIDR  string         `json:"cidr"`
+	Name  string          `json:"name"`
+	Raw   string          `json:"raw"`
+	CIDR  string          `json:"cidr"`
 	Flags *utils.Bitmap32 `json:"flags"`
 
 	ipnet  *net.IPNet

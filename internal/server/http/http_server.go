@@ -13,7 +13,7 @@ import (
 
 // HTTPServer .
 type HTTPServer struct {
-	*server.ServerBase
+	*server.Server
 
 	httpServer *http.Server
 }
@@ -21,7 +21,7 @@ type HTTPServer struct {
 // Listen .
 func Listen(svc *server.Service) (srv *HTTPServer, err error) {
 	srv = &HTTPServer{}
-	if srv.ServerBase, err = server.Listen(configs.Conf.BindHTTPAddr, svc); err != nil {
+	if srv.Server, err = server.Listen(configs.Conf.BindHTTPAddr, svc); err != nil {
 		return
 	}
 

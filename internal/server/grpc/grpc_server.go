@@ -13,7 +13,7 @@ import (
 
 // GRPCServer .
 type GRPCServer struct {
-	*server.ServerBase
+	*server.Server
 
 	server *grpc.Server
 	app    pb.YavirtdRPCServer
@@ -22,7 +22,7 @@ type GRPCServer struct {
 // Listen .
 func Listen(svc *server.Service) (srv *GRPCServer, err error) {
 	srv = &GRPCServer{}
-	if srv.ServerBase, err = server.Listen(configs.Conf.BindGRPCAddr, svc); err != nil {
+	if srv.Server, err = server.Listen(configs.Conf.BindGRPCAddr, svc); err != nil {
 		return
 	}
 

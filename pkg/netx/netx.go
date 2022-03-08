@@ -22,7 +22,7 @@ func GetOutboundIP(dest string) (string, error) {
 
 // PrefixToNetmask .
 func PrefixToNetmask(prefix int) string {
-	var p = uint(utils.Min(prefix, 32))        //nolint:gomnd // ipv4 is 32bit
+	var p = uint(utils.Min(prefix, 32))       //nolint:gomnd // ipv4 is 32bit
 	var i = ((1 << p) - 1) << uint(32-prefix) //nolint
 	return IntToIPv4(int64(i))
 }
