@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/projecteru2/yavirt/pkg/log"
-	"github.com/projecteru2/yavirt/metric"
+	"github.com/projecteru2/yavirt/internal/metrics"
 )
 
 type execution struct {
