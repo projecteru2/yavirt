@@ -18,7 +18,7 @@ import (
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/pkg/netx"
 	"github.com/projecteru2/yavirt/pkg/store"
-	"github.com/projecteru2/yavirt/util"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 var intIPSubnets = map[int64]int64{}

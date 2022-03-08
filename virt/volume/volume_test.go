@@ -8,7 +8,7 @@ import (
 	storemocks "github.com/projecteru2/yavirt/pkg/store/mocks"
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/pkg/test/mock"
-	"github.com/projecteru2/yavirt/util"
+	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/projecteru2/yavirt/virt/volume/mocks"
 )
 

@@ -10,8 +10,8 @@ import (
 	storemocks "github.com/projecteru2/yavirt/pkg/store/mocks"
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/pkg/test/mock"
-	"github.com/projecteru2/yavirt/util"
-	utilmocks "github.com/projecteru2/yavirt/util/mocks"
+	"github.com/projecteru2/yavirt/pkg/utils"
+	utilmocks "github.com/projecteru2/yavirt/pkg/utils/mocks"
 )
 
 func TestIPPoolBitmapCount(t *testing.T) {

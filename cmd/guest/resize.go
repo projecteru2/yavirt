@@ -7,7 +7,7 @@ import (
 
 	"github.com/projecteru2/yavirt/cmd/run"
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/util"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 func resizeFlags() []cli.Flag {

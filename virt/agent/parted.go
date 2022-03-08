@@ -5,7 +5,7 @@ import (
 	"regexp"
 
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/util"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 // output e.g., "...\nDisk /dev/vdb: 107374182400B\n..."

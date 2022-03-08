@@ -13,7 +13,7 @@ import (
 	"github.com/projecteru2/yavirt/pkg/idgen"
 	"github.com/projecteru2/yavirt/pkg/meta"
 	"github.com/projecteru2/yavirt/pkg/store"
-	"github.com/projecteru2/yavirt/util"
+	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/projecteru2/yavirt/virt/types"
 	"github.com/projecteru2/yavirt/vnet"
 	"github.com/projecteru2/yavirt/vnet/handler"

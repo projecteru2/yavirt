@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	util "github.com/projecteru2/yavirt/util"
+	util "github.com/projecteru2/yavirt/pkg/utils"
 	mock "github.com/stretchr/testify/mock"
 )
 

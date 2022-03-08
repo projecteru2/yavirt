@@ -11,7 +11,7 @@ import (
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/meta"
 	"github.com/projecteru2/yavirt/pkg/store"
-	"github.com/projecteru2/yavirt/util"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 // SysImage indicates a system image

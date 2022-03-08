@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/util"
+	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/projecteru2/yavirt/vnet/device"
 )
 

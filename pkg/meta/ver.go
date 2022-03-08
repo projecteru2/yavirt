@@ -1,6 +1,6 @@
 package meta
 
-import "github.com/projecteru2/yavirt/util"
+import "github.com/projecteru2/yavirt/pkg/utils"
 
 // Ver .
 type Ver struct {

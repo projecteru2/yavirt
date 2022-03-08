@@ -11,7 +11,7 @@ import (
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
-	"github.com/projecteru2/yavirt/util"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 const maxBytesPerRead = 32 * util.MB // ref https://www.qemu.org/docs/master/interop/qemu-ga-ref.html

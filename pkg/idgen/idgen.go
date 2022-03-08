@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/projecteru2/yavirt/util"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 // Generator .

@@ -10,7 +10,7 @@ import (
 	eruutils "github.com/projecteru2/core/utils"
 
 	"github.com/projecteru2/yavirt/pkg/test/assert"
-	"github.com/projecteru2/yavirt/util"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 func TestEmptyLabels(t *testing.T) {

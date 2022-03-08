@@ -7,7 +7,7 @@ import (
 
 	"github.com/projecteru2/yavirt/cmd/run"
 	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/util"
+	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 func listFlags() []cli.Flag {
