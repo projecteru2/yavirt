@@ -13,7 +13,7 @@ import (
 	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/sh"
+	"github.com/projecteru2/yavirt/pkg/sh"
 	"github.com/projecteru2/yavirt/util"
 	"github.com/projecteru2/yavirt/virt/agent"
 	"github.com/projecteru2/yavirt/virt/domain"

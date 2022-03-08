@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/projecteru2/yavirt/sh"
+	"github.com/projecteru2/yavirt/pkg/sh"
 )
 
 // CreateImage .

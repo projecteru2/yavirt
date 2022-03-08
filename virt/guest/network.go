@@ -17,7 +17,7 @@ import (
 	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/pkg/meta"
 	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/sh"
+	"github.com/projecteru2/yavirt/pkg/sh"
 	"github.com/projecteru2/yavirt/util"
 	"github.com/projecteru2/yavirt/vnet"
 	calinet "github.com/projecteru2/yavirt/vnet/calico"

@@ -8,7 +8,7 @@ import (
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/sh"
+	"github.com/projecteru2/yavirt/pkg/sh"
 	"github.com/projecteru2/yavirt/util"
 	virtutil "github.com/projecteru2/yavirt/virt/util"
 )
