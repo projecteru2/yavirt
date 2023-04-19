@@ -65,6 +65,10 @@ func Run(fn Runner) cli.ActionFunc {
 		runtime.ConfigFiles = c.StringSlice("config")
 		runtime.SkipSetupHost = c.Bool("skip-setup-host")
 		runtime.Guest = manager.New()
+		// when add host, we need skip host setup
+		if c.Command.FullName() == "host add" {
+			runtime.SkipSetupHost = true
+		}
 		if err := setup(); err != nil {
 			return errors.Trace(err)
 		}
