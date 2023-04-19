@@ -1,7 +1,6 @@
 package virt
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -11,7 +10,13 @@ import (
 
 // Cleanup cleans flocks up.
 func Cleanup() error {
-	files, err := ioutil.ReadDir(configs.Conf.VirtFlockDir)
+	// ensure flock dir
+	err := os.Mkdir(configs.Conf.VirtFlockDir, 0755)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	files, err := os.ReadDir(configs.Conf.VirtFlockDir)
 	if err != nil {
 		return errors.Trace(err)
 	}
