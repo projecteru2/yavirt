@@ -2,6 +2,7 @@ package configs
 
 import (
 	"crypto/tls"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -181,15 +182,25 @@ func (c *Config) load(file string) error {
 		return errors.Trace(err)
 	}
 
-	c.loadVirtDirs()
+	if err := c.loadVirtDirs(); err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func (c *Config) loadVirtDirs() {
+func (c *Config) loadVirtDirs() error {
 	c.VirtFlockDir = filepath.Join(c.VirtDir, "flock")
 	c.VirtTmplDir = filepath.Join(c.VirtDir, "template")
 	c.VirtSockDir = filepath.Join(c.VirtDir, "sock")
+	// ensure directories
+	for _, d := range []string{c.VirtFlockDir, c.VirtTmplDir, c.VirtSockDir} {
+		err := os.MkdirAll(d, 0755)
+		if err != nil && !os.IsExist(err) {
+			return err
+		}
+	}
+	return nil
 }
 
 // NewEtcdConfig .
