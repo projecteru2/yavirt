@@ -3,6 +3,7 @@ package log
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -46,8 +47,13 @@ func setupOutput(file string) error {
 	if len(file) < 1 {
 		return nil
 	}
-
-	var f, err = os.OpenFile(file, os.O_APPEND|os.O_CREATE|os.O_RDWR, os.ModePerm)
+	// make dir if necessary
+	err := os.MkdirAll(filepath.Dir(file), 0755)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+	// open file for logger
+	f, err := os.OpenFile(file, os.O_APPEND|os.O_CREATE|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		return errors.Trace(err)
 	}
