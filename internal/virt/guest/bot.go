@@ -276,15 +276,9 @@ func (v *bot) setupNics() error {
 	var ctx, cancel = context.WithTimeout(context.Background(), time.Minute*leng) //nolint
 	defer cancel()
 
-	for i, ip := range v.guest.IPs {
-		var dev = fmt.Sprintf("eth%d", i)
-		var distro = v.guest.Distro()
-
-		if err := nic.NewNic(ip, v.ga).Setup(ctx, distro, dev); err != nil {
-			return errors.Trace(err)
-		}
+	if err := nic.NewNicList(v.guest.IPs, v.ga).Setup(ctx); err != nil {
+		return errors.Trace(err)
 	}
-
 	return nil
 }
 
