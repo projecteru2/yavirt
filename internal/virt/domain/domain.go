@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"time"
 
+	_ "embed"
+
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/internal/virt/template"
@@ -20,6 +22,13 @@ const (
 	InterfaceEthernet = "ethernet"
 	// InterfaceBridge .
 	InterfaceBridge = "bridge"
+)
+
+var (
+	//go:embed templates/guest.xml
+	guest_xml string
+	//go:embed templates/disk.xml
+	disk_xml string
 )
 
 // Domain .
@@ -322,7 +331,7 @@ func (d *VirtDomain) render() ([]byte, error) {
 		"cache_passthrough": configs.Conf.VirtCPUCachePassthrough,
 	}
 
-	return template.Render(d.guestTemplateFilepath(), args)
+	return template.Render(d.guestTemplateFilepath(), guest_xml, args)
 }
 
 func (d *VirtDomain) checkUUID(raw string) (string, error) {
@@ -477,7 +486,7 @@ func (d *VirtDomain) renderAttachVolumeXML(filepath, devName string) ([]byte, er
 		"path": filepath,
 		"dev":  devName,
 	}
-	return template.Render(d.diskTemplateFilepath(), args)
+	return template.Render(d.diskTemplateFilepath(), disk_xml, args)
 }
 
 // GetState .

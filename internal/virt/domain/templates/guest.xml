@@ -102,13 +102,22 @@
       <target type='virtio' name='org.qemu.guest_agent.0'/>
       <address type='virtio-serial' controller='0' bus='0' port='1'/>
     </channel>
-	<channel type='unix'>
-      <source mode='bind' path='{{.gasock}}'/>
-      <target type='virtio' name='org.qemu.guest_agent.1'/>
-	</channel>
+    <channel type='unix'>
+        <source mode='bind' path='{{.gasock}}'/>
+        <target type='virtio' name='org.qemu.guest_agent.1'/>
+    </channel>
     <input type='tablet' bus='usb'/>
     <memballoon model='virtio'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
     </memballoon>
+
+    {{range .gpus}}
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <source>
+      <address domain='0x0000' bus='0x06' slot='0x12' function='0x5'/>
+      </source>
+    </hostdev>
+    {{ end }}
+
   </devices>
 </domain>
