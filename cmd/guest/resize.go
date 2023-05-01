@@ -27,7 +27,7 @@ func resizeFlags() []cli.Flag {
 func resize(c *cli.Context, runtime run.Runtime) (err error) {
 	vs := map[string]int64{}
 	for _, raw := range c.StringSlice("volumes") {
-		mnt, cap := utils.PartRight(raw, ":")
+		mnt, cap := utils.PartRight(raw, ":") //nolint
 		if vs[mnt], err = utils.Atoi64(cap); err != nil {
 			return errors.Trace(err)
 		}

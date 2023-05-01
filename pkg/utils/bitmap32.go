@@ -13,7 +13,7 @@ var (
 	UnsetBitFlags [bitsPerSection]uint32
 )
 
-func init() { //nolint
+func init() {
 	for i := 0; i < bitsPerSection; i++ {
 		SetBitFlags[i] = 1 << uint(i)
 		UnsetBitFlags[i] = ^SetBitFlags[i]

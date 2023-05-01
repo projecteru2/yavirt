@@ -206,7 +206,7 @@ func (y *GRPCYavirtd) ExecuteGuest(ctx context.Context, opts *pb.ExecuteGuestOpt
 	}, nil
 }
 
-func (y *GRPCYavirtd) ExecExitCode(ctx context.Context, opts *pb.ExecExitCodeOptions) (msg *pb.ExecExitCodeMessage, err error) {
+func (y *GRPCYavirtd) ExecExitCode(_ context.Context, opts *pb.ExecExitCodeOptions) (msg *pb.ExecExitCodeMessage, err error) {
 	log.Infof("[grpcserver] get exit code start")
 	defer log.Infof("[grpcserver] get exit code done")
 
@@ -297,7 +297,7 @@ func (y *GRPCYavirtd) CopyToGuest(server pb.YavirtdRPC_CopyToGuestServer) (err e
 	log.Infof("[grpcserver] copy file to guest start")
 
 	var opts *pb.CopyOptions
-	byteChan := make(chan []byte, 4*types.BufferSize) //nolint
+	byteChan := make(chan []byte, 4*types.BufferSize)
 
 	opts, err = server.Recv()
 	if opts == nil {

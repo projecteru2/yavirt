@@ -10,7 +10,7 @@ import (
 	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
-func get(c *cli.Context, runtime run.Runtime) error {
+func get(c *cli.Context, _ run.Runtime) error {
 	hn := c.Args().First()
 	if len(hn) < 1 {
 		return errors.New("host name is required")

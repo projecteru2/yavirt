@@ -35,7 +35,7 @@ const (
 )
 
 // Bot .
-type Bot interface {
+type Bot interface { //nolint
 	Close() error
 	Undefine() error
 	Alloc() error
@@ -214,13 +214,13 @@ func (v *bot) isAmplifying(ctx context.Context, ga agent.Interface, devPath stri
 		return false, errors.Trace(err)
 	}
 
-	cap, err := agent.NewParted(ga, devPath).GetSize(ctx)
+	cap, err := agent.NewParted(ga, devPath).GetSize(ctx) //nolint
 	if err != nil {
 		return false, errors.Trace(err)
 	}
 
 	mbs = int64(float64(mbs) * (1 + configs.Conf.ResizeVolumeMinRatio))
-	cap >>= 10 // in bytes, aka. 1K-blocks.
+	cap >>= 10 //nolint // in bytes, aka. 1K-blocks.
 
 	return cap > mbs, nil
 }
@@ -412,7 +412,7 @@ func (v *bot) Repair() error {
 	return virtutils.Repair(context.Background(), v.vol.Filepath())
 }
 
-func (v *bot) cleanObsoleteUserImages(uimg *models.UserImage) error {
+func (v *bot) cleanObsoleteUserImages(_ *models.UserImage) error {
 	// TODO
 	return nil
 }

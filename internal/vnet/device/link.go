@@ -9,7 +9,7 @@ import (
 )
 
 // VirtLink .
-type VirtLink interface {
+type VirtLink interface { //nolint
 	Up() error
 	Down() error
 

@@ -81,7 +81,7 @@ func SysImagePrefix() string {
 
 // OccupiedIPKey /<prefix>/ips/<subnet>/occupied/<ip>
 func OccupiedIPKey(subnet, ip int64) string {
-	var strIP = strconv.FormatInt(ip, 10) //nolint:gomnd // normal baase 10 number
+	var strIP = strconv.FormatInt(ip, 10)
 	return filepath.Join(SubnetKey(subnet), "occupied", strIP)
 }
 
@@ -103,7 +103,7 @@ func IPALocKey(subnet int64) string {
 
 // SubnetKey /<prefix>/ips/<subnet>
 func SubnetKey(subnet int64) string {
-	var v = strconv.FormatInt(subnet, 10) //nolint
+	var v = strconv.FormatInt(subnet, 10)
 	return filepath.Join(configs.Conf.EtcdPrefix, ipPrefix, v)
 }
 

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"io/ioutil"
+	"io/ioutil" //nolint
 	"path/filepath"
 
 	"github.com/projecteru2/yavirt/pkg/errors"

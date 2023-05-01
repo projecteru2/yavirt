@@ -53,7 +53,7 @@ func (s *Subnet) GatewayAddr() string {
 
 // GatewayPrefix .
 func (s *Subnet) GatewayPrefix() int {
-	return 32 //nolint
+	return 32
 }
 
 // SubnetAddr .

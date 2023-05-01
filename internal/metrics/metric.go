@@ -22,7 +22,7 @@ var (
 	metr *Metrics
 )
 
-func init() { //nolint
+func init() {
 	hn, err := utils.Hostname()
 	if err != nil {
 		panic(err)

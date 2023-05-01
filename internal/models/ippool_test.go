@@ -525,7 +525,7 @@ func newTestIPP(t *testing.T, cidr string) *IPPool {
 	return ipp
 }
 
-func encjson(t *testing.T, v interface{}) []byte {
+func encjson(t *testing.T, v any) []byte {
 	bytes, err := utils.JSONEncode(v)
 	assert.NilErr(t, err)
 	return bytes

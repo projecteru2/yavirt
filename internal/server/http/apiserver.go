@@ -59,15 +59,15 @@ func (s *apiServer) Ping(c *gin.Context) {
 	c.JSON(http.StatusOK, s.service.Ping())
 }
 
-func (s *apiServer) dispatchMsg(c *gin.Context, req interface{}, fn func(virt.Context) error) {
-	s.dispatch(c, req, func(ctx virt.Context) (interface{}, error) {
+func (s *apiServer) dispatchMsg(c *gin.Context, req any, fn func(virt.Context) error) {
+	s.dispatch(c, req, func(ctx virt.Context) (any, error) {
 		return nil, fn(ctx)
 	})
 }
 
-type operate func(virt.Context) (interface{}, error)
+type operate func(virt.Context) (any, error)
 
-func (s *apiServer) dispatch(c *gin.Context, req interface{}, fn operate) {
+func (s *apiServer) dispatch(c *gin.Context, req any, fn operate) {
 	if err := s.bind(c, req); err != nil {
 		s.renderErr(c, err)
 		return
@@ -86,7 +86,7 @@ func (s *apiServer) dispatch(c *gin.Context, req interface{}, fn operate) {
 	}
 }
 
-func (s *apiServer) bind(c *gin.Context, req interface{}) error {
+func (s *apiServer) bind(c *gin.Context, req any) error {
 	switch c.Request.Method {
 	case http.MethodGet:
 		return c.ShouldBindUri(req)
@@ -105,7 +105,7 @@ func (s *apiServer) renderOKMsg(c *gin.Context) {
 	s.renderOK(c, okMsg)
 }
 
-func (s *apiServer) renderOK(c *gin.Context, resp interface{}) {
+func (s *apiServer) renderOK(c *gin.Context, resp any) {
 	c.JSON(http.StatusOK, resp)
 }
 

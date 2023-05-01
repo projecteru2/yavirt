@@ -11,8 +11,9 @@ import (
 
 // Host .
 // etcd keys:
-//     /hosts:counter
-//     /hosts/<host name>
+//
+//	/hosts:counter
+//	/hosts/<host name>
 type Host struct {
 	*Generic
 

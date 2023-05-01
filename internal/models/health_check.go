@@ -91,7 +91,7 @@ func (c HealthCheck) HTTPEndpoints() []string {
 
 	endps := make([]string, len(c.IPNets))
 	for i, ip := range c.IPNets {
-		endps[i] = fmt.Sprintf("http://%s:%d/%s", ip.IPv4(), port, path)
+		endps[i] = fmt.Sprintf("http://%s:%d/%s", ip.IPv4(), port, path) //nolint
 	}
 
 	return endps

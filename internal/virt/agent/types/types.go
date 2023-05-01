@@ -34,7 +34,7 @@ type ExecStatus struct {
 func (s ExecStatus) CheckStdio(check func([]byte, []byte) bool) (so, se []byte, err error) {
 	if so, se, err = s.Stdio(); err == nil {
 		// always ok while $? is 0
-		return
+		return //nolint
 	}
 
 	if check(so, se) {

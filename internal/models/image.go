@@ -7,7 +7,7 @@ import (
 )
 
 // Image wraps a few methods about Image.
-type Image interface {
+type Image interface { //nolint
 	GetName() string
 	GetUser() string
 	GetDistro() string

@@ -14,7 +14,8 @@ import (
 
 // Snapshot .
 // etcd keys:
-//     /snapshots/<snap id>
+//
+//	/snapshots/<snap id>
 type Snapshot struct {
 	*Generic
 

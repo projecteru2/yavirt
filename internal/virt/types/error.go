@@ -7,7 +7,7 @@ import (
 )
 
 // DomainStateErr .
-type DomainStateErr struct {
+type DomainStateErr struct { //nolint
 	Exps []libvirt.DomainState
 	Act  libvirt.DomainState
 }

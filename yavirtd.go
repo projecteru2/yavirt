@@ -30,7 +30,7 @@ import (
 )
 
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU() * 2) //nolint
+	runtime.GOMAXPROCS(runtime.NumCPU() * 2)
 
 	cli.VersionPrinter = func(c *cli.Context) {
 		fmt.Println(ver.Version())
@@ -75,7 +75,7 @@ func Run(c *cli.Context) error {
 	if err := guest.SetupEpoller(); err != nil {
 		return errors.Trace(err)
 	}
-	defer guest.GetCurrentEpoller().Close() // nolint
+	defer guest.GetCurrentEpoller().Close()
 
 	grpcSrv, err := grpcserver.Listen(svc)
 	if err != nil {

@@ -59,7 +59,7 @@ func (f *Flock) flock(retry bool) error {
 		return errors.Trace(err)
 	}
 
-	if stat.Mode()&0600 == 0600 { //nolint
+	if stat.Mode()&0600 == 0600 {
 		if err := f.reopen(); err != nil {
 			return errors.Trace(err)
 		}

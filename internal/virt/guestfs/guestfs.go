@@ -3,7 +3,7 @@ package guestfs
 import "github.com/projecteru2/yavirt/internal/virt/guestfs/types"
 
 // Guestfs .
-type Guestfs interface {
+type Guestfs interface { //nolint
 	// Distro returns the OS distro name.
 	Distro() (string, error)
 	// Cat the file as string.

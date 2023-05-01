@@ -25,8 +25,8 @@ type op int
 type task struct {
 	id     string
 	op     op
-	do     func(virt.Context) (interface{}, error)
-	result interface{}
+	do     func(virt.Context) (any, error)
+	result any
 	ctx    virt.Context
 	done   chan struct{}
 	once   sync.Once
@@ -103,7 +103,7 @@ func (n taskNotifier) error() error {
 	return n.task.err
 }
 
-func (n taskNotifier) result() interface{} {
+func (n taskNotifier) result() any {
 	return n.task.result
 }
 

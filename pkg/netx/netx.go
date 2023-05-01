@@ -15,15 +15,15 @@ func GetOutboundIP(dest string) (string, error) {
 	}
 	defer conn.Close()
 
-	laddr := conn.LocalAddr().(*net.UDPAddr)
+	laddr := conn.LocalAddr().(*net.UDPAddr) //nolint
 
 	return laddr.IP.String(), nil
 }
 
 // PrefixToNetmask .
 func PrefixToNetmask(prefix int) string {
-	var p = uint(utils.Min(prefix, 32))       //nolint:gomnd // ipv4 is 32bit
-	var i = ((1 << p) - 1) << uint(32-prefix) //nolint
+	var p = uint(utils.Min(prefix, 32))
+	var i = ((1 << p) - 1) << uint(32-prefix)
 	return IntToIPv4(int64(i))
 }
 
@@ -36,7 +36,7 @@ func IntToIPv4(i64 int64) string {
 func Int2ip(i64 int64) net.IP {
 	ip := make(net.IP, net.IPv4len)
 	for i := 0; i < len(ip); i++ {
-		seg := 0xff & (i64 >> uint(24-i*8)) //nolint
+		seg := 0xff & (i64 >> uint(24-i*8))
 		ip[i] = byte(seg)
 	}
 	return ip
@@ -54,7 +54,7 @@ func IPv4ToInt(ipv4 string) (i64 int64, err error) {
 func IP2int(ip net.IP) (i64 int64) {
 	ip = ip.To4()
 	for i, seg := range ip {
-		i64 |= int64(seg) << uint(24-i*8) //nolint
+		i64 |= int64(seg) << uint(24-i*8)
 	}
 	return
 }
@@ -78,7 +78,7 @@ func ParseCIDROrIP(s string) (*net.IPNet, error) {
 
 	return &net.IPNet{
 		IP:   ipv4,
-		Mask: net.CIDRMask(net.IPv4len*8, net.IPv4len*8), //nolint
+		Mask: net.CIDRMask(net.IPv4len*8, net.IPv4len*8),
 	}, nil
 }
 
@@ -128,7 +128,7 @@ func ConvIPv4ToUint32(ip net.IP) (dec uint32, err error) {
 	}
 
 	for i := 0; i < 4; i++ {
-		dec |= uint32(ipv4[i]) << uint32((3-i)*8) //nolint
+		dec |= uint32(ipv4[i]) << uint32((3-i)*8)
 	}
 
 	return dec, nil

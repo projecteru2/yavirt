@@ -56,7 +56,7 @@ func (we *WorkloadEndpoint) Create(args types.EndpointArgs) (cwe *libcaliapi.Wor
 		cwe = created
 
 		return nil
-	}, 3) //nolint
+	}, 3)
 
 	return
 }
@@ -76,7 +76,7 @@ func (we *WorkloadEndpoint) get(args types.EndpointArgs) (cwe *libcaliapi.Worklo
 		}
 
 		return err
-	}, 3) //nolint
+	}, 3)
 
 	return
 }
@@ -103,7 +103,7 @@ func (we *WorkloadEndpoint) Update(args types.EndpointArgs) (cwe *libcaliapi.Wor
 		cwe = updated
 
 		return nil
-	}, 3) //nolint
+	}, 3)
 
 	return
 }
@@ -125,7 +125,7 @@ func (we *WorkloadEndpoint) Delete(args types.EndpointArgs) error {
 			}
 		}
 		return nil
-	}, 3) //nolint
+	}, 3)
 }
 
 func (we *WorkloadEndpoint) delete(endpName, namespace string) (err error) {
@@ -205,7 +205,7 @@ func (we *WorkloadEndpoint) convCalicoIPNetworks(ips []meta.IP) ([]string, error
 
 		ipNets[i] = libcalinet.IPNet{IPNet: net.IPNet{
 			IP:   ipv4,
-			Mask: net.CIDRMask(net.IPv4len*8, net.IPv4len*8), //nolint
+			Mask: net.CIDRMask(net.IPv4len*8, net.IPv4len*8),
 		}}.String()
 	}
 

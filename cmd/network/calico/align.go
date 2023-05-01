@@ -56,7 +56,7 @@ func alignGatewayIPs(runtime run.Runtime, bound []net.IP, dryRun bool) error {
 		ipn := libcalinet.IPNet{
 			IPNet: net.IPNet{
 				IP:   bip,
-				Mask: net.CIDRMask(net.IPv4len*8, net.IPv4len*8), //nolint
+				Mask: net.CIDRMask(net.IPv4len*8, net.IPv4len*8),
 			},
 		}
 

@@ -9,7 +9,7 @@ import (
 )
 
 // IP .
-type IP interface {
+type IP interface { //nolint
 	Resource
 
 	BindDevice(device.VirtLink)

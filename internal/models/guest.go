@@ -63,7 +63,7 @@ func (g *Guest) Check() error {
 	}
 
 	if lab, exists := g.JSONLabels[erucluster.LabelMeta]; exists {
-		obj := map[string]interface{}{}
+		obj := map[string]any{}
 		if err := utils.JSONDecode([]byte(lab), &obj); err != nil {
 			return errors.Annotatef(errors.ErrInvalidValue, "'%s' should be JSON format", lab)
 		}

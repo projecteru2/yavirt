@@ -24,7 +24,7 @@ import (
 var intIPSubnets = map[int64]int64{}
 
 // fasten all local guests that are dangling.
-func fasten(c *cli.Context, runtime run.Runtime) error {
+func fasten(_ *cli.Context, _ run.Runtime) error {
 	virt, err := libvirt.Connect("qemu:///system")
 	if err != nil {
 		return errors.Trace(err)
@@ -48,11 +48,11 @@ func fasten(c *cli.Context, runtime run.Runtime) error {
 		key = strings.TrimPrefix(key, configs.Conf.EtcdPrefix)
 		key = strings.TrimLeft(key, "/")
 		parts := strings.Split(key, "/")
-		intSubnet, err := strconv.ParseInt(parts[1], 10, 64) //nolint
+		intSubnet, err := strconv.ParseInt(parts[1], 10, 64)
 		if err != nil {
 			return errors.Annotatef(err, "parse subnet %s failed", parts[1])
 		}
-		intIP, err := strconv.ParseInt(parts[3], 10, 64) //nolint
+		intIP, err := strconv.ParseInt(parts[3], 10, 64)
 		if err != nil {
 			return errors.Annotatef(err, "parse subnet %d ip %s failed", intSubnet, parts[3])
 		}
@@ -178,7 +178,7 @@ func fastenDangling(id string, virt *libvirt.Libvirtee) error {
 		return errors.Trace(err)
 	}
 	guest.CPU = int(info.NrVirtCpu)
-	guest.Memory = int64(info.MaxMem) * 1024 //nolint
+	guest.Memory = int64(info.MaxMem) * 1024
 
 	var flags libvirt.DomainXMLFlags
 	txt, err := dom.GetXMLDesc(flags)
@@ -193,9 +193,9 @@ func fastenDangling(id string, virt *libvirt.Libvirtee) error {
 	for _, disk := range dx.Devices.Disks {
 		fn := filepath.Base(disk.Source.File)
 		if strings.HasPrefix(fn, "sys-") {
-			fn = fn[:len(fn)-4]                               // to remove '.vol' ext.
-			id = fn[4:]                                       // to remove 'sys-' prefix.
-			if id = strings.TrimLeft(id, "0"); len(id) <= 3 { //nolint
+			fn = fn[:len(fn)-4] // to remove '.vol' ext.
+			id = fn[4:]         // to remove 'sys-' prefix.
+			if id = strings.TrimLeft(id, "0"); len(id) <= 3 {
 				id = fmt.Sprintf("%06s", id)
 			} else {
 				id = fmt.Sprintf("%32s", id)

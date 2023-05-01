@@ -11,21 +11,21 @@ import (
 
 func (s *apiServer) GetGuest(c *gin.Context) {
 	var req types.GuestReq
-	s.dispatch(c, &req, func(ctx virt.Context) (interface{}, error) {
+	s.dispatch(c, &req, func(ctx virt.Context) (any, error) {
 		return s.service.GetGuest(ctx, req.VirtID())
 	})
 }
 
 func (s *apiServer) GetGuestUUID(c *gin.Context) {
 	var req types.GuestReq
-	s.dispatch(c, &req, func(ctx virt.Context) (interface{}, error) {
+	s.dispatch(c, &req, func(ctx virt.Context) (any, error) {
 		return s.service.GetGuestUUID(ctx, req.VirtID())
 	})
 }
 
 func (s *apiServer) CaptureGuest(c *gin.Context) {
 	var req types.CaptureGuestReq
-	s.dispatch(c, &req, func(ctx virt.Context) (interface{}, error) {
+	s.dispatch(c, &req, func(ctx virt.Context) (any, error) {
 		return s.service.CaptureGuest(ctx, req)
 	})
 }
@@ -61,7 +61,7 @@ func (s *apiServer) StartGuest(c *gin.Context) {
 func (s *apiServer) CreateGuest(c *gin.Context) {
 	var req types.CreateGuestReq
 
-	s.dispatch(c, &req, func(ctx virt.Context) (interface{}, error) {
+	s.dispatch(c, &req, func(ctx virt.Context) (any, error) {
 		return s.service.CreateGuest(
 			ctx,
 			virtypes.GuestCreateOption{
@@ -79,28 +79,28 @@ func (s *apiServer) CreateGuest(c *gin.Context) {
 
 func (s *apiServer) ExecuteGuest(c *gin.Context) {
 	var req types.ExecuteGuestReq
-	s.dispatch(c, &req, func(ctx virt.Context) (interface{}, error) {
+	s.dispatch(c, &req, func(ctx virt.Context) (any, error) {
 		return s.service.ExecuteGuest(ctx, req.VirtID(), req.Commands)
 	})
 }
 
 func (s *apiServer) ConnectNetwork(c *gin.Context) {
 	var req types.ConnectNetworkReq
-	s.dispatch(c, &req, func(ctx virt.Context) (interface{}, error) {
+	s.dispatch(c, &req, func(ctx virt.Context) (any, error) {
 		return s.service.ConnectNetwork(ctx, req.VirtID(), req.Network, req.IPv4)
 	})
 }
 
 func (s *apiServer) ResizeConsoleWindow(c *gin.Context) {
 	var req types.ResizeConsoleWindowReq
-	s.dispatch(c, &req, func(ctx virt.Context) (interface{}, error) {
+	s.dispatch(c, &req, func(ctx virt.Context) (any, error) {
 		return nil, s.service.ResizeConsoleWindow(ctx, req.VirtID(), req.Height, req.Width)
 	})
 }
 
 func (s *apiServer) ListSnapshot(c *gin.Context) {
 	var req types.ListSnapshotReq
-	s.dispatch(c, &req, func(ctx virt.Context) (interface{}, error) {
+	s.dispatch(c, &req, func(ctx virt.Context) (any, error) {
 		return s.service.ListSnapshot(ctx, req)
 	})
 }

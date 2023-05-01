@@ -25,7 +25,7 @@ func newIpam(driver *Driver) *Ipam {
 }
 
 // Assign .
-func (ipam *Ipam) Assign(ctx context.Context) (meta.IP, error) {
+func (ipam *Ipam) Assign(_ context.Context) (meta.IP, error) {
 	hn, err := utils.Hostname()
 	if err != nil {
 		return nil, errors.Trace(err)
@@ -61,7 +61,7 @@ func (ipam *Ipam) assign(args libcaliipam.AutoAssignArgs) (meta.IP, error) {
 
 	var ip = ipv4s.IPs[0]
 	var ones, _ = ip.Mask.Size()
-	if ones >= 30 { //nolint
+	if ones >= 30 {
 		return nil, errors.Annotatef(errors.ErrCalicoTooSmallSubnet, "/%d", ones)
 	}
 

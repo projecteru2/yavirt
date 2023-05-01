@@ -68,7 +68,7 @@ func (ip *IP) BindGuestID(guestID string) {
 
 // IntIP .
 func (ip *IP) IntIP() (v int64) {
-	v, _ = netx.IPv4ToInt(ip.IP.String())
+	v, _ = netx.IPv4ToInt(ip.IP.String()) //nolint
 	return
 }
 
@@ -134,7 +134,7 @@ func (ip *IP) SubnetAddr() string {
 
 // IntGateway .
 func (ip *IP) IntGateway() (v int64) {
-	v, _ = netx.IPv4ToInt(ip.GatewayAddr())
+	v, _ = netx.IPv4ToInt(ip.GatewayAddr()) //nolint
 	return v
 }
 

@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"io/ioutil" //nolint
 	"os/exec"
 
 	"github.com/projecteru2/yavirt/pkg/errors"

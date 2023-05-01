@@ -71,7 +71,7 @@ func (d *Driver) ParseCIDR(cidr string) (*Addr, error) {
 }
 
 // ListAddrs .
-func (d *Driver) ListAddrs(linkName string, family int) (Addrs, error) {
+func (d *Driver) ListAddrs(linkName string, _ int) (Addrs, error) {
 	link, err := d.ShowLink(linkName)
 	if err != nil {
 		return nil, errors.Trace(err)
