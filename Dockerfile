@@ -1,7 +1,8 @@
-FROM projecteru2/footstone:yavirt-prebuild AS BUILD
+FROM projecteru2/footstone:yavirt-prebuild-go1.20 AS BUILD
 
 # make binary
-RUN git clone https://github.com/projecteru2/yavirt.git /go/src/github.com/projecteru2/yavirt
+# RUN git clone https://github.com/projecteru2/yavirt.git /go/src/github.com/projecteru2/yavirt
+COPY . /go/src/github.com/projecteru2/yavirt
 WORKDIR /go/src/github.com/projecteru2/yavirt
 ARG KEEP_SYMBOL
 RUN make deps && make && ./bin/yavirtd --version
