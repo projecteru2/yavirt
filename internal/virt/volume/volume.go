@@ -14,7 +14,7 @@ import (
 )
 
 // Virt .
-type Virt interface {
+type Virt interface { //nolint
 	Mount(ga agent.Interface, devPath string) error
 	IsSys() bool
 	Amplify(cap int64, dom domain.Domain, ga agent.Interface, devPath string) (delta int64, err error)

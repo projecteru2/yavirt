@@ -192,7 +192,7 @@ func (h *Handler) getGatewayIP(ip meta.IP) (meta.IP, error) {
 func (h *Handler) isUnderGateway(gatewayIP, ip meta.IP) bool {
 	var ipn = &net.IPNet{}
 	ipn.IP = gatewayIP.NetIP()
-	ipn.Mask = net.CIDRMask(ip.Prefix(), net.IPv4len*8) //nolint
+	ipn.Mask = net.CIDRMask(ip.Prefix(), net.IPv4len*8)
 	return ipn.Contains(ip.NetIP())
 }
 

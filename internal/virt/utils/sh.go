@@ -10,7 +10,7 @@ import (
 
 // CreateImage .
 func CreateImage(ctx context.Context, fmt, path string, cap int64) error {
-	return sh.ExecContext(ctx, "qemu-img", "create", "-q", "-f", fmt, path, strconv.FormatInt(cap, 10)) //nolint
+	return sh.ExecContext(ctx, "qemu-img", "create", "-q", "-f", fmt, path, strconv.FormatInt(cap, 10))
 }
 
 // AmplifyImage .

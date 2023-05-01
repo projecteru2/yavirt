@@ -123,14 +123,14 @@ func (v *bot) Delete() error {
 }
 
 // Upload .
-func (v *bot) Upload(force bool) error {
+func (v *bot) Upload(_ bool) error {
 	// TODO: implement
 	// force = True means overwrite the file in backup storage
 	return nil
 }
 
 // Download .
-func (v *bot) Download(snapmod *models.Snapshot) error {
+func (v *bot) Download(_ *models.Snapshot) error {
 	// TODO: implement
 	// Need to check whether file already exist
 	return nil

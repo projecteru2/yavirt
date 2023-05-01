@@ -3,32 +3,82 @@ run:
   tests: false
   skip-dirs:
     - vendor
-    - guestfs
-    - bin
+    - tools
+    - 3rdmocks
   modules-download-mode: readonly
 
 linters-settings:
-  maligned:
-    suggest-new: true
+  nakedret:
+    max-func-lines: 59
+  misspell:
+    locale: US
+    ignore-words:
+      - hicloud
+  gofmt:
+    simplify: false
+    rewrite-rules:
+      - pattern: 'interface{}'
+        replacement: 'any'
+      - pattern: 'a[b:len(a)]'
+        replacement: 'a[b:]'
+  prealloc:
+    simple: false
+    range-loops: true
+    for-loops: true
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
   gocritic:
     disabled-checks:
       - captLocal
+  nilnil:
+    checked-types:
+      - ptr
+      - func
+      - iface
+      - map
+      - chan
+  asasalint:
+    exclude:
+      - Append
+      - \.Wrapf
+    use-builtin-exclusions: false
+    ignore-test: true
+  usestdlibvars:
+    http-method: true
+    http-status-code: true
+    time-weekday: true
+    time-month: true
+    time-layout: true
+    crypto-hash: true
+    default-rpc-path: true
+    os-dev-null: true
+    sql-isolation-level: true
+    tls-signature-scheme: true
+    constant-kind: true
+    syslog-priority: true
 
 linters:
   disable-all: true
   enable:
+    - usestdlibvars
+    - asasalint
     - bodyclose
-    - deadcode
-    - depguard
-    - dogsled
-    - gochecknoinits
+    - nolintlint
+    - nosprintfhostport
+    - prealloc
+    - durationcheck
+    - errname
     - goconst
-    - gocritic
     - gocyclo
+    - gocognit
+    - interfacebloat
+    - makezero
+    - nilerr
+    - nilnil
     - gofmt
     - goimports
     - revive
-    - gomnd
     - goprintffuncname
     - gosec
     - gosimple
@@ -36,18 +86,13 @@ linters:
     - ineffassign
     - misspell
     - nakedret
-    - rowserrcheck
     - exportloopref
     - staticcheck
-    - structcheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
-    - gocognit
-    - errcheck
-    - dupl
     - asciicheck
-    - nolintlint
     - nestif
+    - errcheck
+    - gocritic

@@ -41,7 +41,7 @@ func SetupEpoller() error {
 		return errors.Annotatef(err, "failed to initialize epoller")
 	}
 	currentEpoller = epoller
-	go epoller.Wait() // nolint
+	go epoller.Wait() //nolint
 	return nil
 }
 

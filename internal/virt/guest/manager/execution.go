@@ -60,7 +60,7 @@ func (e *execution) push(t *task) {
 						}
 						e.list.Remove(cur)
 
-						t := cur.Value.(*task)
+						t := cur.Value.(*task) //nolint
 						t.abort()
 					}
 				}

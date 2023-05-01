@@ -8,7 +8,7 @@ import (
 )
 
 // Domain .
-type Domain interface {
+type Domain interface { //nolint
 	Create() error
 	ShutdownFlags(flags DomainShutdownFlags) error
 	Destroy() error

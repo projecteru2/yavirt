@@ -21,7 +21,7 @@ func (s *serializer) Serialize(id string, t *task) *taskNotifier {
 	t.done = make(chan struct{})
 
 	actual, _ := s.LoadOrStore(id, newExecution(id))
-	exec := actual.(*execution)
+	exec := actual.(*execution) //nolint
 	exec.push(t)
 
 	return &taskNotifier{

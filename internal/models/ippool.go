@@ -416,11 +416,11 @@ func (ipp *IPPool) getBlockIPNet(offset int) *net.IPNet {
 		return ipp.ipnet
 	}
 
-	i64 := netx.IP2int(ipp.Subnet()) + int64(uint(offset)<<8) //nolint
+	i64 := netx.IP2int(ipp.Subnet()) + int64(uint(offset)<<8)
 
 	return &net.IPNet{
 		IP:   netx.Int2ip(i64),
-		Mask: net.CIDRMask(ipp.MaskBits(), net.IPv4len*8), //nolint
+		Mask: net.CIDRMask(ipp.MaskBits(), net.IPv4len*8),
 	}
 }
 
@@ -432,7 +432,7 @@ func (ipp *IPPool) getBlockIndex(ip net.IP) (i int64) {
 	i = netx.IP2int(ip)
 
 	// Mask the ipp's subnet.
-	i &= (1 << uint(32-ipp.MaskBits())) - 1 //nolint
+	i &= (1 << uint(32-ipp.MaskBits())) - 1
 
 	// Get the index, the lowest 8 bits are IP.
 	i >>= 8

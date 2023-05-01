@@ -11,7 +11,7 @@ import (
 )
 
 // Render .
-func Render(filepath string, args interface{}) ([]byte, error) {
+func Render(filepath string, args any) ([]byte, error) {
 	var tmpl, err = templates.get(filepath)
 	if err != nil {
 		return nil, errors.Annotatef(err, "get template %s failed", filepath)

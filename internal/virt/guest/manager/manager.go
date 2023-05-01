@@ -312,7 +312,7 @@ func (m Manager) Capture(ctx virt.Context, guestID, user, name string, overridde
 }
 
 // RemoveImage removes a local image.
-func (m Manager) RemoveImage(ctx virt.Context, imageName, user string, force, prune bool) ([]string, error) {
+func (m Manager) RemoveImage(_ virt.Context, imageName, user string, _, _ bool) ([]string, error) {
 	img, err := models.LoadImage(imageName, user)
 	if err != nil {
 		return nil, errors.Trace(err)
@@ -333,7 +333,7 @@ func (m Manager) RemoveImage(ctx virt.Context, imageName, user string, force, pr
 }
 
 // ListImage .
-func (m Manager) ListImage(ctx virt.Context, filter string) ([]models.Image, error) {
+func (m Manager) ListImage(_ virt.Context, filter string) ([]models.Image, error) {
 	imgs, err := models.ListSysImages()
 	if err != nil {
 		return nil, err
@@ -360,7 +360,7 @@ func (m Manager) ListImage(ctx virt.Context, filter string) ([]models.Image, err
 }
 
 // DigestImage .
-func (m Manager) DigestImage(ctx virt.Context, name string, local bool) ([]string, error) {
+func (m Manager) DigestImage(_ virt.Context, name string, local bool) ([]string, error) {
 	if !local {
 		// TODO: wait for image-hub implementation and calico update
 		return []string{""}, nil
@@ -413,7 +413,7 @@ func (m Manager) Create(ctx virt.Context, opts types.GuestCreateOption, host *mo
 	}
 
 	// Creates the resource.
-	create := func(_ *guest.Guest) (interface{}, error) {
+	create := func(_ *guest.Guest) (any, error) {
 		var err error
 		vg, err = m.create(ctx, g)
 		return vg, err
@@ -486,7 +486,7 @@ type executeResult struct {
 
 // ExecuteCommand executes commands.
 func (m Manager) ExecuteCommand(ctx virt.Context, id string, commands []string) (content []byte, exitCode, pid int, err error) {
-	exec := func(g *guest.Guest) (interface{}, error) {
+	exec := func(g *guest.Guest) (any, error) {
 		output, exitCode, pid, err := g.ExecuteCommand(ctx, commands)
 		if err != nil {
 			return nil, errors.Trace(err)
@@ -557,17 +557,17 @@ func (m Manager) ConnectExtraNetwork(ctx virt.Context, id, network, ipv4 string)
 type ctrlFunc func(*guest.Guest) error
 
 func (m Manager) ctrl(ctx virt.Context, id string, op op, fn ctrlFunc, rollback rollbackFunc) error { //nolint
-	_, err := m.doCtrl(ctx, id, op, func(g *guest.Guest) (interface{}, error) {
+	_, err := m.doCtrl(ctx, id, op, func(g *guest.Guest) (any, error) {
 		return nil, fn(g)
 	}, rollback)
 	return err
 }
 
 type rollbackFunc func()
-type doCtrlFunc func(*guest.Guest) (interface{}, error)
+type doCtrlFunc func(*guest.Guest) (any, error)
 
-func (m Manager) doCtrl(ctx virt.Context, id string, op op, fn doCtrlFunc, rollback rollbackFunc) (interface{}, error) {
-	do := func(ctx virt.Context) (interface{}, error) {
+func (m Manager) doCtrl(ctx virt.Context, id string, op op, fn doCtrlFunc, rollback rollbackFunc) (any, error) {
+	do := func(ctx virt.Context) (any, error) {
 		g, err := m.Load(ctx, id)
 		if err != nil {
 			return nil, errors.Trace(err)
@@ -601,9 +601,9 @@ func (m Manager) Load(ctx virt.Context, id string) (*guest.Guest, error) {
 	return vg, nil
 }
 
-type doFunc func(virt.Context) (interface{}, error)
+type doFunc func(virt.Context) (any, error)
 
-func (m Manager) do(ctx virt.Context, id string, op op, fn doFunc, rollback rollbackFunc) (interface{}, error) {
+func (m Manager) do(ctx virt.Context, id string, op op, fn doFunc, rollback rollbackFunc) (any, error) {
 	t := &task{
 		id:  id,
 		op:  op,
@@ -616,7 +616,7 @@ func (m Manager) do(ctx virt.Context, id string, op op, fn doFunc, rollback roll
 
 	noti := m.serializer.Serialize(id, t)
 
-	var result interface{}
+	var result any
 	var err error
 
 	select {

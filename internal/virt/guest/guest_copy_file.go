@@ -2,7 +2,7 @@ package guest
 
 import (
 	"context"
-	"io/ioutil"
+	"io/ioutil" //nolint
 	"os"
 	"path"
 

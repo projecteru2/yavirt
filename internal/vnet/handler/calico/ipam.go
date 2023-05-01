@@ -11,7 +11,7 @@ import (
 )
 
 // NewIP .
-func (h *Handler) NewIP(name, cidr string) (meta.IP, error) {
+func (h *Handler) NewIP(_, cidr string) (meta.IP, error) {
 	return calinet.ParseCIDR(cidr)
 }
 
@@ -87,6 +87,6 @@ func (h *Handler) ipam() ipam.Ipam {
 }
 
 // QueryIPv4 .
-func (h *Handler) QueryIPv4(ipv4 string) (meta.IP, error) {
+func (h *Handler) QueryIPv4(_ string) (meta.IP, error) {
 	return nil, errors.Trace(errors.ErrNotImplemented)
 }

@@ -23,7 +23,7 @@ func New(guestID string, subnet int64) *Handler {
 }
 
 // NewIP .
-func (h *Handler) NewIP(name, cidr string) (meta.IP, error) {
+func (h *Handler) NewIP(_, _ string) (meta.IP, error) {
 	return nil, errors.Trace(errors.ErrNotImplemented)
 }
 
@@ -47,30 +47,30 @@ func (h *Handler) ipam() ipam.Ipam {
 }
 
 // CreateEndpointNetwork .
-func (h *Handler) CreateEndpointNetwork(args types.EndpointArgs) (resp types.EndpointArgs, rollback func(), err error) {
+func (h *Handler) CreateEndpointNetwork(types.EndpointArgs) (resp types.EndpointArgs, rollback func(), err error) {
 	return
 }
 
 // JoinEndpointNetwork .
-func (h *Handler) JoinEndpointNetwork(args types.EndpointArgs) (rollback func(), err error) {
+func (h *Handler) JoinEndpointNetwork(types.EndpointArgs) (rollback func(), err error) {
 	// DO NOTHING
 	return
 }
 
 // DeleteEndpointNetwork .
-func (h *Handler) DeleteEndpointNetwork(args types.EndpointArgs) error {
+func (h *Handler) DeleteEndpointNetwork(types.EndpointArgs) error {
 	// DO NOTHING
 	return nil
 }
 
 // GetEndpointDevice .
-func (h *Handler) GetEndpointDevice(devName string) (device.VirtLink, error) {
+func (h *Handler) GetEndpointDevice(string) (device.VirtLink, error) {
 	// DO NOTHING
 	return nil, nil
 }
 
 // QueryIPv4 .
-func (h *Handler) QueryIPv4(ipv4 string) (meta.IP, error) {
+func (h *Handler) QueryIPv4(string) (meta.IP, error) {
 	return nil, errors.Trace(errors.ErrNotImplemented)
 }
 

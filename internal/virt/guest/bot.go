@@ -22,7 +22,7 @@ import (
 )
 
 // Bot .
-type Bot interface {
+type Bot interface { //nolint
 	Close() error
 	Create() error
 	Boot() error
@@ -269,7 +269,7 @@ func (v *bot) setupVols() (err error) {
 
 func (v *bot) setupNics() error {
 	var leng = time.Duration(len(v.guest.IPs))
-	var ctx, cancel = context.WithTimeout(context.Background(), time.Minute*leng)
+	var ctx, cancel = context.WithTimeout(context.Background(), time.Minute*leng) //nolint
 	defer cancel()
 
 	for i, ip := range v.guest.IPs {
@@ -294,7 +294,7 @@ func (v *bot) BindExtraNetwork() error {
 	}
 
 	leng := time.Duration(v.guest.ExtraNetworks.Len())
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*leng)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*leng) //nolint
 	defer cancel()
 
 	for i, netw := range v.guest.ExtraNetworks {
@@ -317,7 +317,7 @@ func (v *bot) reloadGA() error {
 	return nil
 }
 
-func (v *bot) OpenConsole(ctx context.Context, flags types.OpenConsoleFlags) (types.Console, error) {
+func (v *bot) OpenConsole(_ context.Context, flags types.OpenConsoleFlags) (types.Console, error) {
 	ttyname, err := v.dom.GetConsoleTtyname()
 	if err != nil {
 		return nil, err

@@ -22,8 +22,9 @@ make && make install && make install-libs
 ### Installing libguestfs (v1.46)
 
 ```bash
-curl -LOv https://raw.githubusercontent.com/projecteru2/footstone/master/yavirt-prebuild/init-libguestfs.sh
+apt install -y gperf genisoimage flex bison libncurses-dev libpcre2-dev libaugeas-dev libmagic-dev libjansson-dev libhivex-dev libyara-dev supermin ocaml ocaml-findlib libhivex-ocaml-dev
 ./init-libguestfs.sh
+apt install -y libguestfs-dev
 ```
 
 # Running as a systemd service

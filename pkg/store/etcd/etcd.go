@@ -70,7 +70,7 @@ func (e *Etcd) IncrUint32(ctx context.Context, key string) (n uint32, err error)
 	data[key] = strconv.FormatInt(int64(n), 10) //nolint:gomnd // base 10 number
 	err = e.Update(ctx, data, map[string]int64{key: ver})
 
-	return //nolint
+	return
 }
 
 // Create .
@@ -184,7 +184,7 @@ func (e *Etcd) Exists(ctx context.Context, keys []string) (map[string]bool, erro
 }
 
 // Get .
-func (e *Etcd) Get(ctx context.Context, key string, obj interface{}, opts ...clientv3.OpOption) (int64, error) {
+func (e *Etcd) Get(ctx context.Context, key string, obj any, opts ...clientv3.OpOption) (int64, error) {
 	e.Lock()
 	defer e.Unlock()
 

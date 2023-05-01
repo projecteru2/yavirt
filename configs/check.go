@@ -10,13 +10,13 @@ import (
 )
 
 type checker struct { //nolint
-	conf     interface{}
+	conf     any
 	field    string
 	fieldObj reflect.StructField
-	val      interface{}
+	val      any
 }
 
-func newChecker(conf interface{}, field string) *checker { //nolint
+func newChecker(conf any, field string) *checker { //nolint
 	return &checker{
 		conf:  conf,
 		field: field,
@@ -50,7 +50,7 @@ func (c *checker) checkRange() error { //nolint
 	}
 
 	var part = strings.Split(rang, "-")
-	if len(part) != 2 { //nolint
+	if len(part) != 2 {
 		return errors.Errorf("invalid range: %s", rang)
 	}
 
@@ -77,7 +77,7 @@ func (c *checker) checkRange() error { //nolint
 
 	switch kind {
 	case reflect.Int:
-		leng = c.val.(int)
+		leng = c.val.(int) //nolint
 	case reflect.String:
 		leng = len(c.val.(string))
 	default:
@@ -107,7 +107,7 @@ func (c *checker) checkEnum() error { //nolint
 }
 
 func (c *checker) getFieldValue(valObj reflect.Value, field string) ( //nolint
-	reflect.StructField, interface{}, error) {
+	reflect.StructField, any, error) {
 
 	var fieldObj reflect.StructField
 

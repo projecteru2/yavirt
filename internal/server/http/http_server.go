@@ -34,7 +34,7 @@ func (s *HTTPServer) newHTTPServer() *http.Server {
 	var mux = http.NewServeMux()
 	mux.Handle("/metrics", metrics.Handler())
 	mux.Handle("/", newAPIHandler(s.Service))
-	return &http.Server{Handler: mux}
+	return &http.Server{Handler: mux} //nolint
 }
 
 // Reload .

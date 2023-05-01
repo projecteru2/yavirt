@@ -63,7 +63,7 @@ func MinInt64(a, b int64) int64 {
 
 // Atoi64 .
 func Atoi64(s string) (int64, error) {
-	return strconv.ParseInt(s, 10, 64) //nolint:gomnd // obvious base 10 and 64-bit number
+	return strconv.ParseInt(s, 10, 64)
 }
 
 // NormalizeMultiple1024 the size must be multiple of 1024.

@@ -56,7 +56,7 @@ type consoleStateManager struct {
 	sync.Map
 }
 
-func (m *consoleStateManager) WaitUntilConsoleOpen(ctx context.Context, id string) {
+func (m *consoleStateManager) WaitUntilConsoleOpen(_ context.Context, id string) {
 	v, _ := m.LoadOrStore(id, newConsoleState())
 	consoleState, ok := v.(*ConsoleState)
 	if !ok {
@@ -71,7 +71,7 @@ func (m *consoleStateManager) WaitUntilConsoleOpen(ctx context.Context, id strin
 	}
 }
 
-func (m *consoleStateManager) MarkConsoleOpen(ctx context.Context, id string) {
+func (m *consoleStateManager) MarkConsoleOpen(_ context.Context, id string) {
 	v, _ := m.LoadOrStore(id, newConsoleState())
 	consoleState, ok := v.(*ConsoleState)
 	if !ok {
@@ -85,7 +85,7 @@ func (m *consoleStateManager) MarkConsoleOpen(ctx context.Context, id string) {
 	consoleState.Broadcast()
 }
 
-func (m *consoleStateManager) MarkConsoleClose(ctx context.Context, id string) {
+func (m *consoleStateManager) MarkConsoleClose(_ context.Context, id string) {
 	v, _ := m.LoadOrStore(id, newConsoleState())
 	consoleState, ok := v.(*ConsoleState)
 	if !ok {

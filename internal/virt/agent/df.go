@@ -29,7 +29,7 @@ func (a *Agent) parseDiskfree(so string) (*types.Diskfree, error) {
 	_, line := utils.PartRight(so, "\n")
 
 	fields := dfRegex.FindStringSubmatch(line)
-	if len(fields) != 7 { //nolint
+	if len(fields) != 7 {
 		return nil, errors.Annotatef(errors.ErrInvalidValue, "invalid df: %s", so)
 	}
 
@@ -38,10 +38,10 @@ func (a *Agent) parseDiskfree(so string) (*types.Diskfree, error) {
 		Filesystem: fields[1],
 		Mount:      fields[6],
 	}
-	df.Blocks, _ = utils.Atoi64(fields[2])
-	df.UsedBlocks, _ = utils.Atoi64(fields[3])
-	df.AvailableBlocks, _ = utils.Atoi64(fields[4])
-	df.UsedPercent, _ = strconv.Atoi(fields[5])
+	df.Blocks, _ = utils.Atoi64(fields[2])          //nolint
+	df.UsedBlocks, _ = utils.Atoi64(fields[3])      //nolint
+	df.AvailableBlocks, _ = utils.Atoi64(fields[4]) //nolint
+	df.UsedPercent, _ = strconv.Atoi(fields[5])     //nolint
 
 	return df, nil
 }

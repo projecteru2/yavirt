@@ -49,7 +49,7 @@ func (r *Route) delete() error {
 }
 
 func (r *Route) String() string {
-	var linkName, _ = r.linkName()
+	var linkName, _ = r.linkName() //nolint
 
 	if r.isGw() {
 		return fmt.Sprintf("default via %s dev %s", r.Gw, linkName)
