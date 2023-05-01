@@ -65,7 +65,7 @@ func (n *Nic) AddIP(ctx context.Context, distro, dev, fn string) error {
 }
 
 // SaveFile .
-func (n *Nic) SaveFile(ctx context.Context, distro string, dev, fn string) (err error) {
+func (n *Nic) SaveFile(_ context.Context, distro string, dev, fn string) (err error) {
 	var file ConfigFile
 
 	switch distro {

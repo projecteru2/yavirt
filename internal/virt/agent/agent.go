@@ -9,7 +9,7 @@ import (
 )
 
 // Interface .
-type Interface interface {
+type Interface interface { //nolint
 	Close() error
 	Exec(ctx context.Context, prog string, args ...string) <-chan types.ExecStatus
 	ExecOutput(ctx context.Context, prog string, args ...string) <-chan types.ExecStatus
@@ -51,6 +51,6 @@ func (a *Agent) Close() (err error) {
 	return
 }
 
-func (a *Agent) decode(data []byte, v interface{}) error {
+func (a *Agent) decode(data []byte, v any) error {
 	return json.Unmarshal(data, v)
 }

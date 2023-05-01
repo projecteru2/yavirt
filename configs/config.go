@@ -203,7 +203,7 @@ func (c *Config) NewEtcdConfig() (etcdcnf clientv3.Config, err error) {
 
 func (c *Config) newEtcdTLSConfig() (*tls.Config, error) {
 	if len(c.EtcdCA) < 1 || len(c.EtcdKey) < 1 || len(c.EtcdCert) < 1 {
-		return nil, nil
+		return nil, nil //nolint
 	}
 
 	return transport.TLSInfo{

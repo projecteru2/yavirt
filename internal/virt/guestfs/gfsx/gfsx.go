@@ -73,7 +73,7 @@ func (g *Gfsx) GetFstabEntries() (map[string]string, error) {
 }
 
 func (g *Gfsx) parseFstab(cont string) (map[string]string, error) {
-	re, err := regexp.Compile(`^(.*?)\s`)
+	re, err := regexp.Compile(`^(.*?)\s`) //nolint
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -124,9 +124,9 @@ func (g *Gfsx) Blkid(dev string) (*types.Blkid, error) {
 	}
 
 	blkid := &types.Blkid{Dev: dev}
-	blkid.Label, _ = entries[types.BlkLabel]
-	blkid.UUID, _ = entries[types.BlkUUID]
-	blkid.Fstype, _ = entries[types.BlkFstype]
+	blkid.Label = entries[types.BlkLabel]
+	blkid.UUID = entries[types.BlkUUID]
+	blkid.Fstype = entries[types.BlkFstype]
 	return blkid, nil
 }
 

@@ -95,7 +95,7 @@ func digestFlags() []cli.Flag {
 	}
 }
 
-func list(c *cli.Context, runtime run.Runtime) error {
+func list(c *cli.Context, _ run.Runtime) error {
 	imgs, err := models.ListImages(c.String("user"))
 	if err != nil {
 		return errors.Trace(err)
@@ -108,7 +108,7 @@ func list(c *cli.Context, runtime run.Runtime) error {
 	return nil
 }
 
-func get(c *cli.Context, runtime run.Runtime) error {
+func get(c *cli.Context, _ run.Runtime) error {
 	name := c.Args().First()
 	if len(name) < 1 {
 		return errors.New("image name is required")
@@ -124,7 +124,7 @@ func get(c *cli.Context, runtime run.Runtime) error {
 	return nil
 }
 
-func add(c *cli.Context, runtime run.Runtime) error {
+func add(c *cli.Context, _ run.Runtime) error {
 	name := c.Args().First()
 	size := c.Int64("size")
 	filePath := c.String("path")
@@ -156,7 +156,7 @@ func add(c *cli.Context, runtime run.Runtime) error {
 	return nil
 }
 
-func rm(c *cli.Context, runtime run.Runtime) error {
+func rm(c *cli.Context, _ run.Runtime) error {
 	name := c.Args().First()
 	if len(name) < 1 {
 		return errors.New("image name is required")
@@ -177,7 +177,7 @@ func rm(c *cli.Context, runtime run.Runtime) error {
 	return nil
 }
 
-func digest(c *cli.Context, runtime run.Runtime) error {
+func digest(c *cli.Context, _ run.Runtime) error {
 	name := c.Args().First()
 	if len(name) < 1 {
 		return errors.New("image name is required")

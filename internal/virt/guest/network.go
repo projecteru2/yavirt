@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil"
+	"io/ioutil" //nolint
 	"path/filepath"
 	"strings"
 	"time"
@@ -33,13 +33,13 @@ const (
 )
 
 // DisconnectExtraNetwork .
-func (g *Guest) DisconnectExtraNetwork(network string) error {
+func (g *Guest) DisconnectExtraNetwork(_ string) error {
 	// todo
 	return nil
 }
 
 // ConnectExtraNetwork .
-func (g *Guest) ConnectExtraNetwork(network, ipv4 string) (ip meta.IP, err error) {
+func (g *Guest) ConnectExtraNetwork(_, _ string) (ip meta.IP, err error) {
 	// todo
 	return
 }
@@ -264,7 +264,7 @@ func (g *Guest) calicoCNICreate() (func() error, error) {
 	endpointID = strings.ReplaceAll(endpointID, "-", "")
 
 	g.EndpointID = endpointID
-	g.NetworkPair = "yap" + g.EndpointID[:utils.Min(12, len(g.EndpointID))] //nolint
+	g.NetworkPair = "yap" + g.EndpointID[:utils.Min(12, len(g.EndpointID))]
 
 	stdout, execDel, err := g.calicoCNIAdd(true)
 	if err != nil {
@@ -384,7 +384,7 @@ func (g *Guest) calicoHandler() (*calihandler.Handler, error) {
 }
 
 func execCNIPlugin(env map[string]string, stdin io.Reader, plugin string) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*8) //nolint
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*8)
 	defer cancel()
 
 	log.Debugf("CNI Plugin env: %v", env)

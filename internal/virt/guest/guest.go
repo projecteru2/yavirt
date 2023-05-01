@@ -582,7 +582,7 @@ func (g *Guest) botOperate(fn func(bot Bot) error, skipLock ...bool) error {
 }
 
 // CacheImage downloads the image from hub.
-func (g *Guest) CacheImage(lock sync.Locker) error {
+func (g *Guest) CacheImage(_ sync.Locker) error {
 	// not implemented
 	return nil
 }

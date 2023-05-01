@@ -21,7 +21,7 @@ func listFlags() []cli.Flag {
 	}
 }
 
-func list(c *cli.Context, runtime run.Runtime) error {
+func list(c *cli.Context, _ run.Runtime) error {
 	all := c.Bool("all")
 
 	var err error

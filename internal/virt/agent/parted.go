@@ -37,7 +37,7 @@ func (p Parted) GetSize(ctx context.Context) (int64, error) {
 
 func (p Parted) getSize(so string) (int64, error) {
 	mat := printSizeRegex.FindStringSubmatch(so)
-	if len(mat) != 2 { //nolint
+	if len(mat) != 2 {
 		return 0, errors.Annotatef(errors.ErrInvalidValue, "invalid parted: %s", so)
 	}
 

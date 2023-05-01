@@ -9,7 +9,7 @@ import (
 
 // QemuMAC .
 func QemuMAC() (string, error) {
-	var buf, err = RandBuf(3) //nolint
+	var buf, err = RandBuf(3)
 	if err != nil {
 		return "", errors.Trace(err)
 	}

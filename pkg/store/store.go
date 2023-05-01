@@ -14,7 +14,7 @@ import (
 type Store interface {
 	Create(ctx context.Context, data map[string]string, opts ...clientv3.OpOption) error
 
-	Get(ctx context.Context, key string, obj interface{}, opts ...clientv3.OpOption) (ver int64, err error)
+	Get(ctx context.Context, key string, obj any, opts ...clientv3.OpOption) (ver int64, err error)
 	GetPrefix(ctx context.Context, prefix string, limit int64) (data map[string][]byte, vers map[string]int64, err error)
 	Exists(ctx context.Context, keys []string) (exists map[string]bool, err error)
 
@@ -72,7 +72,7 @@ func BatchOperate(ctx context.Context, ops []clientv3.Op, cmps ...clientv3.Cmp) 
 }
 
 // Get .
-func Get(ctx context.Context, key string, obj interface{}, opts ...clientv3.OpOption) (int64, error) {
+func Get(ctx context.Context, key string, obj any, opts ...clientv3.OpOption) (int64, error) {
 	return store.Get(ctx, key, obj, opts...)
 }
 

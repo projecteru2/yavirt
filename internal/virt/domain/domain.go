@@ -23,7 +23,7 @@ const (
 )
 
 // Domain .
-type Domain interface {
+type Domain interface { //nolint
 	CheckShutoff() error
 	GetUUID() (string, error)
 	GetConsoleTtyname() (string, error)
@@ -308,7 +308,7 @@ func (d *VirtDomain) render() ([]byte, error) {
 		return nil, errors.Trace(err)
 	}
 
-	var args = map[string]interface{}{
+	var args = map[string]any{
 		"name":              d.guest.ID,
 		"uuid":              uuid,
 		"memory":            d.guest.MemoryInMiB(),
@@ -473,7 +473,7 @@ func (d *VirtDomain) AttachVolume(filepath, devName string) (st libvirt.DomainSt
 }
 
 func (d *VirtDomain) renderAttachVolumeXML(filepath, devName string) ([]byte, error) {
-	args := map[string]interface{}{
+	args := map[string]any{
 		"path": filepath,
 		"dev":  devName,
 	}

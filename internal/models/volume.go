@@ -16,7 +16,8 @@ import (
 
 // Volume .
 // etcd keys:
-//     /vols/<vol id>
+//
+//	/vols/<vol id>
 type Volume struct {
 	*Generic
 	Type           string   `json:"type"`

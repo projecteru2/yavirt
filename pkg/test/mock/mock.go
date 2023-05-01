@@ -21,7 +21,7 @@ func NewRet(args testify.Arguments) *Ret {
 // Err .
 func (r *Ret) Err(index int) (err error) {
 	if obj := r.Get(index); obj != nil {
-		err = obj.(error)
+		err = obj.(error) //nolint
 	}
 	return
 }
@@ -29,7 +29,7 @@ func (r *Ret) Err(index int) (err error) {
 // Bytes .
 func (r *Ret) Bytes(index int) (buf []byte) {
 	if obj := r.Get(index); obj != nil {
-		buf = obj.([]byte)
+		buf = obj.([]byte) //nolint
 	}
 	return
 }

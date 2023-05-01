@@ -70,7 +70,7 @@ func (b *IPBlock) isAssigned(ipn *net.IPNet) (bool, error) {
 func (b *IPBlock) getIPIndex(ip net.IP) int {
 	i64 := netx.IP2int(ip)
 
-	i64 &= (1 << uint(32-b.MaskBits())) - 1 //nolint
+	i64 &= (1 << uint(32-b.MaskBits())) - 1
 
 	i64 %= MaxBlockIPCount
 
@@ -153,7 +153,7 @@ func (b *IPBlock) ipCount() int {
 }
 
 func (b *IPBlock) ipBits() int {
-	return utils.Min(8, 32-b.MaskBits()) //nolint
+	return utils.Min(8, 32-b.MaskBits())
 }
 
 // MaskBits .

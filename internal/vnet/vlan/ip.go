@@ -13,8 +13,9 @@ import (
 
 // IP .
 // etcd keys:
-//     /ips/<subnet>/free/<ip>
-//     /ips/<subnet>/occupied/<ip>
+//
+//	/ips/<subnet>/free/<ip>
+//	/ips/<subnet>/occupied/<ip>
 type IP struct {
 	Value   int64  `json:"value"`
 	GuestID string `json:"guest"`
@@ -42,7 +43,7 @@ func (ip *IP) AutoRouteCIDR() (string, error) {
 }
 
 // BindGatewayIPNet .
-func (ip *IP) BindGatewayIPNet(ipn *net.IPNet) {
+func (ip *IP) BindGatewayIPNet(*net.IPNet) {
 	// DO NOTHING
 }
 
@@ -57,7 +58,7 @@ func (ip *IP) IPNetwork() *net.IPNet {
 }
 
 // BindDevice .
-func (ip *IP) BindDevice(dev device.VirtLink) {
+func (ip *IP) BindDevice(device.VirtLink) {
 	// DO NOTHING
 }
 

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
+	"io/ioutil" //nolint
 	"os"
 
 	"github.com/projecteru2/yavirt/pkg/errors"
@@ -47,7 +47,7 @@ func Scan(_ context.Context, reader io.Reader) <-chan []byte {
 		defer close(ch)
 
 		for {
-			p := make([]byte, 65536) //nolint // max(uint16) + 1
+			p := make([]byte, 65536)
 			n, err := reader.Read(p)
 			if n > 0 {
 				if bytes.Contains(p[:n], []byte("^]")) {

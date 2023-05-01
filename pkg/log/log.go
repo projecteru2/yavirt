@@ -32,7 +32,7 @@ func setupSentry(dsn string) (func(), error) {
 	}
 
 	deferSentry := func() {
-		defer sentry.Flush(time.Second * 2) //nolint
+		defer sentry.Flush(time.Second * 2)
 		if err := recover(); err != nil {
 			sentry.CaptureMessage(fmt.Sprintf("%v", err))
 			panic(err)
@@ -73,7 +73,7 @@ func setupLevel(level string) error {
 }
 
 // WarnStackf .
-func WarnStackf(err error, format string, args ...interface{}) {
+func WarnStackf(err error, format string, args ...any) {
 	WarnStack(errors.Annotatef(err, format, args...))
 }
 
@@ -83,12 +83,12 @@ func WarnStack(err error) {
 }
 
 // Warnf .
-func Warnf(format string, args ...interface{}) {
+func Warnf(format string, args ...any) {
 	logrus.Warnf(format, args...)
 }
 
 // ErrorStackf .
-func ErrorStackf(err error, format string, args ...interface{}) {
+func ErrorStackf(err error, format string, args ...any) {
 	ErrorStack(errors.Annotatef(err, format, args...))
 }
 
@@ -98,18 +98,18 @@ func ErrorStack(err error) {
 }
 
 // Errorf .
-func Errorf(format string, args ...interface{}) {
+func Errorf(format string, args ...any) {
 	sentry.CaptureMessage(fmt.Sprintf(format, args...))
 	logrus.Errorf(format, args...)
 }
 
 // Infof .
-func Infof(format string, args ...interface{}) {
+func Infof(format string, args ...any) {
 	logrus.Infof(format, args...)
 }
 
 // Debugf .
-func Debugf(format string, args ...interface{}) {
+func Debugf(format string, args ...any) {
 	logrus.Debugf(format, args...)
 }
 
@@ -119,7 +119,7 @@ func FatalStack(err error) {
 }
 
 // Fatalf .
-func Fatalf(format string, args ...interface{}) {
+func Fatalf(format string, args ...any) {
 	sentry.CaptureMessage(fmt.Sprintf(format, args...))
 	logrus.Fatalf(format, args...)
 }

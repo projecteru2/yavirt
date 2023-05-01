@@ -176,7 +176,7 @@ func (svc *Service) GetGuestUUID(ctx virt.Context, id string) (string, error) {
 
 // CreateGuest .
 func (svc *Service) CreateGuest(ctx virt.Context, opts virtypes.GuestCreateOption) (*types.Guest, error) {
-	var vols []*models.Volume
+	vols := []*models.Volume{}
 	for mnt, capacity := range opts.Volumes {
 		vol, err := models.NewDataVolume(mnt, capacity)
 		if err != nil {
@@ -447,7 +447,7 @@ func (svc *Service) Wait(ctx virt.Context, id string, block bool) (msg string, c
 	return
 }
 
-func (svc *Service) PushImage(ctx virt.Context, imgName, user string) (err error) {
+func (svc *Service) PushImage(_ virt.Context, _, _ string) (err error) {
 	// todo
 	return
 }
@@ -481,7 +481,7 @@ func (svc *Service) ListImage(ctx virt.Context, filter string) ([]types.SysImage
 	return images, err
 }
 
-func (svc *Service) PullImage(ctx virt.Context, imgName string, all bool) (msg string, err error) {
+func (svc *Service) PullImage(virt.Context, string, bool) (msg string, err error) {
 	// todo
 	return
 }

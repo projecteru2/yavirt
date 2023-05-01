@@ -45,7 +45,7 @@ func newHardwareAddr(linkType string) (net.HardwareAddr, error) {
 }
 
 func newTuntapMAC() (string, error) {
-	var buf, err = utils.RandBuf(3) //nolint
+	var buf, err = utils.RandBuf(3)
 	if err != nil {
 		return "", errors.Trace(err)
 	}

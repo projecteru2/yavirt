@@ -73,7 +73,7 @@ func (q *qmp) Exec(path string, args []string, output bool) ([]byte, error) {
 	q.Lock()
 	defer q.Unlock()
 
-	var exArg = map[string]interface{}{
+	var exArg = map[string]any{
 		"path":           path,
 		"capture-output": output,
 	}
@@ -89,33 +89,33 @@ func (q *qmp) Exec(path string, args []string, output bool) ([]byte, error) {
 func (q *qmp) ExecStatus(pid int) ([]byte, error) {
 	q.Lock()
 	defer q.Unlock()
-	return q.exec("guest-exec-status", map[string]interface{}{"pid": pid})
+	return q.exec("guest-exec-status", map[string]any{"pid": pid})
 }
 
 func (q *qmp) OpenFile(path, mode string) ([]byte, error) {
 	q.Lock()
 	defer q.Unlock()
-	return q.exec("guest-file-open", map[string]interface{}{"path": path, "mode": mode})
+	return q.exec("guest-file-open", map[string]any{"path": path, "mode": mode})
 }
 
 func (q *qmp) CloseFile(handle int) (err error) {
 	q.Lock()
 	defer q.Unlock()
-	_, err = q.exec("guest-file-close", map[string]interface{}{"handle": handle})
+	_, err = q.exec("guest-file-close", map[string]any{"handle": handle})
 	return
 }
 
 func (q *qmp) FlushFile(handle int) (err error) {
 	q.Lock()
 	defer q.Unlock()
-	_, err = q.exec("guest-file-flush", map[string]interface{}{"handle": handle})
+	_, err = q.exec("guest-file-flush", map[string]any{"handle": handle})
 	return
 }
 
 // ReadFile .
 func (q *qmp) ReadFile(handle int, p []byte) (read int, eof bool, err error) {
 	pcap := int64(cap(p))
-	args := map[string]interface{}{
+	args := map[string]any{
 		"handle": handle,
 		"count":  utils.MinInt64(maxBytesPerRead, pcap),
 	}
@@ -162,12 +162,12 @@ func (q *qmp) WriteFile(handle int, buf []byte) (err error) {
 	defer q.Unlock()
 
 	var b64 = base64.StdEncoding.EncodeToString(buf)
-	_, err = q.exec("guest-file-write", map[string]interface{}{"handle": handle, "buf-b64": b64})
+	_, err = q.exec("guest-file-write", map[string]any{"handle": handle, "buf-b64": b64})
 
 	return
 }
 
-func (q *qmp) exec(cmd string, args map[string]interface{}) ([]byte, error) {
+func (q *qmp) exec(cmd string, args map[string]any) ([]byte, error) {
 	var buf, err = newQmpCmd(cmd, args).bytes()
 	if err != nil {
 		return nil, errors.Trace(err)
@@ -191,7 +191,7 @@ func (q *qmp) exec(cmd string, args map[string]interface{}) ([]byte, error) {
 
 // SeekFile .
 func (q *qmp) SeekFile(handle int, offset int, whence int) (position int, eof bool, err error) {
-	args := map[string]interface{}{
+	args := map[string]any{
 		"handle": handle,
 		"offset": offset,
 		"whence": whence,
@@ -345,11 +345,11 @@ func (q *qmp) read() ([]byte, error) {
 }
 
 type qmpCmd struct {
-	Name string                 `json:"execute"`
-	Args map[string]interface{} `json:"arguments,omitempty"`
+	Name string         `json:"execute"`
+	Args map[string]any `json:"arguments,omitempty"`
 }
 
-func newQmpCmd(name string, args map[string]interface{}) (c qmpCmd) {
+func newQmpCmd(name string, args map[string]any) (c qmpCmd) {
 	c.Name = name
 	c.Args = args
 	return
