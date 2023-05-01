@@ -8,8 +8,7 @@ on:
   pull_request:
 
 jobs:
-  golangci:
-    name: lint
+  lint:
     runs-on: ubuntu-latest
     container: projecteru2/footstone:yavirt-prebuild
     steps:
@@ -19,7 +18,6 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+      - uses: golangci/golangci-lint-action@v3
         with:
           args: --timeout=8m
