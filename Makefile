@@ -1,3 +1,7 @@
+ifeq ($(CN), 1)
+ENV := GOPROXY=https://goproxy.cn,direct
+endif
+
 NS := github.com/projecteru2/yavirt
 BUILD := go build -race
 TEST := go test -count=1 -race -cover
@@ -21,8 +25,8 @@ build-ctl:
 	$(BUILD) -ldflags '$(LDFLAGS)' -o bin/yavirtctl cmd/cmd.go
 
 setup:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	go install github.com/vektra/mockery/v2@latest
+	$(ENV) go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	$(ENV) go install github.com/vektra/mockery/v2@latest
 
 lint: format
 	PATH=${HOME}/go/bin:${PATH} golangci-lint run --skip-dirs-use-default --skip-dirs=thirdparty
@@ -34,7 +38,7 @@ vet:
 	go vet $(PKGS)
 
 deps:
-	go mod tidy
+	$(ENV) go mod tidy
 
 mock: deps
 	mockery --dir pkg/libvirt --output pkg/libvirt/mocks --all
