@@ -403,6 +403,12 @@ func (m Manager) Create(ctx virt.Context, opts types.GuestCreateOption, host *mo
 	// Destroys resource and delete metadata while rolling back.
 	var vg *guest.Guest
 	destroy := func() {
+		defer func() {
+			// delete guest in etcd
+			log.Infof("Failed to create guest: %v", g)
+			g.Delete(true)
+		}()
+
 		if vg == nil {
 			return
 		}
