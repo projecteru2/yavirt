@@ -28,5 +28,5 @@ jobs:
           context: .
           push: true
           tags: |
-            projecteru2/yavirt:latest
-            projecteru2/yavirt:${{ github.ref_name }}
+            ${{ github.repository }}:latest
+            ${{ github.repository }}:${{ github.ref_name }}
