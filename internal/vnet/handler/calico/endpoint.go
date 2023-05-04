@@ -38,6 +38,9 @@ func (h *Handler) CreateEndpointNetwork(args types.EndpointArgs) (types.Endpoint
 		if err := h.DeleteEndpointNetwork(args); err != nil {
 			log.ErrorStackf(err, "delete endpoint %s failed", args.EndpointID)
 		}
+		// try to delete tap device, we ignore the error
+		err = h.deleteTap(args.Device)
+		log.Debugf("After delete tap device(%v): %v", args.Device.Name(), err)
 	}
 
 	return args, rollback, err

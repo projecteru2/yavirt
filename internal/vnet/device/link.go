@@ -131,6 +131,18 @@ func (d *Driver) AddLink(linkType, name string) (VirtLink, error) {
 	return link, nil
 }
 
+// delete link by name
+func (d *Driver) DeleteLink(name string) error {
+	var raw, err = d.LinkByName(name)
+	if err != nil {
+		if err.Error() == "Link not found" {
+			err = errors.Trace(errors.ErrVirtLinkNotExists)
+		}
+		return err
+	}
+	return d.LinkDel(raw)
+}
+
 // CheckLinkType .
 func (d *Driver) CheckLinkType(linkType string) bool {
 	return linkType == LinkTypeDummy ||

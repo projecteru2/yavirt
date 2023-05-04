@@ -28,6 +28,10 @@ func (h *Handler) createTap() (device.VirtLink, error) {
 	}
 }
 
+func (h *Handler) deleteTap(d device.VirtLink) error {
+	return h.dev.DeleteLink(d.Name())
+}
+
 func (h *Handler) randTapName() (string, error) {
 	var endpID, err = h.generateEndpointID()
 	if err != nil {
