@@ -26,11 +26,6 @@ func Connect(uri string) (l *Libvirtee, err error) {
 	return
 }
 
-// ListAllDomains lists all domains regardless the state.
-func (l *Libvirtee) ListAllDomains() ([]libvirtgo.Domain, error) {
-	return l.Connect.ListAllDomains(ListAllDomainFlags)
-}
-
 // DefineDomain defines a new domain.
 func (l *Libvirtee) DefineDomain(xml string) (Domain, error) {
 	raw, err := l.Connect.DomainDefineXML(xml)
@@ -54,7 +49,7 @@ func (l *Libvirtee) LookupDomain(name string) (Domain, error) {
 
 // ListDomainsNames lists all domains' name.
 func (l *Libvirtee) ListDomainsNames() ([]string, error) {
-	raw, err := l.Connect.ListAllDomains(ListAllDomainFlags)
+	raw, err := l.ListAllDomains()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -67,4 +62,9 @@ func (l *Libvirtee) ListDomainsNames() ([]string, error) {
 	}
 
 	return names, nil
+}
+
+// ListAllDomains lists all domains regardless the state.
+func (l *Libvirtee) ListAllDomains() ([]libvirtgo.Domain, error) {
+	return l.Connect.ListAllDomains(ListAllDomainFlags)
 }

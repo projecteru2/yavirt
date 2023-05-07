@@ -51,6 +51,15 @@ func TestGetGuest(t *testing.T) {
 	assert.NilErr(t, err)
 }
 
+func TestGetGuestIDList(t *testing.T) {
+	localIDs := []string{"ya0", "ya1", "ya2"}
+	svc := testService(t)
+	svc.guest.(*managerocks.Manageable).On("ListLocalIDs", mock.Anything, mock.Anything).Return(localIDs, nil).Once()
+	ids, err := svc.GetGuestIDList(testVirtContext(t))
+	assert.NilErr(t, err)
+	assert.Equal(t, []string{"ya0", "ya1", "ya2"}, ids)
+}
+
 func TestGetGuestUUID(t *testing.T) {
 	svc := testService(t)
 	svc.guest.(*managerocks.Manageable).On("LoadUUID", mock.Anything, mock.Anything).Return("uuid", nil)
