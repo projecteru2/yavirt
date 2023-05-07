@@ -23,8 +23,6 @@ build-ctl:
 setup:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	go install github.com/vektra/mockery/v2@latest
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 
 lint: format
 	PATH=${HOME}/go/bin:${PATH} golangci-lint run --skip-dirs-use-default --skip-dirs=thirdparty

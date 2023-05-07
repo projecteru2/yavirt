@@ -36,6 +36,22 @@ func New(ctx virt.Context, g *models.Guest) *Guest {
 	}
 }
 
+// ListLocalIDs lists all local guest domain names.
+func ListLocalIDs(virt.Context) ([]string, error) {
+	virt, err := connectSystemLibvirt()
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+
+	defer func() {
+		if _, ce := virt.Close(); ce != nil {
+			log.ErrorStack(ce)
+		}
+	}()
+
+	return virt.ListDomainsNames()
+}
+
 // Load .
 func (g *Guest) Load() error {
 	host, err := models.LoadHost(g.HostName)

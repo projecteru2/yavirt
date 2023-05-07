@@ -64,7 +64,7 @@ type bot struct {
 }
 
 func newVirtGuest(guest *Guest) (Bot, error) {
-	virt, err := libvirt.Connect("qemu:///system")
+	virt, err := connectSystemLibvirt()
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -79,6 +79,10 @@ func newVirtGuest(guest *Guest) (Bot, error) {
 	vg.ga = agent.New(vg.guest.SocketFilepath())
 
 	return vg, nil
+}
+
+func connectSystemLibvirt() (libvirt.Libvirt, error) {
+	return libvirt.Connect("qemu:///system")
 }
 
 func newVolume(volmod *models.Volume) volume.Virt {

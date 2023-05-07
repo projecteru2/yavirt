@@ -67,6 +67,7 @@ type Controllable interface {
 type Loadable interface {
 	Load(ctx virt.Context, id string) (*guest.Guest, error)
 	LoadUUID(ctx virt.Context, id string) (string, error)
+	ListLocalIDs(virt.Context) ([]string, error)
 }
 
 var imageMutex sync.Mutex
@@ -575,6 +576,11 @@ func (m Manager) doCtrl(ctx virt.Context, id string, op op, fn doCtrlFunc, rollb
 		return fn(g)
 	}
 	return m.do(ctx, id, op, do, rollback)
+}
+
+// ListLocals lists all local guests.
+func (m Manager) ListLocalIDs(ctx virt.Context) ([]string, error) {
+	return guest.ListLocalIDs(ctx)
 }
 
 // LoadUUID read a guest's UUID.
