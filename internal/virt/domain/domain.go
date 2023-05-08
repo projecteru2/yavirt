@@ -26,9 +26,9 @@ const (
 
 var (
 	//go:embed templates/guest.xml
-	guest_xml string
+	guestXML string
 	//go:embed templates/disk.xml
-	disk_xml string
+	diskXML string
 )
 
 // Domain .
@@ -322,6 +322,7 @@ func (d *VirtDomain) render() ([]byte, error) {
 		"uuid":              uuid,
 		"memory":            d.guest.MemoryInMiB(),
 		"cpu":               d.guest.CPU,
+		"gpus":              []string{},
 		"sysvol":            sysVol.Filepath(),
 		"gasock":            d.guest.SocketFilepath(),
 		"datavols":          d.dataVols(d.guest.Vols),
@@ -331,7 +332,7 @@ func (d *VirtDomain) render() ([]byte, error) {
 		"cache_passthrough": configs.Conf.VirtCPUCachePassthrough,
 	}
 
-	return template.Render(d.guestTemplateFilepath(), guest_xml, args)
+	return template.Render(d.guestTemplateFilepath(), guestXML, args)
 }
 
 func (d *VirtDomain) checkUUID(raw string) (string, error) {
@@ -486,7 +487,7 @@ func (d *VirtDomain) renderAttachVolumeXML(filepath, devName string) ([]byte, er
 		"path": filepath,
 		"dev":  devName,
 	}
-	return template.Render(d.diskTemplateFilepath(), disk_xml, args)
+	return template.Render(d.diskTemplateFilepath(), diskXML, args)
 }
 
 // GetState .

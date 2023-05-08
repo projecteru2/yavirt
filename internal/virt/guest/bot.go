@@ -295,9 +295,9 @@ func (v *bot) BindExtraNetwork() error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*leng) //nolint
 	defer cancel()
 
-	for i, netw := range v.guest.ExtraNetworks {
-		fn := fmt.Sprintf("%s.extra%d", dev, i)
-		if err := nic.NewNic(netw.IP, v.ga).AddIP(ctx, distro, dev, fn); err != nil {
+	for _, netw := range v.guest.ExtraNetworks {
+		// fn := fmt.Sprintf("%s.extra%d", dev, i)
+		if err := nic.NewNic(netw.IP, v.ga).AddIP(ctx, dev); err != nil {
 			return errors.Trace(err)
 		}
 	}

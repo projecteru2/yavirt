@@ -406,7 +406,8 @@ func (m Manager) Create(ctx virt.Context, opts types.GuestCreateOption, host *mo
 		defer func() {
 			// delete guest in etcd
 			log.Infof("Failed to create guest: %v", g)
-			g.Delete(true)
+			err := g.Delete(true)
+			log.Errorf("Failed to delete guest in ETCD: %v", err)
 		}()
 
 		if vg == nil {

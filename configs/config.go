@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -75,7 +76,9 @@ var Conf = newDefault()
 
 // Config .
 type Config struct {
-	Env                    string   `toml:"env"`
+	Env string `toml:"env"`
+	// host-related config
+	Hostname      string `toml:"hostname"`
 	ProfHTTPPort           int      `toml:"prof_http_port"`
 	BindHTTPAddr           string   `toml:"bind_http_addr"`
 	BindGRPCAddr           string   `toml:"bind_grpc_addr"`
@@ -157,8 +160,6 @@ func newDefault() Config {
 		log.FatalStack(err)
 	}
 
-	conf.loadVirtDirs()
-
 	return conf
 }
 
@@ -182,11 +183,27 @@ func (c *Config) load(file string) error {
 		return errors.Trace(err)
 	}
 
-	if err := c.loadVirtDirs(); err != nil {
-		return err
-	}
+	return c.postInit()
+}
 
-	return nil
+func (c *Config) postInit() (err error) {
+	// try to initialize Hostname
+	if c.Hostname == "" {
+		if hn := os.Getenv("HOSTNAME"); len(hn) > 0 {
+			c.Hostname = hn
+		} else {
+			c.Hostname, err = os.Hostname()
+			if err != nil {
+				return err
+			}
+		}
+	}
+	// prepare ETCD_ENDPOINTS(some components needs this environment variable)
+	if len(c.EtcdEndpoints) > 0 {
+		os.Setenv("ETCD_ENDPOINTS", strings.Join(c.EtcdEndpoints, ","))
+	}
+	err = c.loadVirtDirs()
+	return
 }
 
 func (c *Config) loadVirtDirs() error {
