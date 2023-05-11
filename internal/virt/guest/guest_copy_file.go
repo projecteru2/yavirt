@@ -1,8 +1,7 @@
 package guest
 
 import (
-	"context"
-	"io/ioutil" //nolint
+	"context" //nolint
 	"os"
 	"path"
 
@@ -64,7 +63,7 @@ func (g *Guest) copyToGuestNotRunning(dest string, content chan []byte, override
 		return err
 	}
 
-	f, err := ioutil.TempFile(os.TempDir(), "toCopy-*")
+	f, err := os.CreateTemp(os.TempDir(), "toCopy-*")
 	if err != nil {
 		return errors.Trace(err)
 	}

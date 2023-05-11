@@ -25,7 +25,7 @@ func New(memberID uint32, seed time.Time) *Generator {
 
 // Next .
 func (g *Generator) Next() string {
-	var b36 = strconv.FormatInt(g.counter.Incr(), 36) //nolint:gomnd // because its base36
+	var b36 = strconv.FormatInt(g.counter.Incr(), 36)
 	return fmt.Sprintf("%010d%017d%05s", g.prefix, g.suffix, b36)
 }
 

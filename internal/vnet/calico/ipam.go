@@ -4,8 +4,8 @@ import (
 	"context"
 	"net"
 
-	libcaliipam "github.com/projectcalico/libcalico-go/lib/ipam"
-	libcalinet "github.com/projectcalico/libcalico-go/lib/net"
+	libcaliipam "github.com/projectcalico/calico/libcalico-go/lib/ipam"
+	libcalinet "github.com/projectcalico/calico/libcalico-go/lib/net"
 
 	"github.com/projecteru2/yavirt/internal/meta"
 	"github.com/projecteru2/yavirt/pkg/errors"
@@ -112,18 +112,18 @@ func (ipam *Ipam) Release(ctx context.Context, ips ...meta.IP) error {
 	ipam.Lock()
 	defer ipam.Unlock()
 
-	var caliIPs = make([]libcalinet.IP, len(ips))
+	var releaseOpts = make([]libcaliipam.ReleaseOptions, len(ips))
 	for i := range ips {
 		var ip, ok = ips[i].(*IP)
 		if !ok {
 			return errors.Annotatef(errors.ErrInvalidValue, "expect *IP, but %v", ips[i])
 		}
 
-		caliIPs[i] = libcalinet.IP{IP: ip.IP}
+		releaseOpts[i] = libcaliipam.ReleaseOptions{Address: ip.IP.String()}
 	}
 
 	return etcd.RetryTimedOut(func() error {
-		var _, err = ipam.IPAM().ReleaseIPs(ctx, caliIPs)
+		var _, err = ipam.IPAM().ReleaseIPs(ctx, releaseOpts...)
 		return err
 	}, 3) //nolint:gomnd // try 3 times
 }

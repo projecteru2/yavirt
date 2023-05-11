@@ -136,9 +136,14 @@ func (y *GRPCYavirtd) ResizeGuest(ctx context.Context, opts *pb.ResizeGuestOptio
 	virtCtx := y.service.VirtContext(ctx)
 
 	req := types.ResizeGuestReq{
-		CPU:     int(opts.Cpu),
-		Mem:     opts.Memory,
-		Volumes: opts.Volumes,
+		CPU: int(opts.Cpu),
+		Mem: opts.Memory,
+	}
+	req.Volumes = make([]types.Volume, len(opts.Volumes))
+	for i, vol := range opts.Volumes {
+		req.Volumes[i].Mount = vol.Mount
+		req.Volumes[i].Capacity = vol.Capacity
+		req.Volumes[i].IO = vol.Io
 	}
 	req.ID = opts.Id
 

@@ -188,8 +188,8 @@ func (svc *Service) GetGuestUUID(ctx virt.Context, id string) (string, error) {
 // CreateGuest .
 func (svc *Service) CreateGuest(ctx virt.Context, opts virtypes.GuestCreateOption) (*types.Guest, error) {
 	vols := []*models.Volume{}
-	for mnt, capacity := range opts.Volumes {
-		vol, err := models.NewDataVolume(mnt, capacity)
+	for _, v := range opts.Volumes {
+		vol, err := models.NewDataVolume(v.Mount, v.Capacity)
 		if err != nil {
 			return nil, errors.Trace(err)
 		}
@@ -200,7 +200,7 @@ func (svc *Service) CreateGuest(ctx virt.Context, opts virtypes.GuestCreateOptio
 		opts.CPU = utils.Min(svc.Host.CPU, configs.Conf.MaxCPU)
 	}
 	if opts.Mem == 0 {
-		opts.Mem = utils.MinInt64(svc.Host.Memory, configs.Conf.MaxMemory)
+		opts.Mem = utils.Min(svc.Host.Memory, configs.Conf.MaxMemory)
 	}
 
 	g, err := svc.guest.Create(ctx, opts, svc.Host, vols)
@@ -228,7 +228,11 @@ func (svc *Service) CaptureGuest(ctx virt.Context, req types.CaptureGuestReq) (u
 
 // ResizeGuest .
 func (svc *Service) ResizeGuest(ctx virt.Context, req types.ResizeGuestReq) (err error) {
-	if err = svc.guest.Resize(ctx, req.VirtID(), req.CPU, req.Mem, req.Volumes); err != nil {
+	vols := map[string]int64{}
+	for _, vol := range req.Volumes {
+		vols[vol.Mount] = vol.Capacity
+	}
+	if err = svc.guest.Resize(ctx, req.VirtID(), req.CPU, req.Mem, vols); err != nil {
 		log.ErrorStack(err)
 		metrics.IncrError()
 	}
@@ -484,7 +488,7 @@ func (svc *Service) ListImage(ctx virt.Context, filter string) ([]types.SysImage
 			Name:   img.GetName(),
 			User:   img.GetUser(),
 			Distro: img.GetDistro(),
-			Id:     img.GetID(),
+			ID:     img.GetID(),
 			Type:   img.GetType(),
 		})
 	}

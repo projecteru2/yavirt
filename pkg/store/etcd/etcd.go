@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"sync"
 
-	"go.etcd.io/etcd/clientv3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/errors"
@@ -67,7 +67,7 @@ func (e *Etcd) IncrUint32(ctx context.Context, key string) (n uint32, err error)
 	}
 
 	n++
-	data[key] = strconv.FormatInt(int64(n), 10) //nolint:gomnd // base 10 number
+	data[key] = strconv.FormatInt(int64(n), 10)
 	err = e.Update(ctx, data, map[string]int64{key: ver})
 
 	return

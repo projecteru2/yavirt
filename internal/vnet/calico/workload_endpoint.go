@@ -5,11 +5,11 @@ import (
 	"net"
 	"time"
 
-	libcaliapi "github.com/projectcalico/libcalico-go/lib/apis/v3"
-	libcalierr "github.com/projectcalico/libcalico-go/lib/errors"
-	libcalinames "github.com/projectcalico/libcalico-go/lib/names"
-	libcalinet "github.com/projectcalico/libcalico-go/lib/net"
-	libcaliopt "github.com/projectcalico/libcalico-go/lib/options"
+	libcaliapi "github.com/projectcalico/calico/libcalico-go/lib/apis/v3"
+	libcalierr "github.com/projectcalico/calico/libcalico-go/lib/errors"
+	libcalinames "github.com/projectcalico/calico/libcalico-go/lib/names"
+	libcalinet "github.com/projectcalico/calico/libcalico-go/lib/net"
+	libcaliopt "github.com/projectcalico/calico/libcalico-go/lib/options"
 	k8smeta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8stypes "k8s.io/apimachinery/pkg/types"
 

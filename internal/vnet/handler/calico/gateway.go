@@ -3,7 +3,7 @@ package calico
 import (
 	"net"
 
-	libcaliapi "github.com/projectcalico/libcalico-go/lib/apis/v3"
+	libcaliapi "github.com/projectcalico/calico/libcalico-go/lib/apis/v3"
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/meta"
