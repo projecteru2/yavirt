@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil" //nolint
 	"os"
 
 	"github.com/projecteru2/yavirt/pkg/errors"
@@ -18,7 +17,7 @@ func ReadAll(fpth string) ([]byte, error) {
 		return nil, errors.Trace(err)
 	}
 
-	buf, err := ioutil.ReadAll(f)
+	buf, err := io.ReadAll(f)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
@@ -28,7 +27,7 @@ func ReadAll(fpth string) ([]byte, error) {
 
 // WriteTempFile .
 func WriteTempFile(buf []byte) (string, error) {
-	f, err := ioutil.TempFile(os.TempDir(), "temp-guest-*.xml")
+	f, err := os.CreateTemp(os.TempDir(), "temp-guest-*.xml")
 	if err != nil {
 		return "", errors.Trace(err)
 	}

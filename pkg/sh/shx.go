@@ -4,8 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"io/ioutil" //nolint
+	"io" //nolint
 	"os/exec"
 
 	"github.com/projecteru2/yavirt/pkg/errors"
@@ -54,7 +53,7 @@ func (s shx) Exec(ctx context.Context, name string, args ...string) error {
 		return errors.Trace(err)
 	}
 
-	slurp, err := ioutil.ReadAll(stderr)
+	slurp, err := io.ReadAll(stderr)
 	if err != nil {
 		return errors.Trace(err)
 	}

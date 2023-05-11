@@ -5,12 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil" //nolint
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/containernetworking/cni/pkg/types/current"
+	current "github.com/containernetworking/cni/pkg/types/100"
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/meta"
@@ -356,7 +356,7 @@ func (g *Guest) populateIPFromAddResult(dat []byte) error {
 
 func (g *Guest) readCNIConfig() ([]byte, error) {
 	// TODO: follows the CNI policy, rather than hard code absolute path here.
-	return ioutil.ReadFile(configs.Conf.CNIConfigPath)
+	return os.ReadFile(configs.Conf.CNIConfigPath)
 }
 
 func (g *Guest) makeCNIEnv() map[string]string {

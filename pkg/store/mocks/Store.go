@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	clientv3 "go.etcd.io/etcd/clientv3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 
 	mock "github.com/stretchr/testify/mock"
 

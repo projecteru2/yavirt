@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net"
 
-	libcalinet "github.com/projectcalico/libcalico-go/lib/net"
-	libcaliopt "github.com/projectcalico/libcalico-go/lib/options"
+	libcalinet "github.com/projectcalico/calico/libcalico-go/lib/net"
+	libcaliopt "github.com/projectcalico/calico/libcalico-go/lib/options"
 	"github.com/urfave/cli/v2"
 
 	"github.com/projecteru2/yavirt/cmd/run"

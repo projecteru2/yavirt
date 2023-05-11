@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
@@ -26,7 +27,7 @@ func TestEmptyLabels(t *testing.T) {
 func TestValidLabels(t *testing.T) {
 	g := Guest{
 		JSONLabels: map[string]string{
-			erucluster.LabelMeta: eruutils.EncodeMetaInLabel(&erutypes.LabelMeta{
+			erucluster.LabelMeta: eruutils.EncodeMetaInLabel(context.Background(), &erutypes.LabelMeta{
 				Publish: []string{"22", "80"},
 				HealthCheck: &erutypes.HealthCheck{
 					TCPPorts: []string{"2379", "3306"},
