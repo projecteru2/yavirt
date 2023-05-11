@@ -117,7 +117,7 @@ func (q *qmp) ReadFile(handle int, p []byte) (read int, eof bool, err error) {
 	pcap := int64(cap(p))
 	args := map[string]any{
 		"handle": handle,
-		"count":  utils.MinInt64(maxBytesPerRead, pcap),
+		"count":  utils.Min(maxBytesPerRead, pcap),
 	}
 
 	q.Lock()

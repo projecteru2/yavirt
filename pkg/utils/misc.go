@@ -3,6 +3,9 @@ package utils
 import (
 	"os"
 	"strconv"
+
+	"github.com/projecteru2/core/utils"
+	"golang.org/x/exp/constraints"
 )
 
 const (
@@ -30,39 +33,18 @@ func Invoke(funcs []func() error) error {
 }
 
 // Min .
-func Min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
+func Min[T constraints.Ordered](a, b T) T {
+	return utils.Min(a, b)
 }
 
 // Max .
-func Max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-// MaxInt64 .
-func MaxInt64(a, b int64) int64 {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-// MinInt64 .
-func MinInt64(a, b int64) int64 {
-	if a < b {
-		return a
-	}
-	return b
+func Max[T constraints.Ordered](a, b T) T {
+	return utils.Max(a, b)
 }
 
 // Atoi64 .
 func Atoi64(s string) (int64, error) {
+	// obvious base 10 and 64-bit number
 	return strconv.ParseInt(s, 10, 64)
 }
 

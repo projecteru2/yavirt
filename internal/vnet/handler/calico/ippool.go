@@ -3,7 +3,7 @@ package calico
 import (
 	"context"
 
-	"github.com/projectcalico/libcalico-go/lib/options"
+	"github.com/projectcalico/calico/libcalico-go/lib/options"
 )
 
 // PoolNames .

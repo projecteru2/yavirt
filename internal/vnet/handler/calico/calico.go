@@ -3,7 +3,7 @@ package calico
 import (
 	"sync"
 
-	libcaliapi "github.com/projectcalico/libcalico-go/lib/apis/v3"
+	libcaliapi "github.com/projectcalico/calico/libcalico-go/lib/apis/v3"
 
 	calinet "github.com/projecteru2/yavirt/internal/vnet/calico"
 	"github.com/projecteru2/yavirt/internal/vnet/device"

@@ -5,7 +5,7 @@ import (
 	"net"
 	"strings"
 
-	calinet "github.com/projectcalico/libcalico-go/lib/net"
+	calinet "github.com/projectcalico/calico/libcalico-go/lib/net"
 
 	"github.com/projecteru2/yavirt/internal/meta"
 	"github.com/projecteru2/yavirt/internal/vnet"

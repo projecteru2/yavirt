@@ -155,7 +155,7 @@ func (vol *Volume) Amplify(delta int64, dom domain.Domain, ga agent.Interface, d
 		return 0, errors.Annotatef(errors.ErrInvalidValue, "exceeds the max cap: %d", configs.Conf.MaxVolumeCap)
 	}
 
-	least := utils.MaxInt64(
+	least := utils.Max(
 		configs.Conf.ResizeVolumeMinSize,
 		int64(float64(vol.Capacity)*configs.Conf.ResizeVolumeMinRatio),
 	)
