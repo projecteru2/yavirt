@@ -1,7 +1,7 @@
 package guest
 
 import (
-	"context" //nolint
+	"context"
 	"os"
 	"path"
 

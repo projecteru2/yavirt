@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io" //nolint
+	"io"
 	"os/exec"
 
 	"github.com/projecteru2/yavirt/pkg/errors"
