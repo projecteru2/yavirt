@@ -171,7 +171,7 @@ func (svc *Service) GetGuestIDList(ctx virt.Context) ([]string, error) {
 		metrics.IncrError()
 		return nil, err
 	}
-	return ids, err
+	return convGuestIDsResp(ids), err
 }
 
 // GetGuestUUID .
