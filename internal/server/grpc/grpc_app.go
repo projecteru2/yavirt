@@ -19,7 +19,6 @@ import (
 // GRPCYavirtd .
 type GRPCYavirtd struct {
 	service *server.Service
-	pb.UnimplementedYavirtdRPCServer
 }
 
 // Ping .
@@ -64,13 +63,19 @@ func (y *GRPCYavirtd) GetGuest(ctx context.Context, opts *pb.GetGuestOptions) (*
 	}, nil
 }
 
-func (y *GRPCYavirtd) GetGuestIDList(ctx context.Context, opts *pb.GetGuestIDListOptions) (*pb.GetGuestIDListMessage, error) {
+// GetGuestIDList gets all local vms' domain names regardless of their metadata validility.
+func (y *GRPCYavirtd) GetGuestIDList(ctx context.Context, _ *pb.GetGuestIDListOptions) (*pb.GetGuestIDListMessage, error) {
 	log.Infof("[grpcserver] get guest id list")
 	ids, err := y.service.GetGuestIDList(y.service.VirtContext(ctx))
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
 	return &pb.GetGuestIDListMessage{Ids: ids}, nil
+}
+
+// Events
+func (y *GRPCYavirtd) Events(*pb.EventsOptions, pb.YavirtdRPC_EventsServer) error {
+	return errors.New("Events method has not been implemented")
 }
 
 // GetGuestUUID .

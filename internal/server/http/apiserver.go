@@ -68,9 +68,11 @@ func (s *apiServer) dispatchMsg(c *gin.Context, req any, fn func(virt.Context) e
 type operate func(virt.Context) (any, error)
 
 func (s *apiServer) dispatch(c *gin.Context, req any, fn operate) {
-	if err := s.bind(c, req); err != nil {
-		s.renderErr(c, err)
-		return
+	if req != nil {
+		if err := s.bind(c, req); err != nil {
+			s.renderErr(c, err)
+			return
+		}
 	}
 
 	var resp, err = fn(s.virtContext())
