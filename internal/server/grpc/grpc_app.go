@@ -64,6 +64,15 @@ func (y *GRPCYavirtd) GetGuest(ctx context.Context, opts *pb.GetGuestOptions) (*
 	}, nil
 }
 
+func (y *GRPCYavirtd) GetGuestIDList(ctx context.Context, opts *pb.GetGuestIDListOptions) (*pb.GetGuestIDListMessage, error) {
+	log.Infof("[grpcserver] get guest id list")
+	ids, err := y.service.GetGuestIDList(y.service.VirtContext(ctx))
+	if err != nil {
+		return nil, errors.Trace(err)
+	}
+	return &pb.GetGuestIDListMessage{Ids: ids}, nil
+}
+
 // GetGuestUUID .
 func (y *GRPCYavirtd) GetGuestUUID(ctx context.Context, opts *pb.GetGuestOptions) (*pb.GetGuestUUIDMessage, error) {
 	log.Infof("[grpcserver] get guest UUID: %s", opts.Id)
