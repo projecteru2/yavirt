@@ -16,6 +16,12 @@ func (s *apiServer) GetGuest(c *gin.Context) {
 	})
 }
 
+func (s *apiServer) GetGuestIDList(c *gin.Context) {
+	s.dispatch(c, nil, func(ctx virt.Context) (any, error) {
+		return s.service.GetGuestIDList(ctx)
+	})
+}
+
 func (s *apiServer) GetGuestUUID(c *gin.Context) {
 	var req types.GuestReq
 	s.dispatch(c, &req, func(ctx virt.Context) (any, error) {
