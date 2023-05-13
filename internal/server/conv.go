@@ -9,6 +9,14 @@ import (
 	"github.com/projecteru2/yavirt/internal/models"
 )
 
+func convGuestIDsResp(localIDs []string) []string {
+	eruIDs := make([]string, len(localIDs))
+	for i, id := range localIDs {
+		eruIDs[i] = types.EruID(id)
+	}
+	return eruIDs
+}
+
 func convGuestResp(g *models.Guest) (resp *types.Guest) {
 	resp = &types.Guest{}
 	resp.ID = types.EruID(g.ID)

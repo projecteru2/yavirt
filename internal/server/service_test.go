@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/projecteru2/libyavirt/types"
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/internal/virt"
 	vg "github.com/projecteru2/yavirt/internal/virt/guest"
@@ -55,9 +56,12 @@ func TestGetGuestIDList(t *testing.T) {
 	localIDs := []string{"ya0", "ya1", "ya2"}
 	svc := testService(t)
 	svc.guest.(*managerocks.Manageable).On("ListLocalIDs", mock.Anything, mock.Anything).Return(localIDs, nil).Once()
+
 	ids, err := svc.GetGuestIDList(testVirtContext(t))
 	assert.NilErr(t, err)
-	assert.Equal(t, []string{"ya0", "ya1", "ya2"}, ids)
+
+	eruIDs := []string{types.EruID("ya0"), types.EruID("ya1"), types.EruID("ya2")}
+	assert.Equal(t, eruIDs, ids)
 }
 
 func TestGetGuestUUID(t *testing.T) {
