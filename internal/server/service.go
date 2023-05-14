@@ -33,11 +33,18 @@ type Service struct {
 
 	pid2ExitCode   *utils.ExitCodeMap
 	RecoverGuestCh chan<- string
+
+	// Uses for watching changes on the local guests.
+	guestEventWatcher guestEventWatcher
 }
 
 // SetupYavirtdService .
 func SetupYavirtdService() (*Service, error) {
-	svc := &Service{guest: manager.New(), pid2ExitCode: utils.NewSyncMap()}
+	svc := &Service{
+		guest:        manager.New(),
+		pid2ExitCode: utils.NewSyncMap(),
+	}
+
 	return svc, svc.setup()
 }
 
@@ -54,6 +61,9 @@ func (svc *Service) setup() error {
 	if err := svc.setupCalico(); err != nil {
 		return errors.Trace(err)
 	}
+
+	// Start watching all local guests' changes.
+	svc.guest.StartWatch()
 
 	/*
 		if err := svc.ScheduleSnapshotCreate(); err != nil {
@@ -507,4 +517,8 @@ func (svc *Service) DigestImage(ctx virt.Context, imageName string, local bool) 
 		metrics.IncrError()
 	}
 	return
+}
+
+func (svc *Service) WatchGuest(ctx virt.Context) (types.GuestWatcher, error) {
+	return svc.guest.NewWatcher()
 }
