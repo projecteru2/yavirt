@@ -29,6 +29,13 @@ type Manageable interface {
 	Networkable
 	Loadable
 	Snapshotable
+	Watchable
+}
+
+// Watchable wraps a group of methods about watcher.
+type Watchable interface {
+	NewWatcher() (*Watcher, error)
+	StartWatch()
 }
 
 // Creatable wraps a group of methods about creation.
@@ -92,12 +99,14 @@ type Snapshotable interface {
 // Manager implements the Manageable interface.
 type Manager struct {
 	serializer *serializer
+	watchers   *Watchers
 }
 
 // New initializes a new Manager instance.
 func New() Manager {
 	return Manager{
 		serializer: newSerializer(),
+		watchers:   NewWatchers(),
 	}
 }
 
@@ -642,5 +651,22 @@ func (m Manager) do(ctx virt.Context, id string, op op, fn doFunc, rollback roll
 		return nil, errors.Trace(err)
 	}
 
+	m.watchers.Watched(types.Event{
+		ID:     id,
+		Type:   guestEventType,
+		Action: op.String(),
+		Time:   time.Now().UTC(),
+	})
+
 	return result, nil
 }
+
+func (m Manager) NewWatcher() (*Watcher, error) {
+	return m.watchers.Get()
+}
+
+func (m Manager) StartWatch() {
+	go m.watchers.Run()
+}
+
+const guestEventType = "guest"

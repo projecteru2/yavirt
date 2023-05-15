@@ -9,18 +9,22 @@ import (
 )
 
 const (
-	destroyOp op = iota
-	shutOp
-	bootOp
-	createOp
-	resizeOp
-	miscOp
-	createSnapshotOp
-	commitSnapshotOp
-	restoreSnapshotOp
+	destroyOp         op = "destroy"
+	shutOp            op = "shutdown"
+	bootOp            op = "boot"
+	createOp          op = "create"
+	resizeOp          op = "resize"
+	miscOp            op = "misc"
+	createSnapshotOp  op = "create-snapshot"
+	commitSnapshotOp  op = "commit-snapshot"
+	restoreSnapshotOp op = "restore-snapshot"
 )
 
-type op int
+type op string
+
+func (op op) String() string {
+	return string(op)
+}
 
 type task struct {
 	id     string
@@ -35,32 +39,7 @@ type task struct {
 
 // String .
 func (t *task) String() string {
-	return fmt.Sprintf("<%s, %s>", t.descOp(), t.id)
-}
-
-func (t *task) descOp() string {
-	switch t.op {
-	case destroyOp:
-		return "destroy"
-	case shutOp:
-		return "shutdown"
-	case bootOp:
-		return "boot"
-	case createOp:
-		return "create"
-	case resizeOp:
-		return "resize"
-	case miscOp:
-		return "misc"
-	case createSnapshotOp:
-		return "create-snapshot"
-	case commitSnapshotOp:
-		return "commit-snapshot"
-	case restoreSnapshotOp:
-		return "restore-snapshot"
-	default:
-		return "unknown"
-	}
+	return fmt.Sprintf("<%s, %s>", t.op, t.id)
 }
 
 func (t *task) abort() {
