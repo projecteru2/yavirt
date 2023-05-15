@@ -7,6 +7,8 @@ import (
 
 	guest "github.com/projecteru2/yavirt/internal/virt/guest"
 
+	manager "github.com/projecteru2/yavirt/internal/virt/guest/manager"
+
 	mock "github.com/stretchr/testify/mock"
 
 	models "github.com/projecteru2/yavirt/internal/models"
@@ -429,6 +431,32 @@ func (_m *Manageable) Log(ctx virt.Context, id string, logPath string, n int, de
 	return r0
 }
 
+// NewWatcher provides a mock function with given fields:
+func (_m *Manageable) NewWatcher() (*manager.Watcher, error) {
+	ret := _m.Called()
+
+	var r0 *manager.Watcher
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (*manager.Watcher, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() *manager.Watcher); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*manager.Watcher)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RemoveImage provides a mock function with given fields: ctx, imageName, user, force, prune
 func (_m *Manageable) RemoveImage(ctx virt.Context, imageName string, user string, force bool, prune bool) ([]string, error) {
 	ret := _m.Called(ctx, imageName, user, force, prune)
@@ -523,6 +551,11 @@ func (_m *Manageable) Start(ctx virt.Context, id string) error {
 	}
 
 	return r0
+}
+
+// StartWatch provides a mock function with given fields:
+func (_m *Manageable) StartWatch() {
+	_m.Called()
 }
 
 // Stop provides a mock function with given fields: ctx, id, force

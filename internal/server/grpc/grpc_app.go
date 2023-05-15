@@ -74,8 +74,48 @@ func (y *GRPCYavirtd) GetGuestIDList(ctx context.Context, _ *pb.GetGuestIDListOp
 }
 
 // Events
-func (y *GRPCYavirtd) Events(*pb.EventsOptions, pb.YavirtdRPC_EventsServer) error {
-	return errors.New("Events method has not been implemented")
+func (y *GRPCYavirtd) Events(_ *pb.EventsOptions, server pb.YavirtdRPC_EventsServer) error {
+	log.Infof("[grpcserver] events method calling")
+	defer log.Infof("[grpcserver] events method completed")
+
+	ctx := server.Context()
+	watcher, err := y.service.WatchGuestEvents(y.service.VirtContext(ctx))
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		defer log.Infof("[grpcserver] events goroutine has done")
+		defer watcher.Stop()
+
+		for {
+			select {
+			case event := <-watcher.Events():
+				if err := server.Send(parseEvent(event)); err != nil {
+					log.ErrorStack(err)
+					return
+				}
+
+			case <-watcher.Done():
+				// The watcher already has been stopped.
+				return
+
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	return nil
+}
+
+func parseEvent(event virtypes.Event) *pb.EventMessage {
+	return &pb.EventMessage{
+		Id:       types.EruID(event.ID),
+		Type:     event.Type,
+		Action:   event.Action,
+		TimeNano: event.Time.UnixNano(),
+	}
 }
 
 // GetGuestUUID .
