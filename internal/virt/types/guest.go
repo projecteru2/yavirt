@@ -16,6 +16,7 @@ type GuestCreateOption struct {
 	Cmd       []string
 	Lambda    bool
 	Stdin     bool
+	Resources map[string][]byte
 }
 
 func ConvertGRPCCreateOptions(opts *pb.CreateGuestOptions) GuestCreateOption {
@@ -29,6 +30,7 @@ func ConvertGRPCCreateOptions(opts *pb.CreateGuestOptions) GuestCreateOption {
 		Cmd:       opts.Cmd,
 		Lambda:    opts.Lambda,
 		Stdin:     opts.Stdin,
+		Resources: opts.Resources,
 	}
 	ret.Volumes = make([]virttypes.Volume, len(opts.Volumes))
 	for i, vol := range opts.Volumes {
