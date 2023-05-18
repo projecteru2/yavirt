@@ -21,7 +21,6 @@ import (
 	"github.com/projecteru2/yavirt/pkg/idgen"
 	"github.com/projecteru2/yavirt/pkg/netx"
 	"github.com/projecteru2/yavirt/pkg/store"
-	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 var runtime Runtime
@@ -31,7 +30,6 @@ type Runner func(*cli.Context, Runtime) error
 
 // Runtime .
 type Runtime struct {
-	ConfigFiles   []string
 	SkipSetupHost bool
 	Host          *models.Host
 	Device        *device.Driver
@@ -62,7 +60,14 @@ func (r Runtime) ConvDecimal(ipv4 string) int64 {
 // Run .
 func Run(fn Runner) cli.ActionFunc {
 	return func(c *cli.Context) error {
-		runtime.ConfigFiles = c.StringSlice("config")
+		cfg := &configs.Conf
+
+		if err := cfg.Load([]string{c.String("config")}); err != nil {
+			return errors.Trace(err)
+		}
+		if err := cfg.Prepare(c); err != nil {
+			return err
+		}
 		runtime.SkipSetupHost = c.Bool("skip-setup-host")
 		runtime.Guest = manager.New()
 		// when add host, we need skip host setup
@@ -78,12 +83,6 @@ func Run(fn Runner) cli.ActionFunc {
 }
 
 func setup() error {
-	if len(runtime.ConfigFiles) > 0 {
-		if err := configs.Conf.Load(runtime.ConfigFiles); err != nil {
-			return errors.Trace(err)
-		}
-	}
-
 	if err := store.Setup("etcd"); err != nil {
 		return errors.Trace(err)
 	}
@@ -107,14 +106,9 @@ func setup() error {
 	return nil
 }
 
-func setupHost() error {
-	hn, err := utils.Hostname()
-	if err != nil {
+func setupHost() (err error) {
+	if runtime.Host, err = models.LoadHost(); err != nil {
 		return errors.Trace(err)
-	}
-
-	if runtime.Host, err = models.LoadHost(hn); err != nil {
-		return errors.Annotatef(err, "invalid hostname %s", hn)
 	}
 
 	return nil
@@ -136,7 +130,7 @@ func setupCalico() (err error) {
 	}
 
 	var outboundIP string
-	if outboundIP, err = netx.GetOutboundIP(configs.Conf.CoreAddr); err != nil {
+	if outboundIP, err = netx.GetOutboundIP(configs.Conf.Core.Addrs[0]); err != nil {
 		return
 	}
 

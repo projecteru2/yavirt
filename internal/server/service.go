@@ -45,13 +45,8 @@ func SetupYavirtdService() (*Service, error) {
 	return svc, svc.setup()
 }
 
-func (svc *Service) setup() error {
-	hn, err := utils.Hostname()
-	if err != nil {
-		return errors.Trace(err)
-	}
-
-	if svc.Host, err = models.LoadHost(hn); err != nil {
+func (svc *Service) setup() (err error) {
+	if svc.Host, err = models.LoadHost(); err != nil {
 		return errors.Trace(err)
 	}
 

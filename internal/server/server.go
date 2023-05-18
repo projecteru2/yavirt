@@ -42,7 +42,7 @@ func (s *Server) Listen(addr string) (lis net.Listener, ip string, err error) {
 		return
 	}
 
-	if ip, err = netx.GetOutboundIP(configs.Conf.CoreAddr); err != nil {
+	if ip, err = netx.GetOutboundIP(configs.Conf.Core.Addrs[0]); err != nil {
 		return
 	}
 

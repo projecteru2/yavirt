@@ -11,7 +11,6 @@ import (
 	"github.com/projecteru2/yavirt/internal/vnet/device"
 	"github.com/projecteru2/yavirt/internal/vnet/types"
 	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 // InitGateway .
@@ -95,10 +94,7 @@ func (h *Handler) bindGatewayIPs(ips ...meta.IP) error {
 }
 
 func (h *Handler) addGatewayEndpoint(ip meta.IP) error {
-	hn, err := utils.Hostname()
-	if err != nil {
-		return errors.Trace(err)
-	}
+	hn := configs.Hostname()
 
 	var args types.EndpointArgs
 	args.IPs = []meta.IP{ip}
@@ -141,10 +137,7 @@ func (h *Handler) RefreshGateway() error {
 }
 
 func (h *Handler) loadGateway() error {
-	hn, err := utils.Hostname()
-	if err != nil {
-		return errors.Trace(err)
-	}
+	hn := configs.Hostname()
 
 	var args types.EndpointArgs
 	args.Hostname = hn

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"os"
 	"strconv"
 
 	"github.com/projecteru2/core/utils"
@@ -9,18 +8,8 @@ import (
 )
 
 const (
-	hnEnv = "HOSTNAME"
-
 	biggestMultiple1024 int64 = 0x7ffffffffffffc00
 )
-
-// Hostname .
-func Hostname() (string, error) {
-	if hn := os.Getenv(hnEnv); len(hn) > 0 {
-		return hn, nil
-	}
-	return os.Hostname()
-}
 
 // Invoke .
 func Invoke(funcs []func() error) error {
