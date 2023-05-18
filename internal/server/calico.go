@@ -42,7 +42,7 @@ func (svc *Service) setupCalicoHandler() error {
 		return errors.Trace(err)
 	}
 
-	outboundIP, err := netx.GetOutboundIP(configs.Conf.CoreAddr)
+	outboundIP, err := netx.GetOutboundIP(configs.Conf.Core.Addrs[0])
 	if err != nil {
 		return errors.Trace(err)
 	}

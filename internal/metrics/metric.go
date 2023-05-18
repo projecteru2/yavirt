@@ -6,6 +6,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
@@ -23,10 +24,7 @@ var (
 )
 
 func init() {
-	hn, err := utils.Hostname()
-	if err != nil {
-		panic(err)
-	}
+	hn := configs.Hostname()
 
 	metr = New(hn)
 	metr.RegisterCounter(MetricErrorCount, "yavirt errors", nil)         //nolint

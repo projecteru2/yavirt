@@ -40,7 +40,45 @@ func main() {
 		Name:    "yavirtd",
 		Usage:   "yavirt daemon",
 		Version: "v",
-		Action:  Run,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "config",
+				Value:   "/etc/eru/yavirtd.toml",
+				Usage:   "config file path for yavirt, in toml",
+				EnvVars: []string{"ERU_YAVIRT_CONFIG_PATH"},
+			},
+			&cli.StringFlag{
+				Name:    "log-level",
+				Value:   "INFO",
+				Usage:   "set log level",
+				EnvVars: []string{"ERU_YAVIRT_LOG_LEVEL"},
+			},
+			&cli.StringSliceFlag{
+				Name:    "core-addrs",
+				Value:   cli.NewStringSlice(),
+				Usage:   "core addresses",
+				EnvVars: []string{"ERU_YAVIRT_CORE_ADDRS"},
+			},
+			&cli.StringFlag{
+				Name:    "core-username",
+				Value:   "",
+				Usage:   "core username",
+				EnvVars: []string{"ERU_YAVIRT_CORE_USERNAME"},
+			},
+			&cli.StringFlag{
+				Name:    "core-password",
+				Value:   "",
+				Usage:   "core password",
+				EnvVars: []string{"ERU_YAVIRT_CORE_PASSWORD"},
+			},
+			&cli.StringFlag{
+				Name:    "hostname",
+				Value:   "",
+				Usage:   "change hostname",
+				EnvVars: []string{"ERU_HOSTNAME", "HOSTNAME"},
+			},
+		},
+		Action: Run,
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -51,10 +89,20 @@ func main() {
 
 	os.Exit(0)
 }
+func initConfig(c *cli.Context) error {
+	cfg := &configs.Conf
+	if err := cfg.Load([]string{c.String("config")}); err != nil {
+		return err
+	}
+	return cfg.Prepare(c)
+}
 
 // Run .
 func Run(c *cli.Context) error {
-	defers, svc, err := setup(c.Args().Slice())
+	if err := initConfig(c); err != nil {
+		return err
+	}
+	defers, svc, err := setup()
 	if err != nil {
 		return errors.Trace(err)
 	}
@@ -147,11 +195,7 @@ func notify(servers []server.Serverable) {
 	wg.Wait()
 }
 
-func setup(configFiles []string) (deferSentry func(), svc *server.Service, err error) {
-	if err = configs.Conf.Load(configFiles); err != nil {
-		return
-	}
-
+func setup() (deferSentry func(), svc *server.Service, err error) {
 	if deferSentry, err = log.Setup(configs.Conf.LogLevel, configs.Conf.LogFile, configs.Conf.LogSentry); err != nil {
 		return
 	}

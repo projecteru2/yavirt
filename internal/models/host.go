@@ -1,12 +1,11 @@
 package models
 
 import (
-	"context"
 	"fmt"
 
+	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/meta"
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/store"
+	"github.com/projecteru2/yavirt/pkg/netx"
 )
 
 // Host .
@@ -28,13 +27,22 @@ type Host struct {
 }
 
 // LoadHost .
-func LoadHost(hn string) (*Host, error) {
-	var host = NewHost()
-	host.Name = hn
-
-	if err := meta.Load(host); err != nil {
-		return nil, errors.Trace(err)
+func LoadHost() (*Host, error) {
+	host := &Host{
+		Generic:     newGeneric(),
+		Name:        configs.Conf.Host.Name,
+		Type:        HostVirtType,
+		Subnet:      int64(configs.Conf.Host.Subnet),
+		CPU:         configs.Conf.Host.CPU,
+		Memory:      int64(configs.Conf.Host.Memory),
+		Storage:     int64(configs.Conf.Host.Storage),
+		NetworkMode: configs.Conf.Host.NetworkMode,
 	}
+	dec, err := netx.IPv4ToInt(configs.Conf.Host.Addr)
+	if err != nil {
+		return nil, err
+	}
+	host.ID = uint32(dec)
 
 	return host, nil
 }
@@ -49,34 +57,9 @@ func (h *Host) MetaKey() string {
 	return meta.HostKey(h.Name)
 }
 
-// Create .
-func (h *Host) Create() error {
-	var id, err = genHostID()
-	if err != nil {
-		return errors.Trace(err)
-	}
-
-	h.ID = id
-	h.Status = StatusRunning
-
-	return meta.Create(meta.Resources{h})
-}
-
 func (h *Host) String() string {
 	return fmt.Sprintf("%d %s subnet: %d, cpu: %d, memory: %d, storage: %d",
 		h.ID, h.Name, h.Subnet, h.CPU, h.Memory, h.Storage)
-}
-
-func genHostID() (uint32, error) {
-	var ctx, cancel = meta.Context(context.Background())
-	defer cancel()
-
-	var id, err = store.IncrUint32(ctx, meta.HostCounterKey())
-	if err != nil {
-		return 0, errors.Trace(err)
-	}
-
-	return id, nil
 }
 
 type hostGuest struct {

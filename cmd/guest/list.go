@@ -6,8 +6,8 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/projecteru2/yavirt/cmd/run"
+	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 func listFlags() []cli.Flag {
@@ -31,10 +31,7 @@ func list(c *cli.Context, _ run.Runtime) error {
 	} else {
 		nodename := c.String("node")
 		if len(nodename) < 1 {
-			nodename, err = utils.Hostname()
-			if err != nil {
-				return err
-			}
+			nodename = configs.Hostname()
 		}
 		guests, err = models.GetNodeGuests(nodename)
 	}

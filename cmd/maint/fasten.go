@@ -18,7 +18,6 @@ import (
 	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/pkg/netx"
 	"github.com/projecteru2/yavirt/pkg/store"
-	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 var intIPSubnets = map[int64]int64{}
@@ -154,9 +153,7 @@ func fastenDangling(id string, virt *libvirt.Libvirtee) error {
 	if err != nil {
 		return errors.Trace(err)
 	}
-	if guest.HostName, err = utils.Hostname(); err != nil {
-		return errors.Trace(err)
-	}
+	guest.HostName = configs.Hostname()
 	guest.ID = id
 	guest.ImageName = "ubuntu1604-sto"
 
