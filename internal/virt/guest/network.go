@@ -88,11 +88,7 @@ func (g *Guest) CreateEthernet() (rollback func() error, err error) {
 }
 
 func (g *Guest) createEndpoint() (rollback func() error, err error) {
-	var hn string
-	hn, err = utils.Hostname()
-	if err != nil {
-		return nil, errors.Trace(err)
-	}
+	hn := configs.Hostname()
 
 	var hand handler.Handler
 	hand, err = g.NetworkHandler(g.Host)
@@ -147,9 +143,7 @@ func (g *Guest) joinEthernet() (err error) {
 	args.MAC = g.MAC
 	args.EndpointID = g.EndpointID
 
-	if args.Hostname, err = utils.Hostname(); err != nil {
-		return errors.Trace(err)
-	}
+	args.Hostname = configs.Hostname()
 
 	if args.Device, err = hand.GetEndpointDevice(g.NetworkPair); err != nil {
 		return errors.Trace(err)
@@ -186,10 +180,7 @@ func (g *Guest) deleteEthernet() error {
 		return g.calicoCNIDel()
 	}
 
-	hn, err := utils.Hostname()
-	if err != nil {
-		return errors.Trace(err)
-	}
+	hn := configs.Hostname()
 
 	hand, err := g.NetworkHandler(g.Host)
 	if err != nil {

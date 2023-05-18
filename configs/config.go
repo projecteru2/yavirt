@@ -4,78 +4,80 @@ import (
 	"crypto/tls"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
+
+	_ "embed"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/pkg/transport"
 
+	"github.com/dustin/go-humanize"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
+	"github.com/projecteru2/yavirt/pkg/netx"
+	"github.com/urfave/cli/v2"
 )
 
-// DefaultTemplate .
-const DefaultTemplate = `
-env = "dev"
-prof_http_port = 9999
-bind_http_addr = "0.0.0.0:9696"
-bind_grpc_addr = "0.0.0.0:9697"
-graceful_timeout = "20s"
-virt_timeout = "1h"
-health_check_timeout = "2s"
-qmp_connect_timeout = "8s"
-cni_plugin_path = "/usr/bin/yavirt-cni"
-cni_config_path = "/etc/cni/net.d/yavirt-cni.conf"
+var (
+	//go:embed default-config.toml
+	DefaultTemplate string
+	Conf            = newDefault()
+)
 
-resize_volume_min_ratio = 0.05
-resize_volume_min_size = 10737418240
+type sizeType int64
+type subnetType int64
 
-min_cpu = 1
-max_cpu = 64
-min_memory = 1073741824
-max_memory = 68719476736
-min_volume = 1073741824
-max_volume = 1099511627776
-max_volumes_count = 8
-max_snapshots_count = 30
-snapshot_restorable_days = 7
+type CoreConfig struct {
+	Addrs               []string `toml:"addrs"`
+	Username            string   `toml:"username"`
+	Password            string   `toml:"password"`
+	StatusCheckInterval Duration `toml:"status_check_interval"`
+	NodeStatusTTL       Duration `toml:"nodestatus_ttl"`
+	Nodename            string   `toml:"nodename"`
+}
 
-meta_timeout = "1m"
-meta_type = "etcd"
+func (a *sizeType) UnmarshalText(text []byte) error {
+	var err error
+	i, err := humanize.ParseBytes(string(text))
+	if err != nil {
+		return err
+	}
+	*a = sizeType(i)
+	return nil
+}
 
-virt_dir = "/tmp/virt"
-virt_bridge = "virbr0"
-virt_cpu_cache_passthrough = true
+func (a *subnetType) UnmarshalText(text []byte) error {
+	if len(text) < 1 {
+		return nil
+	}
 
-calico_gateway = "yavirt-cali-gw"
-calico_pools = ["clouddev"]
-calico_etcd_env = "ETCD_ENDPOINTS"
+	dec, err := netx.IPv4ToInt(string(text))
+	if err != nil {
+		return err
+	}
+	*a = subnetType(dec)
+	return nil
+}
 
-log_level = "info"
-
-etcd_prefix = "/yavirt-dev/v1"
-etcd_endpoints = ["http://127.0.0.1:2379"]
-
-core_addr = "127.0.0.1:5001"
-core_username = "admin"
-core_password = "password"
-core_status_check_interval = "64s"
-core_nodestatus_ttl = "16m"
-
-ga_disk_timeout = "16m"
-ga_boot_timeout = "30m"
-
-recovery_on = false
-recovery_max_retries = 2
-recovery_retry_interval = "3m"
-recovery_interval = "10m"
-`
-
-// Conf .
-var Conf = newDefault()
+type HostConfig struct {
+	Name        string     `json:"name" toml:"name"`
+	Addr        string     `json:"addr" toml:"addr"`
+	Type        string     `json:"type" toml:"type"`
+	Subnet      subnetType `json:"subnet" toml:"subnet"`
+	CPU         int        `json:"cpu" toml:"cpu"`
+	Memory      sizeType   `json:"memory" toml:"memory"`
+	Storage     sizeType   `json:"storage" toml:"storage"`
+	NetworkMode string     `json:"network,omitempty" toml:"network"`
+}
 
 // Config .
 type Config struct {
-	Env                    string   `toml:"env"`
+	Env string `toml:"env"`
+	// host-related config
+	Host HostConfig `toml:"host"`
+	Core CoreConfig `toml:"core"`
+
 	ProfHTTPPort           int      `toml:"prof_http_port"`
 	BindHTTPAddr           string   `toml:"bind_http_addr"`
 	BindGRPCAddr           string   `toml:"bind_grpc_addr"`
@@ -135,13 +137,6 @@ type Config struct {
 	EtcdKey       string   `toml:"etcd_key"`
 	EtcdCert      string   `toml:"etcd_cert"`
 
-	CoreAddr                string   `toml:"core_addr"`
-	CoreUsername            string   `toml:"core_username"`
-	CorePassword            string   `toml:"core_password"`
-	CoreStatusCheckInterval Duration `toml:"core_status_check_interval"`
-	CoreNodeStatusTTL       Duration `toml:"core_nodestatus_ttl"`
-	CoreNodename            string   `toml:"core_nodename"`
-
 	Batches []*Batch `toml:"batches"`
 
 	// system recovery
@@ -151,50 +146,92 @@ type Config struct {
 	RecoveryInterval      Duration `toml:"recovery_interval"`
 }
 
+func Hostname() string {
+	return Conf.Host.Name
+}
+
 func newDefault() Config {
 	var conf Config
 	if err := Decode(DefaultTemplate, &conf); err != nil {
 		log.FatalStack(err)
 	}
 
-	conf.loadVirtDirs()
-
 	return conf
 }
 
 // Dump .
-func (c *Config) Dump() (string, error) {
-	return Encode(c)
+func (cfg *Config) Dump() (string, error) {
+	return Encode(cfg)
 }
 
 // Load .
-func (c *Config) Load(files []string) error {
+func (cfg *Config) Load(files []string) error {
 	for _, path := range files {
-		if err := c.load(path); err != nil {
+		if err := DecodeFile(path, cfg); err != nil {
 			return errors.Trace(err)
 		}
 	}
 	return nil
 }
 
-func (c *Config) load(file string) error {
-	if err := DecodeFile(file, c); err != nil {
-		return errors.Trace(err)
+func (cfg *Config) Prepare(c *cli.Context) (err error) {
+	// try to initialize Hostname
+	if c.String("addr") != "" {
+		cfg.Host.Addr = c.String("addr")
+	}
+	if c.String("hostname") != "" {
+		cfg.Host.Name = c.String("hostname")
+	} else if cfg.Host.Name == "" {
+		cfg.Host.Name, err = os.Hostname()
+		if err != nil {
+			return err
+		}
 	}
 
-	if err := c.loadVirtDirs(); err != nil {
-		return err
+	if cfg.Host.Name == "" {
+		cfg.Host.Name = strings.ReplaceAll(cfg.Host.Addr, ".", "-")
 	}
 
-	return nil
+	if c.String("log-level") != "" {
+		cfg.LogLevel = c.String("log-level")
+	}
+
+	if len(c.StringSlice("core-addrs")) > 0 {
+		cfg.Core.Addrs = c.StringSlice("core-addrs")
+	}
+	if c.String("core-username") != "" {
+		cfg.Core.Username = c.String("core-username")
+	}
+	if c.String("core-password") != "" {
+		cfg.Core.Password = c.String("core-password")
+	}
+	// prepare ETCD_ENDPOINTS(Calico needs this environment variable)
+	if len(cfg.EtcdEndpoints) > 0 {
+		if err = os.Setenv("ETCD_ENDPOINTS", strings.Join(cfg.EtcdEndpoints, ",")); err != nil {
+			return err
+		}
+	}
+
+	if cfg.Host.Addr == "" {
+		return errors.New("Address must be provided")
+	}
+	// validate config values
+	if cfg.Host.Name == "" {
+		return errors.New("Hostname must be provided")
+	}
+	if len(cfg.Core.Addrs) == 0 {
+		return errors.New("Core addresses are needed")
+	}
+
+	return cfg.loadVirtDirs()
 }
 
-func (c *Config) loadVirtDirs() error {
-	c.VirtFlockDir = filepath.Join(c.VirtDir, "flock")
-	c.VirtTmplDir = filepath.Join(c.VirtDir, "template")
-	c.VirtSockDir = filepath.Join(c.VirtDir, "sock")
+func (cfg *Config) loadVirtDirs() error {
+	cfg.VirtFlockDir = filepath.Join(cfg.VirtDir, "flock")
+	cfg.VirtTmplDir = filepath.Join(cfg.VirtDir, "template")
+	cfg.VirtSockDir = filepath.Join(cfg.VirtDir, "sock")
 	// ensure directories
-	for _, d := range []string{c.VirtFlockDir, c.VirtTmplDir, c.VirtSockDir} {
+	for _, d := range []string{cfg.VirtFlockDir, cfg.VirtTmplDir, cfg.VirtSockDir} {
 		err := os.MkdirAll(d, 0755)
 		if err != nil && !os.IsExist(err) {
 			return err
@@ -204,47 +241,47 @@ func (c *Config) loadVirtDirs() error {
 }
 
 // NewEtcdConfig .
-func (c *Config) NewEtcdConfig() (etcdcnf clientv3.Config, err error) {
-	etcdcnf.Endpoints = c.EtcdEndpoints
-	etcdcnf.Username = c.EtcdUsername
-	etcdcnf.Password = c.EtcdPassword
-	etcdcnf.TLS, err = c.newEtcdTLSConfig()
+func (cfg *Config) NewEtcdConfig() (etcdcnf clientv3.Config, err error) {
+	etcdcnf.Endpoints = cfg.EtcdEndpoints
+	etcdcnf.Username = cfg.EtcdUsername
+	etcdcnf.Password = cfg.EtcdPassword
+	etcdcnf.TLS, err = cfg.newEtcdTLSConfig()
 	return
 }
 
-func (c *Config) newEtcdTLSConfig() (*tls.Config, error) {
-	if len(c.EtcdCA) < 1 || len(c.EtcdKey) < 1 || len(c.EtcdCert) < 1 {
+func (cfg *Config) newEtcdTLSConfig() (*tls.Config, error) {
+	if len(cfg.EtcdCA) < 1 || len(cfg.EtcdKey) < 1 || len(cfg.EtcdCert) < 1 {
 		return nil, nil //nolint
 	}
 
 	return transport.TLSInfo{
-		TrustedCAFile: c.EtcdCA,
-		KeyFile:       c.EtcdKey,
-		CertFile:      c.EtcdCert,
+		TrustedCAFile: cfg.EtcdCA,
+		KeyFile:       cfg.EtcdKey,
+		CertFile:      cfg.EtcdCert,
 	}.ClientConfig()
 }
 
 // CoreGuestStatusTTL .
-func (c *Config) CoreGuestStatusTTL() time.Duration {
-	return 3 * c.CoreStatusCheckInterval.Duration() //nolint:gomnd // TTL is 3 times the interval
+func (cfg *Config) CoreGuestStatusTTL() time.Duration {
+	return 3 * cfg.Core.StatusCheckInterval.Duration() //nolint:gomnd // TTL is 3 times the interval
 }
 
 // CoreGuestStatusCheckInterval .
-func (c *Config) CoreGuestStatusCheckInterval() time.Duration {
-	return c.CoreStatusCheckInterval.Duration()
+func (cfg *Config) CoreGuestStatusCheckInterval() time.Duration {
+	return cfg.Core.StatusCheckInterval.Duration()
 }
 
 // CoreGRPCTimeout .
-func (c *Config) CoreGRPCTimeout() time.Duration {
-	return c.CoreStatusReportInterval() / 3 //nolint:gomnd // report timeout 3 times per interval
+func (cfg *Config) CoreGRPCTimeout() time.Duration {
+	return cfg.CoreStatusReportInterval() / 3 //nolint:gomnd // report timeout 3 times per interval
 }
 
 // CoreStatusReportInterval .
-func (c *Config) CoreStatusReportInterval() time.Duration {
-	return c.CoreStatusCheckInterval.Duration() / 3 //nolint:gomnd // report 3 times every check
+func (cfg *Config) CoreStatusReportInterval() time.Duration {
+	return cfg.Core.StatusCheckInterval.Duration() / 3 //nolint:gomnd // report 3 times every check
 }
 
 // HasImageHub indicates whether the config has ImageHub configurations.
-func (c *Config) HasImageHub() bool {
-	return len(c.ImageHubDomain) > 0 && len(c.ImageHubNamespace) > 0
+func (cfg *Config) HasImageHub() bool {
+	return len(cfg.ImageHubDomain) > 0 && len(cfg.ImageHubNamespace) > 0
 }

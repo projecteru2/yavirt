@@ -7,12 +7,12 @@ import (
 	libcaliipam "github.com/projectcalico/calico/libcalico-go/lib/ipam"
 	libcalinet "github.com/projectcalico/calico/libcalico-go/lib/net"
 
+	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/meta"
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/pkg/netx"
 	"github.com/projecteru2/yavirt/pkg/store/etcd"
-	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 // Ipam .
@@ -26,10 +26,7 @@ func newIpam(driver *Driver) *Ipam {
 
 // Assign .
 func (ipam *Ipam) Assign(_ context.Context) (meta.IP, error) {
-	hn, err := utils.Hostname()
-	if err != nil {
-		return nil, errors.Trace(err)
-	}
+	hn := configs.Hostname()
 
 	ipam.Lock()
 	defer ipam.Unlock()

@@ -54,7 +54,7 @@ func ListLocalIDs(virt.Context) ([]string, error) {
 
 // Load .
 func (g *Guest) Load() error {
-	host, err := models.LoadHost(g.HostName)
+	host, err := models.LoadHost()
 	if err != nil {
 		return errors.Trace(err)
 	}
