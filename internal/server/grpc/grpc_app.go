@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"sync"
 
 	pb "github.com/projecteru2/libyavirt/grpc/gen"
 	"github.com/projecteru2/libyavirt/types"
@@ -84,7 +85,12 @@ func (y *GRPCYavirtd) Events(_ *pb.EventsOptions, server pb.YavirtdRPC_EventsSer
 		return err
 	}
 
+	var wg sync.WaitGroup
+	defer wg.Wait()
+
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		defer log.Infof("[grpcserver] events goroutine has done")
 		defer watcher.Stop()
 
@@ -98,9 +104,11 @@ func (y *GRPCYavirtd) Events(_ *pb.EventsOptions, server pb.YavirtdRPC_EventsSer
 
 			case <-watcher.Done():
 				// The watcher already has been stopped.
+				log.Infof("[grpcserver] watcher has done")
 				return
 
 			case <-ctx.Done():
+				log.Infof("[grpcserver] ctx done")
 				return
 			}
 		}
