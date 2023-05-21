@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/projecteru2/yavirt/internal/virt/types"
 	"github.com/projecteru2/yavirt/pkg/test/assert"
@@ -163,11 +164,18 @@ func TestWatchers_WatchedEvent(t *testing.T) {
 	}
 	nwg.Wait()
 
-	ws.Stop()
-
+	retries := 3
+	expRecv := int64(n * (n + 1) / 2 * n)
 	expSum := int64(watchersCount * (watchersCount + 1) / 2)
+	for i := 0; i < retries; i++ {
+		if expSum == sum.Int64() && expRecv == recv.Int64() {
+			break
+		}
+		time.Sleep(time.Millisecond * time.Duration((i+1)*100))
+	}
 	assert.Equal(t, expSum, sum.Int64())
-
 	// There were n watchers which received n events.
-	assert.Equal(t, int64(n*(n+1)/2*n), recv.Int64())
+	assert.Equal(t, expRecv, recv.Int64())
+
+	ws.Stop()
 }
