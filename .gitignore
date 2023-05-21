@@ -3,3 +3,5 @@ cscope.*
 vendor/
 dist/
 yavirt
+
+.vscode
