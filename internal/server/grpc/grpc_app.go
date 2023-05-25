@@ -33,10 +33,11 @@ func (y *GRPCYavirtd) GetInfo(_ context.Context, _ *pb.Empty) (*pb.InfoMessage, 
 	log.Infof("[grpcserver] get host info")
 	info := y.service.Info()
 	return &pb.InfoMessage{
-		Id:      info.ID,
-		Cpu:     int64(info.CPU),
-		Memory:  info.Mem,
-		Storage: info.Storage,
+		Id:        info.ID,
+		Cpu:       int64(info.CPU),
+		Memory:    info.Mem,
+		Storage:   info.Storage,
+		Resources: info.Resources,
 	}, nil
 }
 
