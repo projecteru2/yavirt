@@ -4,10 +4,13 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/projecteru2/yavirt/cmd/run"
+	"github.com/projecteru2/yavirt/internal/models"
 )
 
 // Command .
 func Command() *cli.Command {
+	models.Setup()
+
 	return &cli.Command{
 		Name: "guest",
 		Subcommands: []*cli.Command{
