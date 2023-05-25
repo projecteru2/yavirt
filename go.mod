@@ -13,7 +13,7 @@ require (
 	github.com/projectcalico/api v0.0.0-20230222223746-44aa60c2201f
 	github.com/projectcalico/calico v1.11.0-cni-plugin.0.20230510161715-15d193738928
 	github.com/projecteru2/core v0.0.0-20230512041401-f4113e25d62c
-	github.com/projecteru2/libyavirt v0.0.0-20230517062159-0c31f81550f3
+	github.com/projecteru2/libyavirt v0.0.0-20230524090109-0faf050e0f3b
 	github.com/prometheus/client_golang v1.15.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.9.0

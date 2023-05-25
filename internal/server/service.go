@@ -152,10 +152,11 @@ func (svc *Service) Ping() map[string]string {
 // Info .
 func (svc *Service) Info() types.HostInfo {
 	return types.HostInfo{
-		ID:      fmt.Sprintf("%d", svc.Host.ID),
-		CPU:     svc.Host.CPU,
-		Mem:     svc.Host.Memory,
-		Storage: svc.Host.Storage,
+		ID:        fmt.Sprintf("%d", svc.Host.ID),
+		CPU:       svc.Host.CPU,
+		Mem:       svc.Host.Memory,
+		Storage:   svc.Host.Storage,
+		Resources: map[string][]byte{},
 	}
 }
 
