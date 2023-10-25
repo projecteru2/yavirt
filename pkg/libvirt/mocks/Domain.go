@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	libvirt_go "github.com/libvirt/libvirt-go"
+	libvirt_go "github.com/projecteru2/yavirt/third_party/libvirt"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -79,11 +79,11 @@ func (_m *Domain) Destroy() error {
 }
 
 // DestroyFlags provides a mock function with given fields: flags
-func (_m *Domain) DestroyFlags(flags libvirt_go.DomainDestroyFlags) error {
+func (_m *Domain) DestroyFlags(flags libvirt_go.DomainDestroyFlagsValues) error {
 	ret := _m.Called(flags)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(libvirt_go.DomainDestroyFlags) error); ok {
+	if rf, ok := ret.Get(0).(func(libvirt_go.DomainDestroyFlagsValues) error); ok {
 		r0 = rf(flags)
 	} else {
 		r0 = ret.Error(0)
@@ -98,19 +98,19 @@ func (_m *Domain) Free() {
 }
 
 // GetInfo provides a mock function with given fields:
-func (_m *Domain) GetInfo() (*libvirt_go.DomainInfo, error) {
+func (_m *Domain) GetInfo() (*libvirt_go.DomainGetInfoRet, error) {
 	ret := _m.Called()
 
-	var r0 *libvirt_go.DomainInfo
+	var r0 *libvirt_go.DomainGetInfoRet
 	var r1 error
-	if rf, ok := ret.Get(0).(func() (*libvirt_go.DomainInfo, error)); ok {
+	if rf, ok := ret.Get(0).(func() (*libvirt_go.DomainGetInfoRet, error)); ok {
 		return rf()
 	}
-	if rf, ok := ret.Get(0).(func() *libvirt_go.DomainInfo); ok {
+	if rf, ok := ret.Get(0).(func() *libvirt_go.DomainGetInfoRet); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*libvirt_go.DomainInfo)
+			r0 = ret.Get(0).(*libvirt_go.DomainGetInfoRet)
 		}
 	}
 
@@ -247,12 +247,12 @@ func (_m *Domain) SetMemoryFlags(memory uint64, flags libvirt_go.DomainMemoryMod
 	return r0
 }
 
-// SetVcpusFlags provides a mock function with given fields: vcpu, flags
-func (_m *Domain) SetVcpusFlags(vcpu uint, flags libvirt_go.DomainVcpuFlags) error {
+// SetVCPUsFlags provides a mock function with given fields: vcpu, flags
+func (_m *Domain) SetVCPUsFlags(vcpu uint, flags libvirt_go.DomainVCPUFlags) error {
 	ret := _m.Called(vcpu, flags)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(uint, libvirt_go.DomainVcpuFlags) error); ok {
+	if rf, ok := ret.Get(0).(func(uint, libvirt_go.DomainVCPUFlags) error); ok {
 		r0 = rf(vcpu, flags)
 	} else {
 		r0 = ret.Error(0)
@@ -262,11 +262,11 @@ func (_m *Domain) SetVcpusFlags(vcpu uint, flags libvirt_go.DomainVcpuFlags) err
 }
 
 // ShutdownFlags provides a mock function with given fields: flags
-func (_m *Domain) ShutdownFlags(flags libvirt_go.DomainShutdownFlags) error {
+func (_m *Domain) ShutdownFlags(flags libvirt_go.DomainShutdownFlagValues) error {
 	ret := _m.Called(flags)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(libvirt_go.DomainShutdownFlags) error); ok {
+	if rf, ok := ret.Get(0).(func(libvirt_go.DomainShutdownFlagValues) error); ok {
 		r0 = rf(flags)
 	} else {
 		r0 = ret.Error(0)
