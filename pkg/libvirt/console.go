@@ -27,13 +27,6 @@ func (cf *ConsoleFlags) genLibvirtFlags() (flags libvirtgo.DomainConsoleFlags) {
 	return
 }
 
-func (cf *ConsoleFlags) genStreamFlags() (flags libvirtgo.StreamFlags) {
-	if cf.Nonblock {
-		flags = libvirtgo.StreamNonblock
-	}
-	return
-}
-
 type Console struct {
 	Stream *Stream
 	// pty to user
@@ -161,7 +154,7 @@ func sendAll(stream *Stream, bs []byte) error {
 }
 
 // AddReadWriter For block stream IO
-func (c *Console) AddReadWriter() error {
+func (c *Console) AddReadWriter() error { //nolint
 	ctx := context.Background()
 	go func() {
 		defer log.Infof("[AddReadWriter] Send goroutine exit")

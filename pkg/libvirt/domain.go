@@ -262,7 +262,6 @@ func (d *Domainee) DetachVolume(xml string) (st DomainState, err error) {
 // GetState .
 func (d *Domainee) GetState() (st DomainState, err error) {
 	flags := DomainNoState
-	//flags := DomainDeviceModifyConfig | DomainDeviceModifyCurrent
 	iSt, _, err := d.Libvirt.DomainGetState(*d.Domain, uint32(flags))
 	st = DomainState(iSt)
 	return
