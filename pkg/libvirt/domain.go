@@ -208,7 +208,7 @@ func (d *Domainee) OpenConsole(devname string, cf *ConsoleFlags) (*Console, erro
 	go func() {
 		err := d.Libvirt.OpenConsole(*d.Domain, libvirtgo.OptString{devname}, st.GetInReader(), st.GetOutWriter(), uint32(cf.genLibvirtFlags()))
 		if err != nil {
-			log.Errorf("[Domainee:OpenConsole] Libvirt.DomainOpenConsole err: ", err.Error())
+			log.Errorf("[Domainee:OpenConsole] Libvirt.DomainOpenConsole err: %s", err.Error())
 			return
 		}
 	}()
