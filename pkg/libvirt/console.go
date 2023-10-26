@@ -32,10 +32,13 @@ type Console struct {
 	// pty to user
 	fromQ *utils.BytesQueue
 	// user to pty
-	toQ *utils.BytesQueue
+	toQ  *utils.BytesQueue
+	quit quit
+}
 
-	quit chan struct{}
+type quit struct {
 	once sync.Once
+	q    chan struct{}
 }
 
 func newConsole(s *Stream) *Console {
@@ -43,28 +46,26 @@ func newConsole(s *Stream) *Console {
 		Stream: s,
 		fromQ:  utils.NewBytesQueue(),
 		toQ:    utils.NewBytesQueue(),
-		quit:   make(chan struct{}),
+		quit: quit{
+			once: sync.Once{},
+			q:    make(chan struct{}),
+		},
 	}
 }
 
-func (c *Console) needExit(ctx context.Context) bool {
-	if ctx == nil {
-		ctx = context.Background()
-	}
+func (c *Console) needExit() bool {
 	select {
-	case <-ctx.Done():
-		return true
-	case <-c.quit:
+	case <-c.quit.q:
 		return true
 	default:
 		return false
 	}
 }
 
-func (c *Console) From(ctx context.Context, r io.Reader) error {
+func (c *Console) From(_ context.Context, r io.Reader) error {
 	buf := make([]byte, 64*1024)
 	for {
-		if c.needExit(ctx) {
+		if c.needExit() {
 			return nil
 		}
 		// Read a single byte
@@ -91,10 +92,10 @@ func (c *Console) From(ctx context.Context, r io.Reader) error {
 	}
 }
 
-func (c *Console) To(ctx context.Context, w io.Writer) error {
+func (c *Console) To(_ context.Context, w io.Writer) error {
 	buf := make([]byte, 64*1024)
 	for {
-		if c.needExit(ctx) {
+		if c.needExit() {
 			return nil
 		}
 		// pty to user
@@ -108,7 +109,7 @@ func (c *Console) To(ctx context.Context, w io.Writer) error {
 		if n == 0 {
 			continue
 		}
-		if c.needExit(ctx) {
+		if c.needExit() {
 			return nil
 		}
 
@@ -130,9 +131,9 @@ func (c *Console) GetOutputToUserWriter() io.ReadWriter {
 }
 
 func (c *Console) Close() {
-	c.once.Do(func() {
+	c.quit.once.Do(func() {
 		defer func() {
-			close(c.quit)
+			close(c.quit.q)
 		}()
 		// c.Stream.EventRemoveCallback() //nolint
 		c.Stream.Close()
@@ -155,11 +156,10 @@ func sendAll(stream *Stream, bs []byte) error {
 
 // AddReadWriter For block stream IO
 func (c *Console) AddReadWriter() error { //nolint
-	ctx := context.Background()
 	go func() {
 		defer log.Infof("[AddReadWriter] Send goroutine exit")
 		for {
-			if c.needExit(ctx) {
+			if c.needExit() {
 				return
 			}
 			// from user input, send to pty
@@ -168,7 +168,7 @@ func (c *Console) AddReadWriter() error { //nolint
 				log.Warnf("[AddReadWriter] Got error when write to console toQ queue: %s", err)
 				return
 			}
-			if c.needExit(ctx) {
+			if c.needExit() {
 				return
 			}
 			err = sendAll(c.Stream, bs)
@@ -182,7 +182,7 @@ func (c *Console) AddReadWriter() error { //nolint
 		defer log.Infof("[AddReadWriter] Recv goroutine exit")
 		buf := make([]byte, 100*1024)
 		for {
-			if c.needExit(ctx) {
+			if c.needExit() {
 				return
 			}
 			n, err := c.Stream.Recv(buf)
@@ -194,7 +194,7 @@ func (c *Console) AddReadWriter() error { //nolint
 				continue
 			}
 			bs := buf[:n]
-			if c.needExit(ctx) {
+			if c.needExit() {
 				return
 			}
 			_, err = c.fromQ.Write(bs)
