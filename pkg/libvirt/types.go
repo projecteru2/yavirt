@@ -1,11 +1,11 @@
 package libvirt
 
 import (
-	golibvirt "github.com/projecteru2/yavirt/third_party/libvirt"
+	libvirtgo "github.com/projecteru2/yavirt/third_party/libvirt"
 )
 
 // DomainState .
-type DomainState = golibvirt.DomainState
+type DomainState = libvirtgo.DomainState
 
 // GetDomainStatesStrings .
 func GetDomainStatesStrings(ss []DomainState) []string {
@@ -48,25 +48,25 @@ func GetDomainStateString(s DomainState) string {
 }
 
 // DomainInfo .
-type DomainInfo = golibvirt.DomainGetInfoRet
+type DomainInfo = libvirtgo.DomainGetInfoRet
 
 // DomainXMLFlags .
-type DomainXMLFlags = golibvirt.DomainXMLFlags
+type DomainXMLFlags = libvirtgo.DomainXMLFlags
 
 // DomainConsoleFlags .
-type DomainConsoleFlags = golibvirt.DomainConsoleFlags
+type DomainConsoleFlags = libvirtgo.DomainConsoleFlags
 
 // DomainShutdownFlags .
-type DomainShutdownFlags golibvirt.DomainShutdownFlagValues
+type DomainShutdownFlags libvirtgo.DomainShutdownFlagValues
 
 // DomainDestroyFlags .
-type DomainDestroyFlags = golibvirt.DomainDestroyFlagsValues
+type DomainDestroyFlags = libvirtgo.DomainDestroyFlagsValues
 
 // DomainUndefineFlags .
-type DomainUndefineFlags = golibvirt.DomainUndefineFlagsValues
+type DomainUndefineFlags = libvirtgo.DomainUndefineFlagsValues
 
 // DomainVcpuFlags .
-type DomainVcpuFlags = golibvirt.DomainVCPUFlags
+type DomainVcpuFlags = libvirtgo.DomainVCPUFlags
 
 // DomainMemoryModFlags .
-type DomainMemoryModFlags = golibvirt.DomainMemoryModFlags
+type DomainMemoryModFlags = libvirtgo.DomainMemoryModFlags

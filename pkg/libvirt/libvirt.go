@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/projecteru2/yavirt/pkg/errors"
-	golibvirt "github.com/projecteru2/yavirt/third_party/libvirt"
+	libvirtgo "github.com/projecteru2/yavirt/third_party/libvirt"
 	"github.com/projecteru2/yavirt/third_party/libvirt/socket/dialers"
 )
 
@@ -15,12 +15,12 @@ type Libvirt interface {
 	LookupDomain(string) (Domain, error)
 	DefineDomain(string) (Domain, error)
 	ListDomainsNames() ([]string, error)
-	GetAllDomainStats(doms []golibvirt.Domain) ([]golibvirt.DomainStatsRecord, error)
+	GetAllDomainStats(doms []libvirtgo.Domain) ([]libvirtgo.DomainStatsRecord, error)
 }
 
 // Libvirtee is a Libvirt implement.
 type Libvirtee struct {
-	*golibvirt.Libvirt
+	*libvirtgo.Libvirt
 }
 
 func (l *Libvirtee) Close() (int, error) {
@@ -38,8 +38,8 @@ func Connect(uri string) (l *Libvirtee, err error) {
 		return nil, err
 	}
 	l = &Libvirtee{}
-	l.Libvirt = golibvirt.NewWithDialer(dialers.NewAlreadyConnected(c))
-	if err = l.ConnectToURI(golibvirt.ConnectURI(uri)); err != nil {
+	l.Libvirt = libvirtgo.NewWithDialer(dialers.NewAlreadyConnected(c))
+	if err = l.ConnectToURI(libvirtgo.ConnectURI(uri)); err != nil {
 		return nil, err
 	}
 	return
@@ -82,14 +82,14 @@ func (l *Libvirtee) ListDomainsNames() ([]string, error) {
 }
 
 // ListAllDomains lists all domains regardless the state.
-func (l *Libvirtee) ListAllDomains() ([]golibvirt.Domain, error) {
-	flags := golibvirt.ConnectListDomainsActive | golibvirt.ConnectListDomainsInactive
+func (l *Libvirtee) ListAllDomains() ([]libvirtgo.Domain, error) {
+	flags := libvirtgo.ConnectListDomainsActive | libvirtgo.ConnectListDomainsInactive
 	dList, _, err := l.ConnectListAllDomains(int32(flags), ListAllDomainFlags)
 	return dList, err
 }
 
-func (l *Libvirtee) GetAllDomainStats(doms []golibvirt.Domain) ([]golibvirt.DomainStatsRecord, error) {
-	flags := golibvirt.ConnectGetAllDomainsStatsRunning
-	var statsType golibvirt.DomainStatsTypes
+func (l *Libvirtee) GetAllDomainStats(doms []libvirtgo.Domain) ([]libvirtgo.DomainStatsRecord, error) {
+	flags := libvirtgo.ConnectGetAllDomainsStatsRunning
+	var statsType libvirtgo.DomainStatsTypes
 	return l.ConnectGetAllDomainStats(doms, uint32(statsType), flags)
 }

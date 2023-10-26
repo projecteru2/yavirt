@@ -174,7 +174,7 @@ func fastenDangling(id string, virt *libvirt.Libvirtee) error {
 	if err != nil {
 		return errors.Trace(err)
 	}
-	guest.CPU = int(info.NrVirtCpu)
+	guest.CPU = int(info.NrVirtCPU)
 	guest.Memory = int64(info.MaxMem) * 1024
 
 	var flags libvirt.DomainXMLFlags

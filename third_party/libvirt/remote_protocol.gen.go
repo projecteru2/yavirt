@@ -10213,7 +10213,7 @@ func (l *Libvirt) DomainGetVcpusFlags(Dom Domain, Flags uint32) (rNum int32, err
 }
 
 // DomainOpenConsole is the go wrapper for REMOTE_PROC_DOMAIN_OPEN_CONSOLE.
-func (l *Libvirt) DomainOpenConsole(Dom Domain, DevName OptString, inStream io.Reader, outStream io.Writer, Flags uint32) (err error) {
+func (l *Libvirt) DomainOpenConsole(Dom Domain, DevName OptString, outStream io.Writer, Flags uint32) (err error) {
 	var buf []byte
 
 	args := DomainOpenConsoleArgs{
@@ -10227,7 +10227,7 @@ func (l *Libvirt) DomainOpenConsole(Dom Domain, DevName OptString, inStream io.R
 		return
 	}
 
-	_, err = l.requestStream(201, constants.Program, buf, inStream, outStream)
+	_, err = l.requestStream(201, constants.Program, buf, nil, outStream)
 	if err != nil {
 		return
 	}

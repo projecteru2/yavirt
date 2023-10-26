@@ -7,7 +7,7 @@ import (
 
 	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/log"
-	golibvirt "github.com/projecteru2/yavirt/third_party/libvirt"
+	libvirtgo "github.com/projecteru2/yavirt/third_party/libvirt"
 )
 
 // Domain .
@@ -41,8 +41,8 @@ type Domain interface { //nolint
 
 // Domainee is a implement of Domain.
 type Domainee struct {
-	Libvirt *golibvirt.Libvirt
-	*golibvirt.Domain
+	Libvirt *libvirtgo.Libvirt
+	*libvirtgo.Domain
 }
 
 func (d *Domainee) Create() error {
@@ -70,7 +70,7 @@ func (d *Domainee) SetAutostart(autostart bool) error {
 }
 
 func (d *Domainee) ShutdownFlags(flags DomainShutdownFlags) error {
-	err := d.Libvirt.DomainShutdownFlags(*d.Domain, golibvirt.DomainShutdownFlagValues(flags))
+	err := d.Libvirt.DomainShutdownFlags(*d.Domain, libvirtgo.DomainShutdownFlagValues(flags))
 	if err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (d *Domainee) GetInfo() (*DomainInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	info := &golibvirt.DomainGetInfoRet{
+	info := &libvirtgo.DomainGetInfoRet{
 		State:     rState,
 		MaxMem:    rMaxMem,
 		Memory:    rMemory,
@@ -165,7 +165,7 @@ func (d *Domainee) GetName() (string, error) {
 }
 
 // NewDomainee converts a libvirt-go Domain object to a *Domainee object.
-func NewDomainee(lib *golibvirt.Libvirt, raw *golibvirt.Domain) (dom *Domainee) {
+func NewDomainee(lib *libvirtgo.Libvirt, raw *libvirtgo.Domain) (dom *Domainee) {
 	dom = &Domainee{}
 	dom.Libvirt = lib
 	dom.Domain = raw
@@ -173,22 +173,22 @@ func NewDomainee(lib *golibvirt.Libvirt, raw *golibvirt.Domain) (dom *Domainee) 
 }
 
 func (d *Domainee) SetMemoryStatsPeriod(period int, config, live bool) error {
-	flags := golibvirt.DomainMemCurrent
+	flags := libvirtgo.DomainMemCurrent
 	if config {
-		flags |= golibvirt.DomainMemConfig
+		flags |= libvirtgo.DomainMemConfig
 	}
 	if live {
-		flags |= golibvirt.DomainMemLive
+		flags |= libvirtgo.DomainMemLive
 	}
 	return d.Libvirt.DomainSetMemoryStatsPeriod(*d.Domain, int32(period), flags)
 }
 
 func (d *Domainee) QemuAgentCommand(ctx context.Context, cmd string) (string, error) {
 	flags := uint32(0)
-	timeout := golibvirt.DomainAgentResponseTimeoutDefault
+	timeout := libvirtgo.DomainAgentResponseTimeoutDefault
 	if deadline, ok := ctx.Deadline(); ok {
 		remain := time.Until(deadline)
-		timeout = golibvirt.DomainAgentResponseTimeoutValues(remain.Seconds())
+		timeout = libvirtgo.DomainAgentResponseTimeoutValues(remain.Seconds())
 	}
 	retStrArr, err := d.Libvirt.QEMUDomainAgentCommand(*d.Domain, cmd, int32(timeout), flags)
 	if err != nil {
@@ -206,7 +206,7 @@ func (d *Domainee) OpenConsole(devname string, cf *ConsoleFlags) (*Console, erro
 	st := NewStream()
 
 	go func() {
-		err := d.Libvirt.DomainOpenConsole(*d.Domain, golibvirt.OptString{devname}, st.GetInReader(), st.GetOutWriter(), uint32(cf.genLibvirtFlags()))
+		err := d.Libvirt.OpenConsole(*d.Domain, libvirtgo.OptString{devname}, st.GetInReader(), st.GetOutWriter(), uint32(cf.genLibvirtFlags()))
 		if err != nil {
 			log.Errorf("[Domainee:OpenConsole] Libvirt.DomainOpenConsole err: ", err.Error())
 			return

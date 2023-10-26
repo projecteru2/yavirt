@@ -8,7 +8,7 @@ import (
 
 	"github.com/projecteru2/yavirt/pkg/log"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	golibvirt "github.com/projecteru2/yavirt/third_party/libvirt"
+	libvirtgo "github.com/projecteru2/yavirt/third_party/libvirt"
 )
 
 type ConsoleFlags struct {
@@ -17,19 +17,19 @@ type ConsoleFlags struct {
 	Nonblock bool
 }
 
-func (cf *ConsoleFlags) genLibvirtFlags() (flags golibvirt.DomainConsoleFlags) {
+func (cf *ConsoleFlags) genLibvirtFlags() (flags libvirtgo.DomainConsoleFlags) {
 	if cf.Force {
-		flags |= golibvirt.DomainConsoleForce
+		flags |= libvirtgo.DomainConsoleForce
 	}
 	if cf.Safe {
-		flags |= golibvirt.DomainConsoleSafe
+		flags |= libvirtgo.DomainConsoleSafe
 	}
 	return
 }
 
-func (cf *ConsoleFlags) genStreamFlags() (flags golibvirt.StreamFlags) {
+func (cf *ConsoleFlags) genStreamFlags() (flags libvirtgo.StreamFlags) {
 	if cf.Nonblock {
-		flags = golibvirt.StreamNonblock
+		flags = libvirtgo.StreamNonblock
 	}
 	return
 }
