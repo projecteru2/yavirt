@@ -22,7 +22,7 @@ func TestSetSpec(t *testing.T) {
 	dom := newMockedDomain(t)
 	dom.virt.(*libmocks.Libvirt).On("LookupDomain", mock.Anything).Return(libdom, nil).Once()
 	defer func() { dom.virt.(*libmocks.Libvirt).AssertExpectations(t) }()
-
+	libdom.On("Free").Return().Once()
 	libdom.On("SetVcpusFlags", uint(1), libvirt.DomainVcpuConfig|libvirt.DomainVcpuMaximum).Return(nil).Once()
 	libdom.On("SetVcpusFlags", uint(1), libvirt.DomainVcpuConfig|libvirt.DomainVcpuCurrent).Return(nil).Once()
 	libdom.On("SetMemoryFlags", uint64(utils.GB>>10), libvirt.DomainMemConfig|libvirt.DomainMemMaximum).Return(nil).Once()
