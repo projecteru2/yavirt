@@ -28,7 +28,6 @@ func (cf *ConsoleFlags) genLibvirtFlags() (flags libvirtgo.DomainConsoleFlags) {
 }
 
 type Console struct {
-	Stream *Stream
 	// pty to user
 	fromQ *utils.BytesQueue
 	// user to pty
@@ -41,11 +40,10 @@ type quit struct {
 	q    chan struct{}
 }
 
-func newConsole(s *Stream) *Console {
+func newConsole() *Console {
 	return &Console{
-		Stream: s,
-		fromQ:  utils.NewBytesQueue(),
-		toQ:    utils.NewBytesQueue(),
+		fromQ: utils.NewBytesQueue(),
+		toQ:   utils.NewBytesQueue(),
 		quit: quit{
 			once: sync.Once{},
 			q:    make(chan struct{}),
@@ -123,11 +121,11 @@ func (c *Console) To(_ context.Context, w io.Writer) error {
 }
 
 func (c *Console) GetInputToPtyReader() io.ReadWriter {
-	return c.fromQ
+	return c.toQ
 }
 
 func (c *Console) GetOutputToUserWriter() io.ReadWriter {
-	return c.toQ
+	return c.fromQ
 }
 
 func (c *Console) Close() {
@@ -136,74 +134,7 @@ func (c *Console) Close() {
 			close(c.quit.q)
 		}()
 		// c.Stream.EventRemoveCallback() //nolint
-		c.Stream.Close()
 		c.fromQ.Close()
 		c.toQ.Close()
 	})
-}
-
-func sendAll(stream *Stream, bs []byte) error {
-	for len(bs) > 0 {
-		// inStream
-		n, err := stream.Send(bs)
-		if err != nil {
-			return err
-		}
-		bs = bs[n:]
-	}
-	return nil
-}
-
-// AddReadWriter For block stream IO
-func (c *Console) AddReadWriter() error { //nolint
-	go func() {
-		defer log.Infof("[AddReadWriter] Send goroutine exit")
-		for {
-			if c.needExit() {
-				return
-			}
-			// from user input, send to pty
-			bs, err := c.toQ.Pop()
-			if err != nil {
-				log.Warnf("[AddReadWriter] Got error when write to console toQ queue: %s", err)
-				return
-			}
-			if c.needExit() {
-				return
-			}
-			err = sendAll(c.Stream, bs)
-			if err != nil {
-				log.Warnf("[AddReadWriter] Got error when write to console stream: %s", err)
-				return
-			}
-		}
-	}()
-	go func() {
-		defer log.Infof("[AddReadWriter] Recv goroutine exit")
-		buf := make([]byte, 100*1024)
-		for {
-			if c.needExit() {
-				return
-			}
-			n, err := c.Stream.Recv(buf)
-			if err != nil {
-				log.Warnf("[AddReadWriter] Got error when read from console stream: %s", err)
-				return
-			}
-			if n == 0 {
-				continue
-			}
-			bs := buf[:n]
-			if c.needExit() {
-				return
-			}
-			_, err = c.fromQ.Write(bs)
-			if err != nil {
-				log.Warnf("[AddReadWriter] Got error when write to console queue: %s", err)
-				return
-			}
-			copy(buf, make([]byte, len(buf)))
-		}
-	}()
-	return nil
 }

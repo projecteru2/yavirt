@@ -203,22 +203,15 @@ func (d *Domainee) QemuAgentCommand(ctx context.Context, cmd string) (string, er
 
 func (d *Domainee) OpenConsole(devname string, cf *ConsoleFlags) (*Console, error) {
 	// 创建一个写入控制台输出的缓冲区
-	st := NewStream()
-
+	// 打开虚拟机的控制台连接
+	con := newConsole()
 	go func() {
-		err := d.Libvirt.OpenConsole(*d.Domain, libvirtgo.OptString{devname}, st.GetInReader(), st.GetOutWriter(), uint32(cf.genLibvirtFlags()))
+		err := d.Libvirt.OpenConsole(*d.Domain, libvirtgo.OptString{devname}, con.GetInputToPtyReader(), con.GetOutputToUserWriter(), uint32(cf.genLibvirtFlags()))
 		if err != nil {
 			log.Errorf("[Domainee:OpenConsole] Libvirt.DomainOpenConsole err: %s", err.Error())
 			return
 		}
 	}()
-
-	// 打开虚拟机的控制台连接
-	con := newConsole(st)
-	if err := con.AddReadWriter(); err != nil {
-		con.Close()
-		return nil, err
-	}
 
 	return con, nil
 }
