@@ -206,7 +206,7 @@ func (d *Domainee) OpenConsole(devname string, cf *ConsoleFlags) (*Console, erro
 	// 打开虚拟机的控制台连接
 	con := newConsole()
 	go func() {
-		err := d.Libvirt.OpenConsole(*d.Domain, libvirtgo.OptString{devname}, con.GetInputToPtyReader(), con.GetOutputToUserWriter(), uint32(cf.genLibvirtFlags()))
+		err := d.Libvirt.OpenConsole(*d.Domain, libvirtgo.OptString{devname}, con, con, uint32(cf.genLibvirtFlags()))
 		if err != nil {
 			log.Errorf("[Domainee:OpenConsole] Libvirt.DomainOpenConsole err: %s", err.Error())
 			return

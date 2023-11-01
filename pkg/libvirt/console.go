@@ -1,7 +1,6 @@
 package libvirt
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"sync"
@@ -27,62 +26,64 @@ func (cf *ConsoleFlags) genLibvirtFlags() (flags libvirtgo.DomainConsoleFlags) {
 	return
 }
 
+func (cf *ConsoleFlags) genStreamFlags() (flags libvirtgo.StreamFlags) { //nolint
+	if cf.Nonblock {
+		flags = libvirtgo.StreamNonblock
+	}
+	return
+}
+
 type Console struct {
 	// pty to user
 	fromQ *utils.BytesQueue
 	// user to pty
-	toQ  *utils.BytesQueue
-	quit quit
-}
+	toQ *utils.BytesQueue
 
-type quit struct {
-	once sync.Once
-	q    chan struct{}
-}
-
-func newConsole() *Console {
-	return &Console{
-		fromQ: utils.NewBytesQueue(),
-		toQ:   utils.NewBytesQueue(),
-		quit: quit{
-			once: sync.Once{},
-			q:    make(chan struct{}),
-		},
+	quit struct {
+		once sync.Once
+		c    chan struct{}
 	}
 }
 
-func (c *Console) needExit() bool {
+func newConsole() *Console {
+	con := &Console{
+		fromQ: utils.NewBytesQueue(),
+		toQ:   utils.NewBytesQueue(),
+	}
+	con.quit.c = make(chan struct{})
+	return con
+}
+
+func (c *Console) needExit(ctx context.Context) bool {
 	select {
-	case <-c.quit.q:
+	case <-ctx.Done():
+		return true
+	case <-c.quit.c:
 		return true
 	default:
 		return false
 	}
 }
 
-func (c *Console) From(_ context.Context, r io.Reader) error {
+func (c *Console) From(ctx context.Context, r io.Reader) error {
 	buf := make([]byte, 64*1024)
 	for {
-		if c.needExit() {
+		if c.needExit(ctx) {
 			return nil
 		}
-		// Read a single byte
 		n, err := r.Read(buf)
-		if err != nil {
-			if err != io.EOF {
-				log.Errorf("[Console:From] read error: %s", err)
-			}
-			return err
-		}
-
 		if n == 0 {
+			if err != nil {
+				if err != io.EOF {
+					log.Errorf("[Console:From] read error: %s", err)
+				}
+				return err
+			}
 			continue
 		}
 
 		bs := buf[:n]
-		cloneBs := bytes.Clone(bs)
-		copy(buf, make([]byte, len(buf)))
-		_, err = c.toQ.Write(cloneBs)
+		_, err = c.toQ.Write(bs)
 		if err != nil {
 			log.Errorf("[Console:From] write error: %s", err)
 			return err
@@ -90,24 +91,24 @@ func (c *Console) From(_ context.Context, r io.Reader) error {
 	}
 }
 
-func (c *Console) To(_ context.Context, w io.Writer) error {
+func (c *Console) To(ctx context.Context, w io.Writer) error {
 	buf := make([]byte, 64*1024)
 	for {
-		if c.needExit() {
+		if c.needExit(ctx) {
 			return nil
 		}
 		// pty to user
 		n, err := c.fromQ.Read(buf)
-		if err != nil {
-			if err != io.EOF {
-				log.Errorf("[Console:To] read error: %s", err)
-			}
-			return err
-		}
 		if n == 0 {
+			if err != nil {
+				if err != io.EOF {
+					log.Errorf("[Console:To] read error: %s", err)
+				}
+				return err
+			}
 			continue
 		}
-		if c.needExit() {
+		if c.needExit(ctx) {
 			return nil
 		}
 
@@ -120,21 +121,18 @@ func (c *Console) To(_ context.Context, w io.Writer) error {
 	}
 }
 
-func (c *Console) GetInputToPtyReader() io.ReadWriter {
-	return c.toQ
+func (c *Console) Write(buf []byte) (int, error) {
+	return c.fromQ.Write(buf)
 }
 
-func (c *Console) GetOutputToUserWriter() io.ReadWriter {
-	return c.fromQ
+func (c *Console) Read(p []byte) (int, error) {
+	return c.toQ.Read(p)
 }
 
 func (c *Console) Close() {
 	c.quit.once.Do(func() {
-		defer func() {
-			close(c.quit.q)
-		}()
-		// c.Stream.EventRemoveCallback() //nolint
 		c.fromQ.Close()
 		c.toQ.Close()
+		close(c.quit.c)
 	})
 }
