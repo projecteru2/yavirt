@@ -169,7 +169,7 @@ func (d *VirtDomain) Shutdown(force bool) error {
 }
 
 func (d *VirtDomain) graceShutdown(dom libvirt.Domain) error {
-	return dom.ShutdownFlags(libvirt.DomainShutdownDefault)
+	return dom.ShutdownFlags(libvirt.DomainShutdownFlags(libvirt.DomainShutdownDefault))
 }
 
 func (d *VirtDomain) forceShutdown(dom libvirt.Domain) error {

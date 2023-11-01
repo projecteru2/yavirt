@@ -7,7 +7,7 @@ import (
 
 	agent "github.com/projecteru2/yavirt/internal/virt/agent"
 
-	libvirt "github.com/libvirt/libvirt-go"
+	"github.com/projecteru2/yavirt/third_party/libvirt"
 
 	mock "github.com/stretchr/testify/mock"
 

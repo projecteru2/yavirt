@@ -1,76 +1,79 @@
 package libvirt
 
-import libvirtgo "github.com/libvirt/libvirt-go"
+import (
+	libvirtgo "github.com/projecteru2/yavirt/third_party/libvirt"
+)
 
 const (
 	// ListAllDomainFlags shows all states for listing domain operation.
-	ListAllDomainFlags = libvirtgo.CONNECT_LIST_DOMAINS_ACTIVE |
-		libvirtgo.CONNECT_LIST_DOMAINS_INACTIVE |
-		libvirtgo.CONNECT_LIST_DOMAINS_PERSISTENT |
-		libvirtgo.CONNECT_LIST_DOMAINS_TRANSIENT |
-		libvirtgo.CONNECT_LIST_DOMAINS_RUNNING |
-		libvirtgo.CONNECT_LIST_DOMAINS_PAUSED |
-		libvirtgo.CONNECT_LIST_DOMAINS_SHUTOFF |
-		libvirtgo.CONNECT_LIST_DOMAINS_OTHER |
-		libvirtgo.CONNECT_LIST_DOMAINS_MANAGEDSAVE |
-		libvirtgo.CONNECT_LIST_DOMAINS_NO_MANAGEDSAVE |
-		libvirtgo.CONNECT_LIST_DOMAINS_AUTOSTART |
-		libvirtgo.CONNECT_LIST_DOMAINS_NO_AUTOSTART |
-		libvirtgo.CONNECT_LIST_DOMAINS_HAS_SNAPSHOT |
-		libvirtgo.CONNECT_LIST_DOMAINS_NO_SNAPSHOT
+	ListAllDomainFlags = libvirtgo.ConnectListDomainsActive |
+		libvirtgo.ConnectListDomainsInactive |
+		libvirtgo.ConnectListDomainsPersistent |
+		libvirtgo.ConnectListDomainsTransient |
+		libvirtgo.ConnectListDomainsRunning |
+		libvirtgo.ConnectListDomainsPaused |
+		libvirtgo.ConnectListDomainsShutoff |
+		libvirtgo.ConnectListDomainsOther |
+		libvirtgo.ConnectListDomainsManagedsave |
+		libvirtgo.ConnectListDomainsNoManagedsave |
+		libvirtgo.ConnectListDomainsAutostart |
+		libvirtgo.ConnectListDomainsNoAutostart |
+		libvirtgo.ConnectListDomainsHasSnapshot |
+		libvirtgo.ConnectListDomainsNoSnapshot
 
 	// DomainNoState .
-	DomainNoState = libvirtgo.DOMAIN_NOSTATE
+	DomainNoState = libvirtgo.DomainNostate
 	// DomainRunning .
-	DomainRunning = libvirtgo.DOMAIN_RUNNING
+	DomainRunning = libvirtgo.DomainRunning
 	// DomainUndefineManagedSave .
-	DomainUndefineManagedSave = libvirtgo.DOMAIN_UNDEFINE_MANAGED_SAVE
+	DomainUndefineManagedSave = libvirtgo.DomainUndefineManagedSave
 	// DomainShutoff is shutted down.
-	DomainShutoff = libvirtgo.DOMAIN_SHUTOFF
+	DomainShutoff = libvirtgo.DomainShutoff
 	// DomainShutting is shuting state.
-	DomainShutting = libvirtgo.DOMAIN_SHUTDOWN
+	DomainShutting = libvirtgo.DomainShutdown
 	// DomainPMSuspended .
-	DomainPMSuspended = libvirtgo.DOMAIN_PMSUSPENDED
+	DomainPMSuspended = libvirtgo.DomainPmsuspended
 	// DomainCrashed .
-	DomainCrashed = libvirtgo.DOMAIN_CRASHED
+	DomainCrashed = libvirtgo.DomainCrashed
 	// DomainPaused .
-	DomainPaused = libvirtgo.DOMAIN_PAUSED
+	DomainPaused = libvirtgo.DomainPaused
 	// DomainBlocked .
-	DomainBlocked = libvirtgo.DOMAIN_BLOCKED
+	DomainBlocked = libvirtgo.DomainBlocked
 
 	// DomainDestroyDefault .
-	DomainDestroyDefault = libvirtgo.DOMAIN_DESTROY_DEFAULT
+	DomainDestroyDefault = libvirtgo.DomainDestroyDefault
 	// DomainShutdownDefault .
-	DomainShutdownDefault = libvirtgo.DOMAIN_SHUTDOWN_DEFAULT
+	DomainShutdownDefault = libvirtgo.DomainShutdownDefault
 
 	// DomainVcpuCurrent .
-	DomainVcpuCurrent = libvirtgo.DOMAIN_VCPU_CURRENT
+	DomainVcpuCurrent = libvirtgo.DomainVCPUCurrent
 	// DomainVcpuMaximum .
-	DomainVcpuMaximum = libvirtgo.DOMAIN_VCPU_MAXIMUM
+	DomainVcpuMaximum = libvirtgo.DomainVCPUMaximum
 	// DomainVcpuConfig .
-	DomainVcpuConfig = libvirtgo.DOMAIN_VCPU_CONFIG
+	DomainVcpuConfig = libvirtgo.DomainVCPUConfig
+
 	// DomainVcpuLive .
-	DomainVcpuLive = libvirtgo.DOMAIN_VCPU_LIVE
+	DomainVcpuLive = libvirtgo.DomainVCPULive
 
 	// DomainMemCurrent .
-	DomainMemCurrent = libvirtgo.DOMAIN_MEM_CURRENT
+	DomainMemCurrent = libvirtgo.DomainMemCurrent
 	// DomainMemMaximum .
-	DomainMemMaximum = libvirtgo.DOMAIN_MEM_MAXIMUM
+	DomainMemMaximum = libvirtgo.DomainMemMaximum
 	// DomainMemConfig .
-	DomainMemConfig = libvirtgo.DOMAIN_MEM_CONFIG
+	DomainMemConfig = libvirtgo.DomainMemConfig
 
 	// DomainConsoleForce .
-	DomainConsoleForce = libvirtgo.DOMAIN_CONSOLE_FORCE
+	DomainConsoleForce = libvirtgo.DomainConsoleForce
 	// DomainConsoleSafe .
-	DomainConsoleSafe = libvirtgo.DOMAIN_CONSOLE_SAFE
+	DomainConsoleSafe = libvirtgo.DomainConsoleSafe
 
 	// DomainBlockResizeBytes .
-	DomainBlockResizeBytes = libvirtgo.DOMAIN_BLOCK_RESIZE_BYTES
+	DomainBlockResizeBytes = libvirtgo.DomainBlockResizeBytes
 
 	// DomainDeviceModifyConfig .
-	DomainDeviceModifyConfig = libvirtgo.DOMAIN_DEVICE_MODIFY_CONFIG
+	DomainDeviceModifyConfig = libvirtgo.DomainDeviceModifyConfig
 	// DomainDeviceModifyCurrent .
-	DomainDeviceModifyCurrent = libvirtgo.DOMAIN_DEVICE_MODIFY_CURRENT
+	DomainDeviceModifyCurrent = libvirtgo.DomainDeviceModifyCurrent
 	// DomainDeviceModifyLive .
-	DomainDeviceModifyLive = libvirtgo.DOMAIN_DEVICE_MODIFY_LIVE
+	DomainDeviceModifyLive = libvirtgo.DomainDeviceModifyLive
 )

@@ -10,7 +10,6 @@ require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/google/uuid v1.3.0
 	github.com/juju/errors v1.0.0
-	github.com/libvirt/libvirt-go v7.4.0+incompatible
 	github.com/projectcalico/api v0.0.0-20230222223746-44aa60c2201f
 	github.com/projectcalico/calico v1.11.0-cni-plugin.0.20230510161715-15d193738928
 	github.com/projecteru2/core v0.0.0-20230512041401-f4113e25d62c
@@ -25,6 +24,7 @@ require (
 	go.etcd.io/etcd/client/v3 v3.5.8
 	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53
 	golang.org/x/sys v0.8.0
+	golang.org/x/tools v0.8.0
 	google.golang.org/grpc v1.54.1
 	k8s.io/apimachinery v0.26.3
 )
