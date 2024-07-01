@@ -1,7 +1,7 @@
 package meta
 
 import (
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
@@ -28,7 +28,7 @@ func (res Resources) Encode() (map[string]string, error) {
 	for _, r := range res {
 		var enc, err = utils.JSONEncode(r, "\t")
 		if err != nil {
-			return nil, errors.Trace(err)
+			return nil, errors.Wrapf(err, "encode resource %v failed", r)
 		}
 
 		data[r.MetaKey()] = string(enc)

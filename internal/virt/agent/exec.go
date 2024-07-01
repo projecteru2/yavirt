@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/cockroachdb/errors"
+	"github.com/projecteru2/core/log"
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/virt/agent/types"
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/log"
 )
 
 // Grep .
@@ -54,7 +54,8 @@ func (a *Agent) touch(ctx context.Context, filepath string) error {
 
 // Ping .
 func (a *Agent) Ping(ctx context.Context) error {
-	var st = <-a.exec(ctx, "echo", nil, true)
+	// linux and windows both have whoami.
+	var st = <-a.exec(ctx, "whoami", nil, true)
 	return st.Error()
 }
 
@@ -62,7 +63,7 @@ func (a *Agent) Ping(ctx context.Context) error {
 func (a *Agent) ExecBatch(bat *configs.Batch) error {
 	var ctx = context.Background()
 	var cancel context.CancelFunc
-	if timeout := bat.Timeout.Duration(); timeout > 0 {
+	if timeout := bat.Timeout; timeout > 0 {
 		ctx, cancel = context.WithTimeout(ctx, timeout)
 		defer cancel()
 	}
@@ -71,7 +72,7 @@ func (a *Agent) ExecBatch(bat *configs.Batch) error {
 	if runOnce {
 		switch ran, err := a.isFile(ctx, bat.FlagFile); {
 		case err != nil:
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		case ran:
 			return nil
 		}
@@ -79,7 +80,7 @@ func (a *Agent) ExecBatch(bat *configs.Batch) error {
 
 	switch err := a.execBatch(ctx, bat); {
 	case err != nil:
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	case runOnce:
 		return a.touch(ctx, bat.FlagFile)
 	default:
@@ -100,12 +101,12 @@ func (a *Agent) isFolder(ctx context.Context, path string) (bool, error) {
 func (a *Agent) execBatch(ctx context.Context, bat *configs.Batch) error {
 	var cmds, err = bat.GetCommands()
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	for prog, args := range cmds {
 		if err := a.execRetry(ctx, prog, args, bat); err != nil {
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		}
 	}
 
@@ -123,16 +124,16 @@ func (a *Agent) execRetry(ctx context.Context, prog string, args []string, bat *
 
 		select {
 		case <-ctx.Done():
-			return errors.Annotatef(err, "run %s %s timeout", prog, args)
+			return errors.Wrapf(err, "run %s %s timeout", prog, args)
 		default:
 		}
 
 		if !bat.Retry {
-			return errors.Annotatef(err, "run %s %s error", prog, args)
+			return errors.Wrapf(err, "run %s %s error", prog, args)
 		}
 
-		log.ErrorStackf(err, "run %s %s error, retry it", prog, args)
-		time.Sleep(bat.Interval.Duration())
+		log.WithFunc("execRetry").Errorf(ctx, err, "run %s %s error, retry it", prog, args)
+		time.Sleep(bat.Interval)
 	}
 }
 
@@ -151,7 +152,7 @@ func (a *Agent) exec(ctx context.Context, prog string, args []string, stdio bool
 	var st types.ExecStatus
 
 	var data []byte
-	data, st.Err = a.qmp.Exec(prog, args, stdio)
+	data, st.Err = a.qmp.Exec(ctx, prog, args, stdio)
 	if st.Err != nil {
 		done <- st
 		return done
@@ -180,11 +181,11 @@ func (a *Agent) exec(ctx context.Context, prog string, args []string, stdio bool
 
 			select {
 			case <-ctx.Done():
-				st.Err = errors.Annotatef(ctx.Err(), "exec %s error", prog)
+				st.Err = errors.Wrapf(ctx.Err(), "exec %s error", prog)
 				return
 
 			case <-next.C:
-				if st = a.execStatus(ret.Pid, stdio); st.Err != nil || st.Exited {
+				if st = a.execStatus(ctx, ret.Pid, stdio); st.Err != nil || st.Exited {
 					return
 				}
 			}
@@ -194,15 +195,15 @@ func (a *Agent) exec(ctx context.Context, prog string, args []string, stdio bool
 	return done
 }
 
-func (a *Agent) execStatus(pid int, _ bool) (st types.ExecStatus) {
-	var data, err = a.qmp.ExecStatus(pid)
+func (a *Agent) execStatus(ctx context.Context, pid int, _ bool) (st types.ExecStatus) {
+	var data, err = a.qmp.ExecStatus(ctx, pid)
 	if err != nil {
-		st.Err = errors.Trace(err)
+		st.Err = errors.Wrap(err, "")
 		return
 	}
 
 	if err := a.decode(data, &st); err != nil {
-		st.Err = errors.Trace(err)
+		st.Err = errors.Wrap(err, "")
 	}
 	st.Pid = pid
 

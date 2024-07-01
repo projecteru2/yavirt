@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
 )
 
 // BaseFilename .
@@ -26,18 +26,26 @@ func AbsDir(fpth string) (string, error) {
 func Walk(root string, fn filepath.WalkFunc) error {
 	var entries, err = os.ReadDir(root)
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	for _, entry := range entries {
 		info, err := entry.Info()
 		if err != nil {
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		}
 		if err := fn(filepath.Join(root, entry.Name()), info, nil); err != nil {
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		}
 	}
 
 	return nil
+}
+
+func FileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }

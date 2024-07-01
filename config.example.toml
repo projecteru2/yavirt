@@ -1,0 +1,110 @@
+env = "dev"
+graceful_timeout = "20s"
+virt_timeout = "1h"
+health_check_timeout = "2s"
+qmp_connect_timeout = "8s"
+
+resize_volume_min_ratio = 0.05
+resize_volume_min_size = 10737418240
+
+max_concurrency = 100000     # optional, default 100000 for pool size
+max_snapshots_count = 30
+snapshot_restorable_days = 7
+
+meta_timeout = "1m"
+meta_type = "etcd"
+
+virt_dir = "/opt/yavirtd"
+virt_bridge = "yavirbr0"
+virt_cpu_cache_passthrough = true
+
+ga_disk_timeout = "16m"
+ga_boot_timeout = "30m"
+
+recovery_on = false
+recovery_max_retries = 2
+recovery_retry_interval = "3m"
+recovery_interval = "10m"
+
+cert_path = "/etc/eru/tls" # optional, if you need connect to daemon without https
+
+
+[log]
+level = "info"
+use_json = false
+filename = ""
+
+[resource]
+min_cpu = 1
+max_cpu = 112
+min_memory = 536870912    # 0.5GB
+max_memory = 549755813888 # 512GB
+
+[host]
+id = "unique id for host"
+addr = "{{ inventory_hostname }}"
+name = "{{ node_yavirt_name }}"
+subnet = "127.0.0.1"
+cpu = 0
+memory = ""
+storage = ""
+network = "calico"
+
+[eru]
+addrs = ["127.0.0.1:5001"]
+username = "{{ core_username }}"
+password = "{{ core_password }}"
+status_check_interval = "64s"
+
+[etcd]
+prefix = "/yavirt/v1"
+endpoints = ["127.0.0.1:2379"]
+
+[network]
+modes = ["calico"]
+default_mode = "calico"
+
+[network.calico]
+pools = ["{{ calico_ippool_name }}"]
+
+[network.cni]
+plugin_path = "/usr/bin/yavirt-cni"
+config_path = "/etc/cni/net.d/yavirt-cni.conf"
+
+[network.ovn]
+nb_addr = "{{ ovn_nb_addr }}"
+ovsdb_addr = "{{ ovsdb_addr }}"
+
+[image_hub]
+type = "docker"
+prefix = "{{ image_prefix }}"
+username = "{{ image_hub_username }}"
+password = "{{ image_hub_password }}"
+pull_policy = "{{ image_pull_policy }}"
+
+[auth]
+username = "{{ yavirt_username }}"
+password = "{{ yavirt_password }}"
+
+[storage]
+init_guest_volume = false
+[storage.ceph]
+monitor_addrs = ["127.0.0.1:6789"]
+username = "{{ ceph_username}}"
+secret_uuid = "{{ ceph_secret_uuid }}"
+
+[notify]
+type = "all"
+
+[notify.all]
+types = ["dingding", "mail"]
+
+[notify.dingding]
+token = "{{ dingtalk_token }}"
+
+[notify.mail]
+smtp_host = "smtp.qiye.aliyun.com"
+smtp_port = 465
+sender = "{{ email_sender }}"
+password = "{{ email_password }}"
+receivers = ["user1@xxx.com"]

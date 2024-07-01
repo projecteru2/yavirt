@@ -1,43 +1,34 @@
 package configs
 
 import (
-	"crypto/tls"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	_ "embed"
-
-	clientv3 "go.etcd.io/etcd/client/v3"
-	"go.etcd.io/etcd/pkg/transport"
-
+	"github.com/cockroachdb/errors"
 	"github.com/dustin/go-humanize"
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/log"
+	"github.com/mcuadros/go-defaults"
+	"github.com/projecteru2/yavirt/internal/utils/notify/bison"
 	"github.com/projecteru2/yavirt/pkg/netx"
+	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/urfave/cli/v2"
+
+	coretypes "github.com/projecteru2/core/types"
+	vmitypes "github.com/yuyang0/vmimage/types"
 )
 
 var (
-	//go:embed default-config.toml
-	DefaultTemplate string
-	Conf            = newDefault()
+	Conf = newDefault()
 )
 
 type sizeType int64
 type subnetType int64
 
-type CoreConfig struct {
-	Addrs               []string `toml:"addrs"`
-	Username            string   `toml:"username"`
-	Password            string   `toml:"password"`
-	StatusCheckInterval Duration `toml:"status_check_interval"`
-	NodeStatusTTL       Duration `toml:"nodestatus_ttl"`
-	Nodename            string   `toml:"nodename"`
-}
-
 func (a *sizeType) UnmarshalText(text []byte) error {
+	if len(text) == 0 {
+		return nil
+	}
 	var err error
 	i, err := humanize.ParseBytes(string(text))
 	if err != nil {
@@ -60,90 +51,225 @@ func (a *subnetType) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// HealthCheckConfig contain healthcheck config
+type HealthCheckConfig struct {
+	Interval             int   `toml:"interval" default:"60"`
+	Timeout              int   `toml:"timeout" default:"10"`
+	CacheTTL             int64 `toml:"cache_ttl" default:"300"`
+	EnableDefaultChecker bool  `toml:"enable_default_checker" default:"true"`
+}
+
+// Config contain all configs
+type EruConfig struct {
+	Enable   bool     `toml:"enable" default:"true"`
+	Addrs    []string `toml:"addrs"`
+	Username string   `toml:"username"`
+	Password string   `toml:"password"`
+	Podname  string   `toml:"podname" default:"virt"`
+
+	Hostname          string   `toml:"-"`
+	HeartbeatInterval int      `toml:"heartbeat_interval" default:"60"`
+	Labels            []string `toml:"labels"` // node labels
+
+	CheckOnlyMine bool `toml:"check_only_mine" default:"false"`
+
+	HealthCheck HealthCheckConfig `toml:"healthcheck"`
+
+	GlobalConnectionTimeout time.Duration `toml:"global_connection_timeout" default:"5s"`
+}
+
+// GetHealthCheckStatusTTL returns the TTL for health check status.
+// Because selfmon is integrated in eru-core, so there returns 0.
+func (config *EruConfig) GetHealthCheckStatusTTL() int64 {
+	return 0
+}
+
 type HostConfig struct {
-	Name        string     `json:"name" toml:"name"`
-	Addr        string     `json:"addr" toml:"addr"`
-	Type        string     `json:"type" toml:"type"`
-	Subnet      subnetType `json:"subnet" toml:"subnet"`
-	CPU         int        `json:"cpu" toml:"cpu"`
-	Memory      sizeType   `json:"memory" toml:"memory"`
-	Storage     sizeType   `json:"storage" toml:"storage"`
-	NetworkMode string     `json:"network,omitempty" toml:"network"`
+	ID      uint32     `json:"id" toml:"id"`
+	Name    string     `json:"name" toml:"name"`
+	Addr    string     `json:"addr" toml:"addr"`
+	Type    string     `json:"type" toml:"type"`
+	Subnet  subnetType `json:"subnet" toml:"subnet"`
+	CPU     int        `json:"cpu" toml:"cpu"`
+	Memory  sizeType   `json:"memory" toml:"memory"`
+	Storage sizeType   `json:"storage" toml:"storage"`
+}
+
+type ETCDConfig struct {
+	Prefix    string   `toml:"prefix" default:"/yavirt/v1"`
+	Endpoints []string `toml:"endpoints" default:"[http://127.0.0.1:2379]"`
+	Username  string   `toml:"username"`
+	Password  string   `toml:"password"`
+	CA        string   `toml:"ca"`
+	Key       string   `toml:"key"`
+	Cert      string   `toml:"cert"`
+}
+
+type CalicoConfig struct {
+	ConfigFile   string   `toml:"config_file" default:"/etc/calico/calicoctl.cfg"`
+	Nodename     string   `toml:"nodename"`
+	PoolNames    []string `toml:"pools" default:"[clouddev]"`
+	GatewayName  string   `toml:"gateway" default:"yavirt-cali-gw"`
+	ETCDEnv      string   `toml:"etcd_env" default:"ETCD_ENDPOINTS"`
+	IFNamePrefix string   `toml:"ifname_prefix" default:"cali"`
+}
+
+func (c *CalicoConfig) Check() error {
+	if len(c.ConfigFile) == 0 && len(os.Getenv(c.ETCDEnv)) == 0 {
+		return errors.New("either config_file or etcd_env must be set")
+	}
+	return nil
+}
+
+type CNIConfig struct {
+	PluginPath   string `toml:"plugin_path" default:"/usr/bin/yavirt-cni"`
+	ConfigPath   string `toml:"config_path" default:"/etc/cni/net.d/yavirt-cni.conf"`
+	IFNamePrefix string `toml:"ifname_prefix" default:"yap"`
+}
+
+func (c *CNIConfig) Check() error {
+	if c.PluginPath == "" || c.ConfigPath == "" {
+		return errors.New("cni config must be set")
+	}
+	return nil
+}
+
+type VlanConfig struct {
+	Subnet       subnetType `json:"subnet" toml:"subnet"`
+	IFNamePrefix string     `toml:"ifname_prefix" default:"yap"`
+}
+
+func (c *VlanConfig) Check() error {
+	return nil
+}
+
+type OVNConfig struct {
+	NBAddrs      []string `toml:"nb_addrs" default:"[tcp:127.0.0.1:6641]"`
+	OVSDBAddr    string   `toml:"ovsdb_addr" default:"unix:/var/run/openvswitch/db.sock"`
+	IFNamePrefix string   `toml:"ifname_prefix" default:"yap"`
+}
+
+func (c *OVNConfig) Check() error {
+	if len(c.NBAddrs) == 0 || c.OVSDBAddr == "" {
+		return errors.New("ovn config must be set")
+	}
+	return nil
+}
+
+type NetworkConfig struct {
+	Modes       []string     `toml:"modes" default:"[calico]"` // supported network modes
+	DefaultMode string       `toml:"default_mode" default:"calico"`
+	Calico      CalicoConfig `toml:"calico"`
+	CNI         CNIConfig    `toml:"cni"`
+	Vlan        VlanConfig   `toml:"vlan"`
+	OVN         OVNConfig    `toml:"ovn"`
+}
+
+type CephConfig struct {
+	MonitorAddrs []string `toml:"monitor_addrs"`
+	Username     string   `toml:"username" default:"eru"`
+	SecretUUID   string   `toml:"secret_uuid"`
+}
+
+type LocalConfig struct {
+	Dir string `toml:"dir"`
+}
+
+type StorageConfig struct {
+	InitGuestVolume bool        `toml:"init_guest_volume"`
+	Ceph            CephConfig  `toml:"ceph"`
+	Local           LocalConfig `toml:"local"`
+}
+
+type ResourceConfig struct {
+	MinCPU          int      `toml:"min_cpu" default:"1"`
+	MaxCPU          int      `toml:"max_cpu" default:"112"`
+	MinMemory       int64    `toml:"min_memory" default:"536870912"`        // default: 512M
+	MaxMemory       int64    `toml:"max_memory" default:"549755813888"`     // default: 512G
+	ReservedMemory  int64    `toml:"reserved_memory" default:"10737418240"` // default: 10GB
+	MinVolumeCap    int64    `toml:"min_volume" default:"1073741824"`
+	MaxVolumeCap    int64    `toml:"max_volume" default:"1099511627776"`
+	MaxVolumesCount int      `toml:"max_volumes_count" default:"8"`
+	Bandwidth       int64    `toml:"bandwidth" default:"50000000000"`
+	ExcludePCIs     []string `toml:"exclude_pcis"`
+
+	GPUProductMap map[string]string `toml:"gpu_product_map"`
+}
+
+type VMAuthConfig struct {
+	Username string `toml:"username" default:"root"`
+	Password string `toml:"password" default:"root"`
+}
+
+type LogConfig struct {
+	Level     string `toml:"level" default:"info"`
+	UseJSON   bool   `toml:"use_json"`
+	SentryDSN string `toml:"sentry_dsn"`
+	Verbose   bool   `toml:"verbose"`
+	// for file log
+	Filename   string `toml:"filename"`
+	MaxSize    int    `toml:"maxsize" default:"500"`
+	MaxAge     int    `toml:"max_age" default:"28"`
+	MaxBackups int    `toml:"max_backups" default:"3"`
 }
 
 // Config .
 type Config struct {
-	Env string `toml:"env"`
-	// host-related config
-	Host HostConfig `toml:"host"`
-	Core CoreConfig `toml:"core"`
+	Env      string `toml:"env" default:"dev"`
+	CertPath string `toml:"cert_path" default:"/etc/eru/tls"`
 
-	ProfHTTPPort           int      `toml:"prof_http_port"`
-	BindHTTPAddr           string   `toml:"bind_http_addr"`
-	BindGRPCAddr           string   `toml:"bind_grpc_addr"`
+	MaxConcurrency         int      `toml:"max_concurrency" default:"100000"`
+	ProfHTTPPort           int      `toml:"prof_http_port" default:"9999"`
+	BindHTTPAddr           string   `toml:"bind_http_addr" default:"0.0.0.0:9696"`
+	BindGRPCAddr           string   `toml:"bind_grpc_addr" default:"0.0.0.0:9697"`
 	SkipGuestReportRegexps []string `toml:"skip_guest_report_regexps"`
-	EnabledCalicoCNI       bool     `toml:"enabled_calico_cni"`
-	CNIPluginPath          string   `toml:"cni_plugin_path"`
-	CNIConfigPath          string   `toml:"cni_config_path"`
+	EnableLibvirtMetrics   bool     `toml:"enable_libvirt_metrics"`
 
-	VirtTimeout        Duration `toml:"virt_timeout"`
-	GracefulTimeout    Duration `toml:"graceful_timeout"`
-	HealthCheckTimeout Duration `toml:"health_check_timeout"`
-	QMPConnectTimeout  Duration `toml:"qmp_connect_timeout"`
+	VirtTimeout        time.Duration `toml:"virt_timeout" default:"60m"`
+	GracefulTimeout    time.Duration `toml:"graceful_timeout" default:"20s"`
+	HealthCheckTimeout time.Duration `toml:"health_check_timeout" default:"2s"`
+	QMPConnectTimeout  time.Duration `toml:"qmp_connect_timeout" default:"8s"`
+	MemStatsPeriod     int           `toml:"mem_stats_period" default:"10"` // in seconds
 
-	ImageHubDomain    string `toml:"image_hub_domain"`
-	ImageHubNamespace string `toml:"image_hub_namespace"`
+	GADiskTimeout time.Duration `toml:"ga_disk_timeout" default:"16m"`
+	GABootTimeout time.Duration `toml:"ga_boot_timeout" default:"30m"`
 
-	GADiskTimeout Duration `toml:"ga_disk_timeout"`
-	GABootTimeout Duration `toml:"ga_boot_timeout"`
+	ResizeVolumeMinRatio float64 `toml:"resize_volume_min_ratio" default:"0.001"`
+	ResizeVolumeMinSize  int64   `toml:"resize_volume_min_size" default:"1073741824"` // default 1GB
 
-	ResizeVolumeMinRatio float64 `toml:"resize_volume_min_ratio"`
-	ResizeVolumeMinSize  int64   `toml:"resize_volume_min_size"`
+	MaxSnapshotsCount     int `toml:"max_snapshots_count" default:"30"`
+	SnapshotRestorableDay int `toml:"snapshot_restorable_days" default:"7"`
 
-	MinCPU                int   `toml:"min_cpu"`
-	MaxCPU                int   `toml:"max_cpu"`
-	MinMemory             int64 `toml:"min_memory"`
-	MaxMemory             int64 `toml:"max_memory"`
-	MinVolumeCap          int64 `toml:"min_volume"`
-	MaxVolumeCap          int64 `toml:"max_volume"`
-	MaxVolumesCount       int   `toml:"max_volumes_count"`
-	MaxSnapshotsCount     int   `toml:"max_snapshots_count"`
-	SnapshotRestorableDay int   `toml:"snapshot_restorable_days"`
+	MetaTimeout time.Duration `toml:"meta_timeout" default:"1m"`
+	MetaType    string        `toml:"meta_type" default:"etcd"`
 
-	CalicoConfigFile  string   `toml:"calico_config_file"`
-	CalicoPoolNames   []string `toml:"calico_pools"`
-	CalicoGatewayName string   `toml:"calico_gateway"`
-	CalicoETCDEnv     string   `toml:"calico_etcd_env"`
-
-	MetaTimeout Duration `toml:"meta_timeout"`
-	MetaType    string   `toml:"meta_type"`
-
-	VirtDir                 string `toml:"virt_dir"`
+	VirtDir                 string `toml:"virt_dir" default:"/opt/yavirtd"`
 	VirtFlockDir            string `toml:"virt_flock_dir"`
 	VirtTmplDir             string `toml:"virt_temp_dir"`
-	VirtSockDir             string `toml:"virt_sock_dir"`
-	VirtBridge              string `toml:"virt_bridge"`
-	VirtCPUCachePassthrough bool   `toml:"virt_cpu_cache_passthrough"`
-
-	LogLevel  string `toml:"log_level"`
-	LogFile   string `toml:"log_file"`
-	LogSentry string `toml:"log_sentry"`
-
-	EtcdPrefix    string   `toml:"etcd_prefix"`
-	EtcdEndpoints []string `toml:"etcd_endpoints"`
-	EtcdUsername  string   `toml:"etcd_username"`
-	EtcdPassword  string   `toml:"etcd_password"`
-	EtcdCA        string   `toml:"etcd_ca"`
-	EtcdKey       string   `toml:"etcd_key"`
-	EtcdCert      string   `toml:"etcd_cert"`
+	VirtCloudInitDir        string `toml:"virt_cloud_init_dir"`
+	VirtBridge              string `toml:"virt_bridge" default:"yavirbr0"`
+	VirtCPUCachePassthrough bool   `toml:"virt_cpu_cache_passthrough" default:"true"`
 
 	Batches []*Batch `toml:"batches"`
 
 	// system recovery
-	RecoveryOn            bool     `toml:"recovery_on"`
-	RecoveryMaxRetries    int      `toml:"recovery_max_retries"`
-	RecoveryRetryInterval Duration `toml:"recovery_retry_interval"`
-	RecoveryInterval      Duration `toml:"recovery_interval"`
+	RecoveryOn            bool          `toml:"recovery_on"`
+	RecoveryMaxRetries    int           `toml:"recovery_max_retries" default:"2"`
+	RecoveryRetryInterval time.Duration `toml:"recovery_retry_interval" default:"3m"`
+	RecoveryInterval      time.Duration `toml:"recovery_interval" default:"10m"`
+
+	// host-related config
+	Host     HostConfig           `toml:"host"`
+	Eru      EruConfig            `toml:"eru"`
+	Etcd     ETCDConfig           `toml:"etcd"`
+	Network  NetworkConfig        `toml:"network"`
+	Storage  StorageConfig        `toml:"storage"`
+	Resource ResourceConfig       `toml:"resource"`
+	ImageHub vmitypes.Config      `toml:"image_hub"`
+	Auth     coretypes.AuthConfig `toml:"auth"` // grpc auth
+	VMAuth   VMAuthConfig         `toml:"vm_auth"`
+	Log      LogConfig            `toml:"log"`
+	Notify   bison.Config         `toml:"notify"`
 }
 
 func Hostname() string {
@@ -151,12 +277,9 @@ func Hostname() string {
 }
 
 func newDefault() Config {
-	var conf Config
-	if err := Decode(DefaultTemplate, &conf); err != nil {
-		log.FatalStack(err)
-	}
-
-	return conf
+	conf := new(Config)
+	defaults.SetDefaults(conf)
+	return *conf
 }
 
 // Dump .
@@ -165,10 +288,10 @@ func (cfg *Config) Dump() (string, error) {
 }
 
 // Load .
-func (cfg *Config) Load(files []string) error {
+func (cfg *Config) Load(files ...string) error {
 	for _, path := range files {
 		if err := DecodeFile(path, cfg); err != nil {
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		}
 	}
 	return nil
@@ -193,22 +316,39 @@ func (cfg *Config) Prepare(c *cli.Context) (err error) {
 	}
 
 	if c.String("log-level") != "" {
-		cfg.LogLevel = c.String("log-level")
+		cfg.Log.Level = c.String("log-level")
 	}
 
 	if len(c.StringSlice("core-addrs")) > 0 {
-		cfg.Core.Addrs = c.StringSlice("core-addrs")
+		cfg.Eru.Addrs = c.StringSlice("core-addrs")
 	}
 	if c.String("core-username") != "" {
-		cfg.Core.Username = c.String("core-username")
+		cfg.Eru.Username = c.String("core-username")
 	}
 	if c.String("core-password") != "" {
-		cfg.Core.Password = c.String("core-password")
+		cfg.Eru.Password = c.String("core-password")
 	}
 	// prepare ETCD_ENDPOINTS(Calico needs this environment variable)
-	if len(cfg.EtcdEndpoints) > 0 {
-		if err = os.Setenv("ETCD_ENDPOINTS", strings.Join(cfg.EtcdEndpoints, ",")); err != nil {
+	if !utils.FileExists(cfg.Network.Calico.ConfigFile) {
+		cfg.Network.Calico.ConfigFile = ""
+	}
+	if cfg.Network.Calico.Nodename == "" {
+		cfg.Network.Calico.Nodename = cfg.Host.Name
+	}
+	if len(cfg.Etcd.Endpoints) > 0 {
+		if err = os.Setenv(cfg.Network.Calico.ETCDEnv, strings.Join(cfg.Etcd.Endpoints, ",")); err != nil {
 			return err
+		}
+	}
+	if cfg.CertPath != "" {
+		if cfg.Etcd.CA == "" {
+			cfg.Etcd.CA = filepath.Join(cfg.CertPath, "etcd", "ca.pem")
+		}
+		if cfg.Etcd.Cert == "" {
+			cfg.Etcd.Cert = filepath.Join(cfg.CertPath, "etcd", "cert.pem")
+		}
+		if cfg.Etcd.Key == "" {
+			cfg.Etcd.Key = filepath.Join(cfg.CertPath, "etcd", "key.pem")
 		}
 	}
 
@@ -219,69 +359,75 @@ func (cfg *Config) Prepare(c *cli.Context) (err error) {
 	if cfg.Host.Name == "" {
 		return errors.New("Hostname must be provided")
 	}
-	if len(cfg.Core.Addrs) == 0 {
+	// Network
+	if err := cfg.checkNetwork(); err != nil {
+		return err
+	}
+	// eru
+	if len(cfg.Eru.Addrs) == 0 {
 		return errors.New("Core addresses are needed")
 	}
-
+	cfg.Eru.Hostname = cfg.Host.Name
+	if err := cfg.ImageHub.CheckAndRefine(); err != nil {
+		return err
+	}
 	return cfg.loadVirtDirs()
+}
+
+func (cfg *Config) checkNetwork() error {
+	if len(cfg.Network.Modes) == 0 {
+		return errors.New("Network modes must be provided")
+	}
+	if cfg.Network.DefaultMode == "" {
+		cfg.Network.DefaultMode = cfg.Network.Modes[0]
+	}
+	var found bool
+	for _, mode := range cfg.Network.Modes {
+		if mode == cfg.Network.DefaultMode {
+			found = true
+			break
+		}
+		switch mode {
+		case "cni":
+			if err := cfg.Network.CNI.Check(); err != nil {
+				return err
+			}
+		case "calico":
+			if err := cfg.Network.Calico.Check(); err != nil {
+				return err
+			}
+		case "ovn":
+			if err := cfg.Network.OVN.Check(); err != nil {
+				return err
+			}
+		case "vlan":
+			if err := cfg.Network.Vlan.Check(); err != nil {
+				return err
+			}
+		default:
+			return errors.New("Invalid network mode")
+		}
+	}
+	if !found {
+		return errors.New("Invalid default network mode")
+	}
+	return nil
 }
 
 func (cfg *Config) loadVirtDirs() error {
 	cfg.VirtFlockDir = filepath.Join(cfg.VirtDir, "flock")
 	cfg.VirtTmplDir = filepath.Join(cfg.VirtDir, "template")
-	cfg.VirtSockDir = filepath.Join(cfg.VirtDir, "sock")
+	cfg.VirtCloudInitDir = filepath.Join(cfg.VirtDir, "cloud-init")
+
 	// ensure directories
-	for _, d := range []string{cfg.VirtFlockDir, cfg.VirtTmplDir, cfg.VirtSockDir} {
+	for _, d := range []string{cfg.VirtFlockDir, cfg.VirtTmplDir, cfg.VirtCloudInitDir} {
+		if err := os.MkdirAll(d, 0755); err != nil && !os.IsExist(err) {
+			return err
+		}
 		err := os.MkdirAll(d, 0755)
 		if err != nil && !os.IsExist(err) {
 			return err
 		}
 	}
 	return nil
-}
-
-// NewEtcdConfig .
-func (cfg *Config) NewEtcdConfig() (etcdcnf clientv3.Config, err error) {
-	etcdcnf.Endpoints = cfg.EtcdEndpoints
-	etcdcnf.Username = cfg.EtcdUsername
-	etcdcnf.Password = cfg.EtcdPassword
-	etcdcnf.TLS, err = cfg.newEtcdTLSConfig()
-	return
-}
-
-func (cfg *Config) newEtcdTLSConfig() (*tls.Config, error) {
-	if len(cfg.EtcdCA) < 1 || len(cfg.EtcdKey) < 1 || len(cfg.EtcdCert) < 1 {
-		return nil, nil //nolint
-	}
-
-	return transport.TLSInfo{
-		TrustedCAFile: cfg.EtcdCA,
-		KeyFile:       cfg.EtcdKey,
-		CertFile:      cfg.EtcdCert,
-	}.ClientConfig()
-}
-
-// CoreGuestStatusTTL .
-func (cfg *Config) CoreGuestStatusTTL() time.Duration {
-	return 3 * cfg.Core.StatusCheckInterval.Duration() //nolint:gomnd // TTL is 3 times the interval
-}
-
-// CoreGuestStatusCheckInterval .
-func (cfg *Config) CoreGuestStatusCheckInterval() time.Duration {
-	return cfg.Core.StatusCheckInterval.Duration()
-}
-
-// CoreGRPCTimeout .
-func (cfg *Config) CoreGRPCTimeout() time.Duration {
-	return cfg.CoreStatusReportInterval() / 3 //nolint:gomnd // report timeout 3 times per interval
-}
-
-// CoreStatusReportInterval .
-func (cfg *Config) CoreStatusReportInterval() time.Duration {
-	return cfg.Core.StatusCheckInterval.Duration() / 3 //nolint:gomnd // report 3 times every check
-}
-
-// HasImageHub indicates whether the config has ImageHub configurations.
-func (cfg *Config) HasImageHub() bool {
-	return len(cfg.ImageHubDomain) > 0 && len(cfg.ImageHubNamespace) > 0
 }

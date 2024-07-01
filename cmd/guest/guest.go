@@ -4,13 +4,10 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/projecteru2/yavirt/cmd/run"
-	"github.com/projecteru2/yavirt/internal/models"
 )
 
 // Command .
 func Command() *cli.Command {
-	models.Setup()
-
 	return &cli.Command{
 		Name: "guest",
 		Subcommands: []*cli.Command{
@@ -21,7 +18,7 @@ func Command() *cli.Command {
 			{
 				Name:   "list",
 				Flags:  listFlags(),
-				Action: run.Run(list),
+				Action: run.Run(listCmd),
 			},
 			{
 				Name:   "create",
@@ -30,6 +27,7 @@ func Command() *cli.Command {
 			},
 			{
 				Name:   "start",
+				Flags:  controlFlags(),
 				Action: run.Run(start),
 			},
 			{
@@ -42,18 +40,18 @@ func Command() *cli.Command {
 			},
 			{
 				Name:   "stop",
-				Flags:  stopFlags(),
+				Flags:  controlFlags(),
 				Action: run.Run(stop),
 			},
 			{
 				Name:   "destroy",
-				Flags:  destroyFlags(),
+				Flags:  controlFlags(),
 				Action: run.Run(destroy),
 			},
 			{
-				Name:   "forward",
-				Flags:  forwardFlags(),
-				Action: run.Run(forward),
+				Name:   "exec",
+				Flags:  execFlags(),
+				Action: run.Run(exec),
 			},
 			{
 				Name:   "resize",

@@ -1,13 +1,21 @@
 package image
 
 import (
+	"context"
 	"fmt"
+	"io"
+	"os"
+	"time"
 
+	"github.com/ceph/go-ceph/rados"
+	"github.com/ceph/go-ceph/rbd"
 	"github.com/urfave/cli/v2"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/cmd/run"
-	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/configs"
+	"github.com/projecteru2/yavirt/internal/utils"
+	vmiFact "github.com/yuyang0/vmimage/factory"
 )
 
 // Command .
@@ -22,12 +30,10 @@ func Command() *cli.Command {
 			},
 			{
 				Name:   "get",
-				Flags:  getFlags(),
 				Action: run.Run(get),
 			},
 			{
 				Name:   "rm",
-				Flags:  rmFlags(),
 				Action: run.Run(rm),
 			},
 			{
@@ -41,6 +47,12 @@ func Command() *cli.Command {
 				Flags:  digestFlags(),
 				Action: run.Run(digest),
 			},
+			{
+				Name:   "rbd",
+				Usage:  "",
+				Flags:  rbdFlags(),
+				Action: run.Run(rbdAction),
+			},
 		},
 	}
 }
@@ -50,23 +62,6 @@ func listFlags() []cli.Flag {
 		&cli.StringFlag{
 			Name:  "user",
 			Usage: "the owner of an image",
-		},
-	}
-}
-
-func rmFlags() []cli.Flag {
-	return []cli.Flag{
-		&cli.StringFlag{
-			Name:  "user",
-			Usage: "the owner of an image",
-		},
-	}
-}
-
-func getFlags() []cli.Flag {
-	return []cli.Flag{
-		&cli.StringFlag{
-			Name: "user",
 		},
 	}
 }
@@ -95,14 +90,24 @@ func digestFlags() []cli.Flag {
 	}
 }
 
+func rbdFlags() []cli.Flag {
+	return []cli.Flag{
+		&cli.BoolFlag{
+			Name:  "update",
+			Usage: "update rbd for image",
+			Value: false,
+		},
+	}
+}
+
 func list(c *cli.Context, _ run.Runtime) error {
-	imgs, err := models.ListImages(c.String("user"))
+	imgs, err := vmiFact.ListLocalImages(c.Context, c.String("user"))
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	for _, img := range imgs {
-		fmt.Printf("%s\n", img)
+		fmt.Printf("%s\n", img.Fullname())
 	}
 
 	return nil
@@ -113,13 +118,12 @@ func get(c *cli.Context, _ run.Runtime) error {
 	if len(name) < 1 {
 		return errors.New("image name is required")
 	}
-
-	img, err := models.LoadImage(name, c.String("user"))
+	img, err := vmiFact.LoadImage(c.Context, name)
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
-	fmt.Printf("image: %s, user: %s, filepath: %s\n", img.GetName(), img.GetUser(), img.Filepath())
+	fmt.Printf("image: %s, filepath: %s\n", img.Fullname(), img.Filepath())
 
 	return nil
 }
@@ -135,24 +139,31 @@ func add(c *cli.Context, _ run.Runtime) error {
 	case size < 1:
 		return errors.New("--size is required")
 	}
-
-	img := models.NewSysImage()
-	img.Name = name
-	img.Size = size
-
-	if err := img.Create(); err != nil {
-		return errors.Trace(err)
-
+	img, err := vmiFact.NewImage(name)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("*** Prepare image\n")
+	if rc, err := vmiFact.Prepare(filePath, img); err != nil {
+		return errors.Wrap(err, "")
+	} else { //nolint
+		defer rc.Close()
+		if _, err := io.Copy(os.Stdout, rc); err != nil {
+			return errors.Wrap(err, "")
+		}
 	}
 
-	fmt.Printf("image %s created\n", img.Name)
-
-	if len(filePath) > 0 {
-		// TODO: add image with file to check hash
-		// TODO: or download hash from image-hub
-		return nil
+	fmt.Printf("*** Push image\n")
+	if rc, err := vmiFact.Push(c.Context, img, false); err != nil {
+		return errors.Wrap(err, "")
+	} else { //nolint
+		defer rc.Close()
+		if _, err = io.Copy(os.Stdout, rc); err != nil {
+			return errors.Wrap(err, "")
+		}
 	}
 
+	fmt.Printf("image %s created\n", img.Fullname())
 	return nil
 }
 
@@ -162,17 +173,16 @@ func rm(c *cli.Context, _ run.Runtime) error {
 		return errors.New("image name is required")
 	}
 
-	user := c.String("user")
-	img, err := models.LoadImage(name, user)
+	img, err := vmiFact.LoadImage(c.Context, name)
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
-	if err := img.Delete(); err != nil {
-		return errors.Trace(err)
+	if err := vmiFact.RemoveLocal(c.Context, img); err != nil {
+		return errors.Wrap(err, "")
 	}
 
-	fmt.Printf("%s has been deleted\n", img)
+	fmt.Printf("%s has been deleted\n", img.Fullname())
 
 	return nil
 }
@@ -188,22 +198,78 @@ func digest(c *cli.Context, _ run.Runtime) error {
 		return nil
 	}
 
-	img, err := models.LoadSysImage(name)
+	img, err := vmiFact.LoadImage(c.Context, name)
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
-	if len(img.Hash) > 0 {
-		fmt.Printf("hash of %s: %s\n", img.Name, img.Hash)
-		return nil
-	}
+	fmt.Printf("hash of %s: %s\n", img.Fullname(), img.GetDigest())
 
-	hash, err := img.UpdateHash()
+	return nil
+}
+
+func createAndProtectSnapshot(pool, imgName, snapName string, update bool) error {
+	conn, err := rados.NewConnWithUser(configs.Conf.Storage.Ceph.Username)
 	if err != nil {
-		return errors.Trace(err)
+		return err
+	}
+	if err := conn.ReadDefaultConfigFile(); err != nil {
+		return err
+	}
+	if err := conn.Connect(); err != nil {
+		return err
+	}
+	defer conn.Shutdown()
+	ctx, err := conn.OpenIOContext(pool)
+	if err != nil {
+		return err
+	}
+	defer ctx.Destroy()
+
+	rbdImage, err := rbd.OpenImage(ctx, imgName, rbd.NoSnapshot)
+	if err != nil {
+		return err
+	}
+	if update {
+		// rename snapshot
+		oldSnap := rbdImage.GetSnapshot(snapName)
+		oldName := fmt.Sprintf("%s_%d", snapName, time.Now().UnixNano())
+		if err := oldSnap.Rename(oldName); err != nil {
+			return err
+		}
+	}
+	snapshot, err := rbdImage.CreateSnapshot(snapName)
+	if err != nil {
+		return err
+	}
+	return snapshot.Protect()
+}
+
+func rbdAction(c *cli.Context, _ run.Runtime) error {
+	name := c.Args().First()
+	if len(name) < 1 {
+		return errors.New("image name is required")
 	}
 
-	fmt.Printf("hash of %s: %s\n", img.Name, hash)
+	img, err := vmiFact.LoadImage(c.Context, name)
+	if err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	rbdDisk := fmt.Sprintf("rbd:eru/%s:id=%s", img.RBDName(), configs.Conf.Storage.Ceph.Username)
+	if c.Bool("update") {
+		if err := utils.ForceWriteBLK(context.TODO(), img.Filepath(), rbdDisk); err != nil {
+			return errors.Wrap(err, "")
+		}
+	} else {
+		if err := utils.WriteBLK(context.TODO(), img.Filepath(), rbdDisk, true); err != nil {
+			return errors.Wrap(err, "")
+		}
+	}
+	if err = createAndProtectSnapshot("eru", img.RBDName(), "latest", c.Bool("update")); err != nil {
+		return errors.Wrap(err, "")
+	}
+	fmt.Printf("write %s to %s successfully", name, rbdDisk)
 
 	return nil
 }

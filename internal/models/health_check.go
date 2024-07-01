@@ -8,15 +8,16 @@ import (
 
 	erucluster "github.com/projecteru2/core/cluster"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/internal/meta"
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 func (g *Guest) healthCheckBridge() (*HealthCheckBridge, error) {
 	raw, exists := g.JSONLabels[erucluster.LabelMeta]
 	if !exists {
-		return nil, errors.Annotatef(errors.ErrKeyNotExists, "no such label: %s", erucluster.LabelMeta)
+		return nil, errors.Wrapf(terrors.ErrKeyNotExists, "no such label: %s", erucluster.LabelMeta)
 	}
 
 	hcb := &HealthCheckBridge{}

@@ -5,8 +5,9 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	"github.com/cockroachdb/errors"
+	"github.com/projecteru2/libyavirt/types"
 	"github.com/projecteru2/yavirt/cmd/run"
-	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
 func listSnapshotFlags() []cli.Flag {
@@ -68,18 +69,18 @@ func listSnapshot(c *cli.Context, runtime run.Runtime) error {
 		}
 	}
 
-	volSnap, err := runtime.Guest.ListSnapshot(runtime.VirtContext(), id, volID)
+	req := types.ListSnapshotReq{
+		ID:    id,
+		VolID: volID,
+	}
+	volSnap, err := runtime.Svc.ListSnapshot(runtime.Ctx, req)
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
-	for vol, snaps := range volSnap {
-		fmt.Printf("Vol: %s\n", vol)
-		fmt.Printf("Total: %d snapshot(s)\n", len(snaps))
-		for _, s := range snaps {
-			fmt.Printf("%s\n", s)
-		}
-		fmt.Println()
+	fmt.Printf("Total: %d snapshot(s)\n", len(volSnap))
+	for _, snap := range volSnap {
+		fmt.Printf("%v\n", snap)
 	}
 
 	return nil
@@ -97,7 +98,11 @@ func createSnapshot(c *cli.Context, runtime run.Runtime) error {
 		return errors.New("Volume ID is required")
 	}
 
-	return runtime.Guest.CreateSnapshot(runtime.VirtContext(), id, volID)
+	req := types.CreateSnapshotReq{
+		ID:    id,
+		VolID: volID,
+	}
+	return runtime.Svc.CreateSnapshot(runtime.Ctx, req)
 }
 
 func commitSnapshot(c *cli.Context, runtime run.Runtime) error {
@@ -121,9 +126,14 @@ func commitSnapshot(c *cli.Context, runtime run.Runtime) error {
 	}
 
 	if len(snapID) > 0 {
-		return runtime.Guest.CommitSnapshot(runtime.VirtContext(), id, volID, snapID)
+		req := types.CommitSnapshotReq{
+			ID:     id,
+			VolID:  volID,
+			SnapID: snapID,
+		}
+		return runtime.Svc.CommitSnapshot(runtime.Ctx, req)
 	}
-	return runtime.Guest.CommitSnapshotByDay(runtime.VirtContext(), id, volID, day)
+	return runtime.Svc.CommitSnapshotByDay(runtime.Ctx, id, volID, day)
 
 }
 
@@ -144,5 +154,10 @@ func restoreSnapshot(c *cli.Context, runtime run.Runtime) error {
 		return errors.New("Snapshot ID is required")
 	}
 
-	return runtime.Guest.RestoreSnapshot(runtime.VirtContext(), id, volID, snapID)
+	req := types.RestoreSnapshotReq{
+		ID:     id,
+		VolID:  volID,
+		SnapID: snapID,
+	}
+	return runtime.Svc.RestoreSnapshot(runtime.Ctx, req)
 }

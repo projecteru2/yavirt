@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/internal/virt/agent/types"
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
@@ -19,7 +20,7 @@ func (a *Agent) GetDiskfree(ctx context.Context, mnt string) (*types.Diskfree, e
 	st := <-a.ExecOutput(ctx, "df", "-k", mnt)
 	so, _, err := st.Stdio()
 	if err != nil {
-		return nil, errors.Annotatef(err, "df %s failed", mnt)
+		return nil, errors.Wrapf(err, "df %s failed", mnt)
 	}
 	return a.parseDiskfree(string(so))
 }
@@ -30,7 +31,7 @@ func (a *Agent) parseDiskfree(so string) (*types.Diskfree, error) {
 
 	fields := dfRegex.FindStringSubmatch(line)
 	if len(fields) != 7 {
-		return nil, errors.Annotatef(errors.ErrInvalidValue, "invalid df: %s", so)
+		return nil, errors.Wrapf(terrors.ErrInvalidValue, "invalid df: %s", so)
 	}
 
 	df := &types.Diskfree{
@@ -38,10 +39,10 @@ func (a *Agent) parseDiskfree(so string) (*types.Diskfree, error) {
 		Filesystem: fields[1],
 		Mount:      fields[6],
 	}
-	df.Blocks, _ = utils.Atoi64(fields[2])          //nolint
-	df.UsedBlocks, _ = utils.Atoi64(fields[3])      //nolint
-	df.AvailableBlocks, _ = utils.Atoi64(fields[4]) //nolint
-	df.UsedPercent, _ = strconv.Atoi(fields[5])     //nolint
+	df.Blocks, _ = utils.Atoi64(fields[2])
+	df.UsedBlocks, _ = utils.Atoi64(fields[3])
+	df.AvailableBlocks, _ = utils.Atoi64(fields[4])
+	df.UsedPercent, _ = strconv.Atoi(fields[5])
 
 	return df, nil
 }

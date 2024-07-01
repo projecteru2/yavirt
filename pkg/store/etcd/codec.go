@@ -1,14 +1,14 @@
 package etcd
 
 import (
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 func encode(v any) (string, error) { //nolint
 	var buf, err = utils.JSONEncode(v, "\t")
 	if err != nil {
-		return "", errors.Trace(err)
+		return "", errors.Wrap(err, "")
 	}
 	return string(buf), nil
 }

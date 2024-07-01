@@ -1,12 +1,20 @@
+ifeq ($(CN), 1)
+ENV := GOPROXY=https://goproxy.cn,direct
+endif
+
 NS := github.com/projecteru2/yavirt
 BUILD := go build -race
-TEST := go test -count=1 -race -cover
+TEST := go test -count=1 -race -cover -gcflags=all=-l
 
-LDFLAGS += -X "$(NS)/internal/ver.Git=$(shell git rev-parse HEAD)"
-LDFLAGS += -X "$(NS)/internal/ver.Compile=$(shell go version)"
-LDFLAGS += -X "$(NS)/internal/ver.Date=$(shell date +'%F %T %z')"
+REVISION := $(shell git rev-parse HEAD || unknown)
+BUILTAT := $(shell date +%Y-%m-%dT%H:%M:%S)
+VERSION := $(shell git describe --tags $(shell git rev-list --tags --max-count=1))
 
-PKGS := $$(go list ./... | grep -v -P '$(NS)/third_party|vendor/')
+LDFLAGS += -X "$(NS)/internal/ver.REVISION=$(REVISION)"
+LDFLAGS += -X "$(NS)/internal/ver.BUILTAT=$(BUILTAT)"
+LDFLAGS += -X "$(NS)/internal/ver.VERSION=$(VERSION)"
+
+PKGS := $$(go list ./... | grep -v -P '$(NS)/third_party|vendor/|mocks|ovn')
 
 .PHONY: all test build setup
 
@@ -20,12 +28,15 @@ build-srv:
 build-ctl:
 	$(BUILD) -ldflags '$(LDFLAGS)' -o bin/yavirtctl cmd/cmd.go
 
-setup:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	go install github.com/vektra/mockery/v2@latest
+setup: setup-lint
+	$(ENV) go install github.com/vektra/mockery/v2@latest
+
+setup-lint:
+	$(ENV) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.57.1
 
 lint: format
-	golangci-lint run --skip-dirs-use-default --skip-dirs=thirdparty
+	golangci-lint --version
+	golangci-lint run
 
 format: vet
 	gofmt -s -w $$(find . -iname '*.go' | grep -v -P '\./third_party|\./vendor/')
@@ -34,7 +45,8 @@ vet:
 	go vet $(PKGS)
 
 deps:
-	go mod tidy
+	$(ENV) go mod tidy
+	$(ENV) go mod vendor
 
 mock: deps
 	mockery --dir pkg/libvirt --output pkg/libvirt/mocks --all
@@ -43,10 +55,12 @@ mock: deps
 	mockery --dir pkg/utils --output pkg/utils/mocks --name Locker
 	mockery --dir internal/virt/agent --output internal/virt/agent/mocks --all
 	mockery --dir internal/virt/domain --output internal/virt/domain/mocks --name Domain
-	mockery --dir internal/virt/guest/manager --output internal/virt/guest/manager/mocks --name Manageable
 	mockery --dir internal/virt/guest --output internal/virt/guest/mocks --name Bot
 	mockery --dir internal/virt/guestfs --output internal/virt/guestfs/mocks --name Guestfs
-	mockery --dir internal/virt/volume --output internal/virt/volume/mocks --name Bot
+	mockery --dir internal/volume --output internal/volume/mocks --name Volume
+	mockery --dir internal/volume/base --output internal/volume/base/mocks --name SnapshotAPI
+	mockery --dir internal/eru/store --output internal/eru/store/mocks --name Store
+	mockery --dir internal/service --output internal/service/mocks --name Service
 
 clean:
 	rm -fr bin/*

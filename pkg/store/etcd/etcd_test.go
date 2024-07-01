@@ -13,21 +13,27 @@ import (
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/configs"
-	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
+
+func NewTestETCD(t *testing.T) *ETCD {
+	cfg := configs.ETCDConfig{
+		Endpoints: []string{"127.0.0.1:2379"},
+	}
+	configs.Conf.Etcd.Endpoints = []string{"127.0.0.1:2379"}
+	etcd, err := New(cfg, t)
+	assert.NilErr(t, err)
+	return etcd
+}
 
 func TestRealEtcdBacthOperate(t *testing.T) {
 	if os.Getenv("REAL_TEST") != "1" {
 		return
 	}
-
-	configs.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
-	etcd, err := New()
-	assert.NilErr(t, err)
-
+	etcd := NewTestETCD(t)
 	var ts = strconv.FormatInt(time.Now().Unix(), 10)
 	var delkey = filepath.Join("/yavirt-dev/v1/test/batchops/", ts)
 	var ctx = context.Background()
@@ -49,9 +55,7 @@ func TestRealEtcdIncrUint32(t *testing.T) {
 		return
 	}
 
-	configs.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
-	etcd, err := New()
-	assert.NilErr(t, err)
+	etcd := NewTestETCD(t)
 
 	var key = fmt.Sprintf("/yavirt-dev/v1/hosts:%d", time.Now().UnixNano())
 	var wg sync.WaitGroup
@@ -91,9 +95,7 @@ func TestRealEtcdCreateSerialization(t *testing.T) {
 		return
 	}
 
-	configs.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
-	var etcd, err = New()
-	assert.NilErr(t, err)
+	etcd := NewTestETCD(t)
 
 	var wg sync.WaitGroup
 	var key = fmt.Sprintf("/yavirt-dev/v1/hosts/%d", time.Now().UnixNano())
@@ -111,7 +113,7 @@ func TestRealEtcdCreateSerialization(t *testing.T) {
 			var data = map[string]string{key: strconv.Itoa(i)}
 
 			if err := etcd.Create(context.Background(), data); err != nil {
-				t.Logf(" %d: %v ", i, errors.Stack(err))
+				t.Logf(" %d: %v ", i, errors.GetReportableStackTrace(err))
 				return
 			}
 
@@ -133,9 +135,7 @@ func TestRealEtcdUpdateSerialization(t *testing.T) {
 		return
 	}
 
-	configs.Conf.EtcdEndpoints = []string{"127.0.0.1:2379"}
-	var etcd, err = New()
-	assert.NilErr(t, err)
+	etcd := NewTestETCD(t)
 
 	var key = fmt.Sprintf("/yavirt-dev/v1/hosts/%d", time.Now().UnixNano())
 	var data = map[string]string{key: "0"}
@@ -157,7 +157,7 @@ func TestRealEtcdUpdateSerialization(t *testing.T) {
 			var data = map[string]string{key: strconv.Itoa(i)}
 
 			if err := etcd.Update(context.Background(), data, vers); err != nil {
-				t.Logf(" %d: %v ", i, errors.Stack(err))
+				t.Logf(" %d: %v ", i, errors.GetReportableStackTrace(err))
 				return
 			}
 

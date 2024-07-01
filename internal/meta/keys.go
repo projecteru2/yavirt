@@ -22,7 +22,7 @@ const (
 
 // HostCounterKey /<prefix>/hosts:counter
 func HostCounterKey() string {
-	return filepath.Join(configs.Conf.EtcdPrefix, fmt.Sprintf("%s:counter", hostPrefix))
+	return filepath.Join(configs.Conf.Etcd.Prefix, fmt.Sprintf("%s:counter", hostPrefix))
 }
 
 // HostGuestKey /<prefix>/hosts/<host name>/<guest ID>
@@ -37,7 +37,7 @@ func HostGuestsPrefix(name string) string {
 
 // HostKey /<prefix>/hosts/<name>
 func HostKey(name string) string {
-	return filepath.Join(configs.Conf.EtcdPrefix, hostPrefix, name)
+	return filepath.Join(configs.Conf.Etcd.Prefix, hostPrefix, name)
 }
 
 // GuestKey /<prefix>/guests/<id>
@@ -47,16 +47,16 @@ func GuestKey(id string) string {
 
 // GuestsPrefix /<prefix>/guests/
 func GuestsPrefix() string {
-	return fmt.Sprintf("%s/", filepath.Join(configs.Conf.EtcdPrefix, guestPrefix))
+	return fmt.Sprintf("%s/", filepath.Join(configs.Conf.Etcd.Prefix, guestPrefix))
 }
 
 // VolumeKey /<prefix>/vols/<id>
 func VolumeKey(id string) string {
-	return filepath.Join(configs.Conf.EtcdPrefix, volPrefix, id)
+	return filepath.Join(configs.Conf.Etcd.Prefix, volPrefix, id)
 }
 
 func SnapshotKey(id string) string {
-	return filepath.Join(configs.Conf.EtcdPrefix, snapshotPrefix, id)
+	return filepath.Join(configs.Conf.Etcd.Prefix, snapshotPrefix, id)
 }
 
 // UserImageKey /<prefix>/uimgs/<user>/<name>
@@ -66,7 +66,7 @@ func UserImageKey(user, name string) string {
 
 // UserImagePrefix /<prefix/uimgs/<user>/
 func UserImagePrefix(user string) string {
-	return filepath.Join(configs.Conf.EtcdPrefix, uimgPrefix, user)
+	return filepath.Join(configs.Conf.Etcd.Prefix, uimgPrefix, user)
 }
 
 // ImageKey /<prefix>/imgs/<name>
@@ -76,7 +76,7 @@ func SysImageKey(name string) string {
 
 // SysImagePrefix /<prefix>/imgs/
 func SysImagePrefix() string {
-	return filepath.Join(configs.Conf.EtcdPrefix, imgPrefix)
+	return filepath.Join(configs.Conf.Etcd.Prefix, imgPrefix)
 }
 
 // OccupiedIPKey /<prefix>/ips/<subnet>/occupied/<ip>
@@ -104,7 +104,7 @@ func IPALocKey(subnet int64) string {
 // SubnetKey /<prefix>/ips/<subnet>
 func SubnetKey(subnet int64) string {
 	var v = strconv.FormatInt(subnet, 10)
-	return filepath.Join(configs.Conf.EtcdPrefix, ipPrefix, v)
+	return filepath.Join(configs.Conf.Etcd.Prefix, ipPrefix, v)
 }
 
 // IPBlockKey /<prefix>/ippool/<ipp name>/blocks/<subnet>
@@ -129,5 +129,5 @@ func IPPoolKey(name string) string {
 
 // IPPoolsPrefix /<prefix>/ippools/
 func IPPoolsPrefix() string {
-	return filepath.Join(configs.Conf.EtcdPrefix, ippPrefix)
+	return filepath.Join(configs.Conf.Etcd.Prefix, ippPrefix)
 }

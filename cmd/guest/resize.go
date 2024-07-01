@@ -5,9 +5,11 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/cmd/run"
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/utils"
+	"github.com/projecteru2/yavirt/internal/types"
+	"github.com/projecteru2/yavirt/internal/volume"
+	"github.com/projecteru2/yavirt/internal/volume/local"
 )
 
 func resizeFlags() []cli.Flag {
@@ -25,12 +27,13 @@ func resizeFlags() []cli.Flag {
 }
 
 func resize(c *cli.Context, runtime run.Runtime) (err error) {
-	vs := map[string]int64{}
+	vs := map[string]volume.Volume{}
 	for _, raw := range c.StringSlice("volumes") {
-		mnt, cap := utils.PartRight(raw, ":") //nolint
-		if vs[mnt], err = utils.Atoi64(cap); err != nil {
-			return errors.Trace(err)
+		vol, err := local.NewVolumeFromStr(raw)
+		if err != nil {
+			return errors.Wrap(err, "")
 		}
+		vs[vol.GetMountDir()] = vol
 	}
 
 	id := c.Args().First()
@@ -40,8 +43,14 @@ func resize(c *cli.Context, runtime run.Runtime) (err error) {
 
 	cpu := c.Int("cpu")
 	mem := c.Int64("memory")
-	if err = runtime.Guest.Resize(runtime.VirtContext(), id, cpu, mem, vs); err != nil {
-		return errors.Trace(err)
+	req := &types.GuestResizeOption{
+		ID:  id,
+		CPU: cpu,
+		Mem: mem,
+		//TODO: add resources
+	}
+	if err = runtime.Svc.ResizeGuest(runtime.Ctx, id, req); err != nil {
+		return errors.Wrap(err, "")
 	}
 
 	fmt.Printf("%s resized\n", id)

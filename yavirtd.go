@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	_ "net/http/pprof" //nolint
@@ -8,31 +9,29 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
-	cli "github.com/urfave/cli/v2"
-
+	"github.com/cockroachdb/errors"
+	"github.com/projecteru2/core/log"
+	coretypes "github.com/projecteru2/core/types"
 	"github.com/projecteru2/yavirt/configs"
+	"github.com/projecteru2/yavirt/internal/debug"
 	"github.com/projecteru2/yavirt/internal/metrics"
-	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/internal/server"
-	grpcserver "github.com/projecteru2/yavirt/internal/server/grpc"
-	httpserver "github.com/projecteru2/yavirt/internal/server/http"
+	grpcserver "github.com/projecteru2/yavirt/internal/rpc"
+	"github.com/projecteru2/yavirt/internal/service/boar"
+	"github.com/projecteru2/yavirt/internal/utils"
 	"github.com/projecteru2/yavirt/internal/ver"
 	"github.com/projecteru2/yavirt/internal/virt"
-	"github.com/projecteru2/yavirt/internal/virt/guest"
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/idgen"
-	"github.com/projecteru2/yavirt/pkg/log"
-	"github.com/projecteru2/yavirt/pkg/store"
+	zerolog "github.com/rs/zerolog/log"
+	cli "github.com/urfave/cli/v2"
 )
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU() * 2)
+	utils.EnforceRoot()
 
-	cli.VersionPrinter = func(c *cli.Context) {
+	cli.VersionPrinter = func(_ *cli.Context) {
 		fmt.Println(ver.Version())
 	}
 
@@ -49,7 +48,7 @@ func main() {
 			},
 			&cli.StringFlag{
 				Name:    "log-level",
-				Value:   "INFO",
+				Value:   "",
 				Usage:   "set log level",
 				EnvVars: []string{"ERU_YAVIRT_LOG_LEVEL"},
 			},
@@ -82,194 +81,102 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.ErrorStack(err)
-		metrics.IncrError()
+		log.Error(context.TODO(), err, "run failed")
 		os.Exit(1)
 	}
 
 	os.Exit(0)
 }
+
 func initConfig(c *cli.Context) error {
 	cfg := &configs.Conf
-	if err := cfg.Load([]string{c.String("config")}); err != nil {
+	if err := cfg.Load(c.String("config")); err != nil {
 		return err
 	}
 	return cfg.Prepare(c)
 }
 
+func startHTTPServer(cfg *configs.Config) {
+	http.Handle("/metrics", metrics.Handler())
+	http.HandleFunc("/debug", debug.Handler)
+	server := &http.Server{
+		Addr:              cfg.BindHTTPAddr,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	if err := server.ListenAndServe(); err != nil {
+		log.Errorf(context.TODO(), err, "start http failed")
+	}
+}
+
 // Run .
 func Run(c *cli.Context) error {
 	if err := initConfig(c); err != nil {
+		zerolog.Fatal().Err(err).Msg("invalid config")
 		return err
 	}
-	defers, svc, err := setup()
-	if err != nil {
-		return errors.Trace(err)
+	svcLog := &coretypes.ServerLogConfig{
+		Level:      configs.Conf.Log.Level,
+		UseJSON:    configs.Conf.Log.UseJSON,
+		Filename:   configs.Conf.Log.Filename,
+		MaxSize:    configs.Conf.Log.MaxSize,
+		MaxAge:     configs.Conf.Log.MaxAge,
+		MaxBackups: configs.Conf.Log.MaxBackups,
 	}
-	defer defers()
-	defer store.Close()
-
+	if err := log.SetupLog(c.Context, svcLog, configs.Conf.Log.SentryDSN); err != nil {
+		zerolog.Fatal().Err(err).Msg("failed to setup log")
+		return err
+	}
+	// log config
 	dump, err := configs.Conf.Dump()
 	if err != nil {
-		return errors.Trace(err)
+		log.Error(c.Context, err, "failed to dump config")
+		return errors.Wrap(err, "")
 	}
-	log.Infof("%s", dump)
+	log.Infof(c.Context, "%s", dump)
+
+	// wait for unix signals and try to GracefulStop
+	ctx, cancel := signal.NotifyContext(c.Context, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	defer cancel()
+
+	br, err := boar.New(ctx, &configs.Conf, nil)
+	if err != nil {
+		return err
+	}
+	defer br.Close()
 
 	if err := virt.Cleanup(); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
-	// setup epoller
-	if err := guest.SetupEpoller(); err != nil {
-		return errors.Trace(err)
-	}
-	defer guest.GetCurrentEpoller().Close()
-
-	grpcSrv, err := grpcserver.Listen(svc)
+	quit := make(chan struct{})
+	grpcSrv, err := grpcserver.New(&configs.Conf, br, quit)
 	if err != nil {
-		return errors.Trace(err)
+		return err
 	}
 
-	httpSrv, err := httpserver.Listen(svc)
-	if err != nil {
-		return errors.Trace(err)
-	}
-
+	errExitCh := make(chan struct{})
 	go prof(configs.Conf.ProfHTTPPort)
+	go startHTTPServer(&configs.Conf)
+	go func() {
+		defer close(errExitCh)
+		if err := grpcSrv.Serve(); err != nil {
+			log.Errorf(c.Context, err, "failed to start grpc server")
+			metrics.IncrError()
+		}
+	}()
+	log.Infof(c.Context, "[main] all servers are running")
 
-	run([]server.Serverable{grpcSrv, httpSrv})
+	select {
+	case <-ctx.Done():
+		log.Infof(c.Context, "[main] interrupt by signal")
+	case <-errExitCh:
+		log.Warnf(c.Context, "[main] server exit abnormally.")
+	}
+	close(quit)
+
+	grpcSrv.Stop(false)
 
 	return nil
-}
-
-func run(servers []server.Serverable) {
-	defer log.Warnf("[main] yavirtd proc exit")
-
-	var wg sync.WaitGroup
-	for _, srv := range servers {
-		wg.Add(1)
-
-		go handleSigns(srv)
-
-		go func(server server.Serverable) {
-			defer wg.Done()
-			if err := server.Serve(); err != nil {
-				log.ErrorStack(err)
-				metrics.IncrError()
-			}
-		}(srv)
-	}
-
-	log.Infof("[main] all servers're running")
-
-	go notify(servers)
-
-	wg.Wait()
-}
-
-func notify(servers []server.Serverable) {
-	defer log.Infof("[main] exit notify loop exit")
-
-	var wg sync.WaitGroup
-
-	for _, srv := range servers {
-		wg.Add(1)
-
-		go func(exitCh <-chan struct{}) {
-			defer func() {
-				log.Infof("[main] server exitCh %p monitor was stopped", exitCh)
-				wg.Done()
-			}()
-
-			select {
-			case <-exitCh:
-				log.Infof("[main] recv from server exit ch %p", exitCh)
-				closeExitNoti()
-
-			case <-exitNoti:
-				log.Infof("[main] recv exit notification: %p", exitCh)
-			}
-		}(srv.ExitCh())
-	}
-
-	wg.Wait()
-}
-
-func setup() (deferSentry func(), svc *server.Service, err error) {
-	if deferSentry, err = log.Setup(configs.Conf.LogLevel, configs.Conf.LogFile, configs.Conf.LogSentry); err != nil {
-		return
-	}
-
-	if err = store.Setup(configs.Conf.MetaType); err != nil {
-		return
-	}
-
-	if svc, err = server.SetupYavirtdService(); err != nil {
-		return
-	}
-
-	idgen.Setup(svc.Host.ID, time.Now())
-
-	models.Setup()
-
-	return
-}
-
-var signs = []os.Signal{
-	syscall.SIGHUP,
-	syscall.SIGINT,
-	syscall.SIGTERM,
-	syscall.SIGQUIT,
-	syscall.SIGUSR2,
-}
-
-func handleSigns(srv server.Serverable) {
-	defer func() {
-		log.Warnf("[main] signal handler for %p exit", srv)
-		srv.Close()
-	}()
-
-	var signCh = make(chan os.Signal, 1)
-	signal.Notify(signCh, signs...)
-
-	var exit = srv.ExitCh()
-
-	for {
-		select {
-		case sign := <-signCh:
-			switch sign {
-			case syscall.SIGUSR2:
-				log.Warnf("[main] got sign USR2 to reload")
-				log.ErrorStack(srv.Reload())
-
-			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
-				log.Warnf("[main] got sign %d to exit", sign)
-				return
-
-			default:
-				log.Warnf("[main] got sign %d to ignore", sign)
-			}
-
-		case <-exitNoti:
-			log.Warnf("[main] recv an exit notification: %p", srv)
-			return
-
-		case <-exit:
-			log.Warnf("[main] recv from server %p exit ch", srv)
-			return
-		}
-	}
-}
-
-var (
-	exitNoti     = make(chan struct{}, 1)
-	exitNotiOnce sync.Once
-)
-
-func closeExitNoti() {
-	exitNotiOnce.Do(func() {
-		close(exitNoti)
-	})
 }
 
 func prof(port int) {

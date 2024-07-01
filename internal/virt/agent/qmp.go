@@ -1,34 +1,41 @@
 package agent
 
 import (
-	"bufio"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net"
+	"strconv"
 	"sync"
 
-	"github.com/projecteru2/yavirt/configs"
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/log"
+	"github.com/cockroachdb/errors"
+	"github.com/projecteru2/core/log"
 	"github.com/projecteru2/yavirt/pkg/utils"
+
+	"github.com/projecteru2/yavirt/pkg/libvirt"
 )
 
 const maxBytesPerRead = 32 * utils.MB // ref https://www.qemu.org/docs/master/interop/qemu-ga-ref.html
 
 // Qmp .
-type Qmp interface {
+type Qmp interface { //nolint:interfacebloat
 	Close() error
 
-	Exec(cmd string, args []string, stdio bool) ([]byte, error)
-	ExecStatus(pid int) ([]byte, error)
+	Exec(ctx context.Context, cmd string, args []string, stdio bool) ([]byte, error)
+	ExecStatus(ctx context.Context, pid int) ([]byte, error)
 
-	OpenFile(path, mode string) ([]byte, error)
-	FlushFile(handle int) error
-	WriteFile(handle int, buf []byte) error
-	ReadFile(handle int, p []byte) (read int, eof bool, err error)
-	CloseFile(handle int) error
-	SeekFile(handle int, offset int, whence int) (position int, eof bool, err error)
+	OpenFile(ctx context.Context, path, mode string) ([]byte, error)
+	FlushFile(ctx context.Context, handle int) error
+	WriteFile(ctx context.Context, handle int, buf []byte) error
+	ReadFile(ctx context.Context, handle int, p []byte) (read int, eof bool, err error)
+	CloseFile(ctx context.Context, handle int) error
+	SeekFile(ctx context.Context, handle int, offset int, whence int) (position int, eof bool, err error)
+	FSFreezeAll(ctx context.Context) (nFS int, err error)
+	FSFreezeList(ctx context.Context, mountpoints []string) (nFS int, err error)
+	FSThawAll(ctx context.Context) (nFS int, err error)
+	FSFreezeStatus(ctx context.Context) (status string, err error)
+	GetName() string
 }
 
 type qmp struct {
@@ -38,12 +45,11 @@ type qmp struct {
 	// the false value indicates virsh qemu-monitor-command.
 	ga bool
 
-	sockfile string
-	sock     net.Conn
-	reader   *bufio.Reader
-	writer   *bufio.Writer
-
-	greeting *json.RawMessage
+	// sockfile string
+	name string
+	sock net.Conn
+	virt libvirt.Libvirt
+	dom  libvirt.Domain
 }
 
 type qmpResp struct {
@@ -62,14 +68,27 @@ func (e *qmpError) Error() string {
 	return fmt.Sprintf("QMP error %s: %s", e.Class, e.Desc)
 }
 
-func newQmp(sockfile string, ga bool) *qmp {
+func newQmp(name string, virt libvirt.Libvirt, ga bool) *qmp {
 	return &qmp{
-		sockfile: sockfile,
-		ga:       ga,
+		name: name,
+		virt: virt,
+		ga:   ga,
 	}
 }
 
-func (q *qmp) Exec(path string, args []string, output bool) ([]byte, error) {
+func (q *qmp) initIfNecessary() error {
+	if q.dom != nil {
+		return nil
+	}
+	dom, err := q.virt.LookupDomain(q.name)
+	if err != nil {
+		return err
+	}
+	q.dom = dom
+	return nil
+}
+
+func (q *qmp) Exec(ctx context.Context, path string, args []string, output bool) ([]byte, error) {
 	q.Lock()
 	defer q.Unlock()
 
@@ -81,39 +100,39 @@ func (q *qmp) Exec(path string, args []string, output bool) ([]byte, error) {
 		exArg["arg"] = args
 	}
 
-	log.Debugf("exec %s with %v", path, args)
+	log.WithFunc("qmp.Exec").Debugf(ctx, "exec %s with %v", path, args)
 
-	return q.exec("guest-exec", exArg)
+	return q.exec(ctx, "guest-exec", exArg)
 }
 
-func (q *qmp) ExecStatus(pid int) ([]byte, error) {
+func (q *qmp) ExecStatus(ctx context.Context, pid int) ([]byte, error) {
 	q.Lock()
 	defer q.Unlock()
-	return q.exec("guest-exec-status", map[string]any{"pid": pid})
+	return q.exec(ctx, "guest-exec-status", map[string]any{"pid": pid})
 }
 
-func (q *qmp) OpenFile(path, mode string) ([]byte, error) {
+func (q *qmp) OpenFile(ctx context.Context, path, mode string) ([]byte, error) {
 	q.Lock()
 	defer q.Unlock()
-	return q.exec("guest-file-open", map[string]any{"path": path, "mode": mode})
+	return q.exec(ctx, "guest-file-open", map[string]any{"path": path, "mode": mode})
 }
 
-func (q *qmp) CloseFile(handle int) (err error) {
+func (q *qmp) CloseFile(ctx context.Context, handle int) (err error) {
 	q.Lock()
 	defer q.Unlock()
-	_, err = q.exec("guest-file-close", map[string]any{"handle": handle})
+	_, err = q.exec(ctx, "guest-file-close", map[string]any{"handle": handle})
 	return
 }
 
-func (q *qmp) FlushFile(handle int) (err error) {
+func (q *qmp) FlushFile(ctx context.Context, handle int) (err error) {
 	q.Lock()
 	defer q.Unlock()
-	_, err = q.exec("guest-file-flush", map[string]any{"handle": handle})
+	_, err = q.exec(ctx, "guest-file-flush", map[string]any{"handle": handle})
 	return
 }
 
 // ReadFile .
-func (q *qmp) ReadFile(handle int, p []byte) (read int, eof bool, err error) {
+func (q *qmp) ReadFile(ctx context.Context, handle int, p []byte) (read int, eof bool, err error) {
 	pcap := int64(cap(p))
 	args := map[string]any{
 		"handle": handle,
@@ -125,7 +144,7 @@ func (q *qmp) ReadFile(handle int, p []byte) (read int, eof bool, err error) {
 
 	for {
 		var buf []byte
-		if buf, err = q.exec("guest-file-read", args); err != nil {
+		if buf, err = q.exec(ctx, "guest-file-read", args); err != nil {
 			return
 		}
 
@@ -157,32 +176,83 @@ func (q *qmp) ReadFile(handle int, p []byte) (read int, eof bool, err error) {
 	}
 }
 
-func (q *qmp) WriteFile(handle int, buf []byte) (err error) {
+func (q *qmp) WriteFile(ctx context.Context, handle int, buf []byte) (err error) {
 	q.Lock()
 	defer q.Unlock()
 
 	var b64 = base64.StdEncoding.EncodeToString(buf)
-	_, err = q.exec("guest-file-write", map[string]any{"handle": handle, "buf-b64": b64})
+	_, err = q.exec(ctx, "guest-file-write", map[string]any{"handle": handle, "buf-b64": b64})
 
 	return
 }
 
-func (q *qmp) exec(cmd string, args map[string]any) ([]byte, error) {
+func (q *qmp) FSFreezeAll(ctx context.Context) (nFS int, err error) {
+	q.Lock()
+	defer q.Unlock()
+
+	var bs []byte
+	if bs, err = q.exec(ctx, "guest-fsfreeze-freeze", nil); err != nil {
+		return
+	}
+	nFS, err = strconv.Atoi(string(bs))
+
+	return
+}
+func (q *qmp) FSFreezeList(ctx context.Context, mountpoints []string) (nFS int, err error) {
+	q.Lock()
+	defer q.Unlock()
+	var args map[string]any
+	if len(mountpoints) > 0 {
+		args = map[string]any{"mountpoints": mountpoints}
+	}
+	var bs []byte
+	if bs, err = q.exec(ctx, "guest-fsfreeze-freeze-list", args); err != nil {
+		return
+	}
+	nFS, err = strconv.Atoi(string(bs))
+	return
+}
+
+func (q *qmp) FSThawAll(ctx context.Context) (nFS int, err error) {
+	q.Lock()
+	defer q.Unlock()
+
+	var bs []byte
+	if bs, err = q.exec(ctx, "guest-fsfreeze-thaw", nil); err != nil {
+		return
+	}
+	nFS, err = strconv.Atoi(string(bs))
+	return
+}
+
+func (q *qmp) FSFreezeStatus(ctx context.Context) (status string, err error) {
+	q.Lock()
+	defer q.Unlock()
+
+	var bs []byte
+	if bs, err = q.exec(ctx, "guest-fsfreeze-status", nil); err != nil {
+		return
+	}
+	status = string(bs[1 : len(bs)-1])
+	return
+}
+
+func (q *qmp) exec(ctx context.Context, cmd string, args map[string]any) ([]byte, error) {
+	if err := q.initIfNecessary(); err != nil {
+		return nil, err
+	}
+
 	var buf, err = newQmpCmd(cmd, args).bytes()
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 	}
 
-	if err := q.connect(); err != nil {
-		return nil, errors.Trace(err)
-	}
-
-	switch resp, err := q.req(buf); {
+	switch resp, err := q.req(ctx, buf); {
 	case err != nil:
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 
 	case resp.Error != nil:
-		return nil, errors.Trace(resp.Error)
+		return nil, errors.Wrapf(resp.Error, "failed to exec %s", cmd)
 
 	default:
 		return []byte(*resp.Return), nil
@@ -190,7 +260,7 @@ func (q *qmp) exec(cmd string, args map[string]any) ([]byte, error) {
 }
 
 // SeekFile .
-func (q *qmp) SeekFile(handle int, offset int, whence int) (position int, eof bool, err error) {
+func (q *qmp) SeekFile(ctx context.Context, handle int, offset int, whence int) (position int, eof bool, err error) {
 	args := map[string]any{
 		"handle": handle,
 		"offset": offset,
@@ -201,7 +271,7 @@ func (q *qmp) SeekFile(handle int, offset int, whence int) (position int, eof bo
 	defer q.Unlock()
 
 	var buf []byte
-	if buf, err = q.exec("guest-file-seek", args); err != nil {
+	if buf, err = q.exec(ctx, "guest-file-seek", args); err != nil {
 		return
 	}
 
@@ -216,75 +286,6 @@ func (q *qmp) SeekFile(handle int, offset int, whence int) (position int, eof bo
 	return resp.Position, resp.EOF, nil
 }
 
-func (q *qmp) connect() error {
-	if q.sock != nil {
-		return nil
-	}
-
-	var sock, err = net.DialTimeout("unix", q.sockfile, configs.Conf.QMPConnectTimeout.Duration())
-	if err != nil {
-		return errors.Trace(err)
-	}
-
-	q.sock = sock
-	q.reader = bufio.NewReader(q.sock)
-	q.writer = bufio.NewWriter(q.sock)
-
-	if !q.ga {
-		if err := q.handshake(); err != nil {
-			q.Close()
-			return errors.Trace(err)
-		}
-	}
-
-	return nil
-}
-
-func (q *qmp) handshake() error {
-	return utils.Invoke([]func() error{
-		q.greet,
-		q.capabilities,
-	})
-}
-
-func (q *qmp) capabilities() error {
-	var cmd, err = newQmpCmd("qmp_capabilities", nil).bytes()
-	if err != nil {
-		return errors.Trace(err)
-	}
-
-	switch resp, err := q.req(cmd); {
-	case err != nil:
-		return errors.Trace(err)
-
-	case resp.Return == nil:
-		return errors.Errorf("QMP negotiation error")
-
-	default:
-		return nil
-	}
-}
-
-func (q *qmp) greet() error {
-	var buf, err = q.read()
-	if err != nil {
-		return errors.Trace(err)
-	}
-
-	var resp qmpResp
-
-	switch err := json.Unmarshal(buf, &resp.Greeting); {
-	case err != nil:
-		return errors.Trace(err)
-	case resp.Greeting == nil:
-		return errors.Errorf("QMP greeting error")
-	}
-
-	q.greeting = resp.Greeting
-
-	return nil
-}
-
 func (q *qmp) Close() (err error) {
 	if q.sock != nil {
 		err = q.sock.Close()
@@ -292,56 +293,23 @@ func (q *qmp) Close() (err error) {
 	return
 }
 
-func (q *qmp) req(cmd []byte) (qmpResp, error) {
+func (q *qmp) req(ctx context.Context, cmd []byte) (qmpResp, error) {
 	var resp qmpResp
 
-	if err := q.write(cmd); err != nil {
-		return resp, errors.Trace(err)
-	}
-
-	var buf, err = q.read()
+	rs, err := q.dom.QemuAgentCommand(ctx, string(cmd))
 	if err != nil {
-		return resp, errors.Trace(err)
+		return resp, errors.Wrap(err, "")
 	}
 
-	if err := json.Unmarshal(buf, &resp); err != nil {
-		return resp, errors.Trace(err)
+	if err := json.Unmarshal([]byte(rs), &resp); err != nil {
+		return resp, errors.Wrap(err, "")
 	}
 
 	return resp, nil
 }
 
-func (q *qmp) write(buf []byte) error {
-	if _, err := q.writer.Write(append(buf, '\x0a')); err != nil {
-		return errors.Trace(err)
-	}
-
-	if err := q.writer.Flush(); err != nil {
-		return errors.Trace(err)
-	}
-
-	return nil
-}
-
-func (q *qmp) read() ([]byte, error) {
-	for {
-		var buf, err = q.reader.ReadBytes('\n')
-		if err != nil {
-			return nil, errors.Trace(err)
-		}
-
-		var resp qmpResp
-		if err := json.Unmarshal(buf, &resp); err != nil {
-			return nil, errors.Trace(err)
-		}
-
-		if resp.Event != nil {
-			log.Infof("recv event: %v", resp.Event)
-			continue
-		}
-
-		return buf, nil
-	}
+func (q *qmp) GetName() string {
+	return q.name
 }
 
 type qmpCmd struct {

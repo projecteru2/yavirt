@@ -5,17 +5,17 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
 )
 
 // NilErr .
 func NilErr(t *testing.T, err error) {
-	Nil(t, err, errors.Stack(err))
+	Nil(t, err, errors.GetReportableStackTrace(err))
 }
 
 // Err .
 func Err(t *testing.T, err error) {
-	NotNil(t, err, errors.Stack(err))
+	NotNil(t, err, errors.GetReportableStackTrace(err))
 }
 
 // Nil .

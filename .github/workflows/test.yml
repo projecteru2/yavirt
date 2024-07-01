@@ -11,14 +11,26 @@ on:
 jobs:
   unittests:
     runs-on: ubuntu-latest
-    container: projecteru2/footstone:yavirt-prebuild
-
     steps:
-      - uses: actions/checkout@v3
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-      - uses: actions/setup-go@v3
+      - name: "Setup go"
+        uses: actions/setup-go@v4
         with:
           go-version-file: 'go.mod'
+      
+      - name: "Install dependencies"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libvirt-dev make libguestfs-dev
+
+      - name: "Install dependencies"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libvirt-dev make libguestfs-dev
 
       - name: unit tests
         run: make test

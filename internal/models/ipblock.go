@@ -3,9 +3,10 @@ package models
 import (
 	"net"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/internal/meta"
-	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/netx"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
@@ -22,7 +23,7 @@ func (bs *IPBlocks) Append(block ...*IPBlock) {
 
 // IPBlock .
 type IPBlock struct {
-	*Generic
+	*meta.Generic
 
 	IPs *utils.Bitmap32 `json:"ips"`
 
@@ -32,12 +33,12 @@ type IPBlock struct {
 
 func newIPBlock(ipp *IPPool, ipn *net.IPNet) *IPBlock {
 	block := &IPBlock{
-		Generic: newGeneric(),
+		Generic: meta.NewGeneric(),
 		ippool:  ipp,
 		ipnet:   ipn,
 	}
 
-	block.Status = StatusRunning
+	block.Status = meta.StatusRunning
 	block.IPs = utils.NewBitmap32(block.ipCount())
 
 	return block
@@ -46,17 +47,17 @@ func newIPBlock(ipp *IPPool, ipn *net.IPNet) *IPBlock {
 // Release .
 func (b *IPBlock) Release(ipn *net.IPNet) error {
 	if !b.ippool.Contains(ipn) {
-		return errors.Annotatef(errors.ErrInsufficientIP, "IP %s not found", ipn.IP)
+		return errors.Wrapf(terrors.ErrInsufficientIP, "IP %s not found", ipn.IP)
 	}
 
 	offset := b.getIPIndex(ipn.IP)
 	if err := b.IPs.Unset(offset); err != nil {
-		return errors.Annotatef(err, "release %d IP %s failed", offset, ipn)
+		return errors.Wrapf(err, "release %d IP %s failed", offset, ipn)
 	}
 
 	if err := b.save(); err != nil {
 		b.IPs.Set(offset) //nolint
-		return errors.Trace(err)
+		return errors.Wrapf(err, "release %d IP %s failed", offset, ipn)
 	}
 
 	return nil
@@ -90,7 +91,7 @@ func (b *IPBlock) Assign() (ipn *net.IPNet, err error) {
 	})
 
 	if err == nil && ipn == nil {
-		err = errors.Annotatef(errors.ErrInsufficientIP,
+		err = errors.Wrapf(terrors.ErrInsufficientIP,
 			"block %s hasn't free IP", b.ipnet)
 	}
 
@@ -104,12 +105,12 @@ func (b *IPBlock) assign(offset int) (*net.IPNet, error) {
 	}
 
 	if err := b.IPs.Set(offset); err != nil {
-		return nil, errors.Annotatef(err, "assign %d IP %s failed", offset, ipn)
+		return nil, errors.Wrapf(err, "assign %d IP %s failed", offset, ipn)
 	}
 
 	if err := b.save(); err != nil {
 		b.IPs.Unset(offset) //nolint
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 	}
 
 	return ipn, nil

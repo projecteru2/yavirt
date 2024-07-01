@@ -1,0 +1,11 @@
+<disk type='file' device='disk'>
+  <driver name='qemu' type='qcow2'/>
+  <source file='{{.path}}'/>
+  <target dev='{{.dev}}' bus='virtio'/>
+  <iotune>
+    <read_iops_sec>{{ .read_iops }}</read_iops_sec>
+    <write_iops_sec>{{ .write_iops }}</write_iops_sec>
+    <read_bytes_sec>{{ .read_bps }}</read_bytes_sec>
+    <write_bytes_sec>{{ .write_bps }}</write_bytes_sec>
+  </iotune>
+</disk>
