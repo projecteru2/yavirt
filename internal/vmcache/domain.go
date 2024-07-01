@@ -334,7 +334,7 @@ func (vc *VMCache) updateStats(ctx context.Context) {
 		flags := libvirt.ConnectGetAllDomainsStatsRunning
 		statList, err := l.ConnectGetAllDomainStats(nil, 0, flags)
 		if err != nil {
-			logger.Errorf(ctx, err, "failed to get all domain stats")
+			logger.Error(ctx, err, "failed to get all domain stats")
 			continue
 		}
 		for _, stats := range statList {

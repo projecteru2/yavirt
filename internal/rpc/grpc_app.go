@@ -79,7 +79,7 @@ func (y *GRPCYavirtd) GetGuest(ctx context.Context, opts *pb.GetGuestOptions) (*
 
 // GetGuestIDList gets all local vms' domain names regardless of their metadata validility.
 func (y *GRPCYavirtd) GetGuestIDList(ctx context.Context, _ *pb.GetGuestIDListOptions) (*pb.GetGuestIDListMessage, error) {
-	log.Infof(ctx, "[grpcserver] get guest id list")
+	log.Info(ctx, "[grpcserver] get guest id list")
 	ids, err := y.service.GetGuestIDList(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "")
@@ -94,8 +94,8 @@ func (y *GRPCYavirtd) GetGuestIDList(ctx context.Context, _ *pb.GetGuestIDListOp
 func (y *GRPCYavirtd) Events(_ *pb.EventsOptions, server pb.YavirtdRPC_EventsServer) error {
 	ctx := server.Context()
 
-	log.Infof(ctx, "[grpcserver] events method calling")
-	defer log.Infof(ctx, "[grpcserver] events method completed")
+	log.Info(ctx, "[grpcserver] events method calling")
+	defer log.Info(ctx, "[grpcserver] events method completed")
 
 	watcher, err := y.service.WatchGuestEvents(ctx)
 	if err != nil {
@@ -107,7 +107,7 @@ func (y *GRPCYavirtd) Events(_ *pb.EventsOptions, server pb.YavirtdRPC_EventsSer
 
 	wg.Add(1)
 	go func() {
-		defer log.Infof(ctx, "[grpcserver] events goroutine has done")
+		defer log.Info(ctx, "[grpcserver] events goroutine has done")
 		defer wg.Done()
 		defer watcher.Stop()
 
@@ -121,11 +121,11 @@ func (y *GRPCYavirtd) Events(_ *pb.EventsOptions, server pb.YavirtdRPC_EventsSer
 
 			case <-watcher.Done():
 				// The watcher already has been stopped.
-				log.Infof(ctx, "[grpcserver] watcher has done")
+				log.Info(ctx, "[grpcserver] watcher has done")
 				return
 
 			case <-ctx.Done():
-				log.Infof(ctx, "[grpcserver] ctx done")
+				log.Info(ctx, "[grpcserver] ctx done")
 				return
 			}
 		}
@@ -227,7 +227,7 @@ func (y *GRPCYavirtd) ControlGuest(ctx context.Context, opts *pb.ControlGuestOpt
 // AttachGuest .
 func (y *GRPCYavirtd) AttachGuest(server pb.YavirtdRPC_AttachGuestServer) (err error) {
 	ctx := server.Context()
-	defer log.Infof(ctx, "[grpcserver] attach guest complete")
+	defer log.Info(ctx, "[grpcserver] attach guest complete")
 	opts, err := server.Recv()
 	if err != nil {
 		return
@@ -264,7 +264,7 @@ func (y *GRPCYavirtd) ExecuteGuest(ctx context.Context, opts *pb.ExecuteGuestOpt
 }
 
 func (y *GRPCYavirtd) ExecExitCode(ctx context.Context, opts *pb.ExecExitCodeOptions) (msg *pb.ExecExitCodeMessage, err error) {
-	log.Infof(ctx, "[grpcserver] get exit code start")
+	log.Infof(ctx, "[grpcserver] get exit code start %q", opts)
 	defer log.Infof(ctx, "[grpcserver] get exit code done")
 
 	req := types.GuestReq{ID: opts.Id}
@@ -278,7 +278,7 @@ func (y *GRPCYavirtd) ExecExitCode(ctx context.Context, opts *pb.ExecExitCodeOpt
 
 // ConnectNetwork .
 func (y *GRPCYavirtd) ConnectNetwork(ctx context.Context, opts *pb.ConnectNetworkOptions) (*pb.ConnectNetworkMessage, error) {
-	log.Infof(ctx, "[grpcserver] connect network start")
+	log.Infof(ctx, "[grpcserver] connect network start %q", opts)
 
 	req := types.ConnectNetworkReq{
 		Network: opts.Network,

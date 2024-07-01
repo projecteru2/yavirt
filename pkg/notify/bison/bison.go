@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/alphadose/haxmap"
-	"github.com/projecteru2/yavirt/internal/utils/notify"
-	"github.com/projecteru2/yavirt/internal/utils/notify/services/all"
-	"github.com/projecteru2/yavirt/internal/utils/notify/services/dingding"
-	"github.com/projecteru2/yavirt/internal/utils/notify/services/mail"
+	"github.com/projecteru2/yavirt/pkg/notify"
+	"github.com/projecteru2/yavirt/pkg/notify/services/all"
+	"github.com/projecteru2/yavirt/pkg/notify/services/dingding"
+	"github.com/projecteru2/yavirt/pkg/notify/services/mail"
 )
 
 var bs *Manager

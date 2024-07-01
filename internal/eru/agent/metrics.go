@@ -38,17 +38,23 @@ func (mgr *Manager) GetMetricsCollector() *MetricsCollector {
 
 func (e *MetricsCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- vmHealthyDesc
+	ch <- coreHealthyDesc
 }
 
 func (e *MetricsCollector) Collect(ch chan<- prometheus.Metric) {
+	logger := log.WithFunc("agent.MetricsCollector.Collect")
 	for _, v := range e.wrkStatusCache.Items() {
 		wrkStatus, _ := v.Object.(*types.WorkloadStatus)
+		if wrkStatus == nil {
+			logger.Warnf(context.TODO(), "[BUG] wrkStatus can't be nil here")
+			continue
+		}
 		if !wrkStatus.Running {
 			continue
 		}
 		de := vmcache.FetchDomainEntry(wrkStatus.ID)
 		if de == nil {
-			log.WithFunc("MetricsCollector.Collect").Warnf(context.TODO(), "[eru agent] failed to get domain entry %s", wrkStatus.ID)
+			logger.Warnf(context.TODO(), "[eru agent] failed to get domain entry %s", wrkStatus.ID)
 			continue
 		}
 		healthy := 0

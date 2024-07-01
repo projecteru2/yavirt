@@ -9,8 +9,8 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/dustin/go-humanize"
 	"github.com/mcuadros/go-defaults"
-	"github.com/projecteru2/yavirt/internal/utils/notify/bison"
 	"github.com/projecteru2/yavirt/pkg/netx"
+	"github.com/projecteru2/yavirt/pkg/notify/bison"
 	"github.com/projecteru2/yavirt/pkg/utils"
 	"github.com/urfave/cli/v2"
 

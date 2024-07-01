@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	calicoHealthyDesc = prometheus.NewDesc(
+	ovnHealthyDesc = prometheus.NewDesc(
 		prometheus.BuildFQName("node", "ovn", "healthy"),
 		"ovn healthy status.",
 		[]string{"node"},
@@ -25,13 +25,13 @@ func (d *Driver) GetMetricsCollector() prometheus.Collector {
 }
 
 func (e *MetricsCollector) Describe(ch chan<- *prometheus.Desc) {
-	ch <- calicoHealthyDesc
+	ch <- ovnHealthyDesc
 }
 
 func (e *MetricsCollector) Collect(ch chan<- prometheus.Metric) {
 	healthy := utils.Bool2Int(e.healthy.Load())
 	ch <- prometheus.MustNewConstMetric(
-		calicoHealthyDesc,
+		ovnHealthyDesc,
 		prometheus.GaugeValue,
 		float64(healthy),
 		configs.Hostname(),

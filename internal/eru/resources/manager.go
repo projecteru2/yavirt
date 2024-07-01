@@ -13,7 +13,7 @@ import (
 	"github.com/projecteru2/yavirt/internal/eru/store"
 	corestore "github.com/projecteru2/yavirt/internal/eru/store/core"
 	storemocks "github.com/projecteru2/yavirt/internal/eru/store/mocks"
-	"github.com/projecteru2/yavirt/internal/types"
+	intertypes "github.com/projecteru2/yavirt/internal/types"
 	bdtypes "github.com/yuyang0/resource-bandwidth/bandwidth/types"
 	gputypes "github.com/yuyang0/resource-gpu/gpu/types"
 )
@@ -33,7 +33,7 @@ type Manager struct {
 	gpuLock sync.Mutex
 }
 
-func (mgr *Manager) AllocGPU(req *gputypes.EngineParams) (ans []types.GPUInfo, err error) {
+func (mgr *Manager) AllocGPU(req *gputypes.EngineParams) (ans []intertypes.GPUInfo, err error) {
 	return mgr.gpu.Alloc(req)
 }
 
@@ -64,10 +64,10 @@ func (mgr *Manager) FetchResources() (map[string][]byte, error) {
 	bdBytes, _ := json.Marshal(bd)
 
 	ans := map[string][]byte{
-		"cpumem":    cpumemBytes,
-		"storage":   stoBytes,
-		"gpu":       gpusBytes,
-		"bandwidth": bdBytes,
+		intertypes.PluginNameCPUMem:    cpumemBytes,
+		intertypes.PluginNameStorage:   stoBytes,
+		intertypes.PluginNameGPU:       gpusBytes,
+		intertypes.PluginNameBandwidth: bdBytes,
 	}
 	return ans, nil
 }

@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	calicoHealthyDesc = prometheus.NewDesc(
-		prometheus.BuildFQName("network", "ovn", "healthy"),
-		"ovn healthy status.",
+	vlanHealthyDesc = prometheus.NewDesc(
+		prometheus.BuildFQName("network", "vlan", "healthy"),
+		"vlan healthy status.",
 		[]string{"node"},
 		nil)
 )
@@ -25,13 +25,13 @@ func (d *Handler) GetMetricsCollector() prometheus.Collector {
 }
 
 func (e *MetricsCollector) Describe(ch chan<- *prometheus.Desc) {
-	ch <- calicoHealthyDesc
+	ch <- vlanHealthyDesc
 }
 
 func (e *MetricsCollector) Collect(ch chan<- prometheus.Metric) {
 	healthy := utils.Bool2Int(e.healthy.Load())
 	ch <- prometheus.MustNewConstMetric(
-		calicoHealthyDesc,
+		vlanHealthyDesc,
 		prometheus.GaugeValue,
 		float64(healthy),
 		configs.Hostname(),

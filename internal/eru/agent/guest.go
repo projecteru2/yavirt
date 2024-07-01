@@ -82,24 +82,24 @@ func (g *Guest) CheckHealth(ctx context.Context, svc service.Service, timeout ti
 		return true
 	}
 
-	var tcpChecker []string
-	var httpChecker []string
+	var tcpCheckers []string
+	var httpCheckers []string
 
 	healthCheck := g.HealthCheck
 
 	for _, port := range healthCheck.TCPPorts {
 		for _, ip := range g.IPs {
-			tcpChecker = append(tcpChecker, fmt.Sprintf("%s:%s", ip, port))
+			tcpCheckers = append(tcpCheckers, fmt.Sprintf("%s:%s", ip, port))
 		}
 	}
 	if healthCheck.HTTPPort != "" {
 		for _, ip := range g.IPs {
-			httpChecker = append(httpChecker, fmt.Sprintf("http://%s:%s%s", ip, healthCheck.HTTPPort, healthCheck.HTTPURL)) //nolint
+			httpCheckers = append(httpCheckers, fmt.Sprintf("http://%s:%s%s", ip, healthCheck.HTTPPort, healthCheck.HTTPURL)) //nolint
 		}
 	}
 
-	f1 := utils.CheckHTTP(ctx, g.ID, httpChecker, healthCheck.HTTPCode, timeout)
-	f2 := utils.CheckTCP(ctx, g.ID, tcpChecker, timeout)
+	f1 := utils.CheckHTTP(ctx, g.ID, httpCheckers, healthCheck.HTTPCode, timeout)
+	f2 := utils.CheckTCP(ctx, g.ID, tcpCheckers, timeout)
 	f3 := CheckCMD(ctx, svc, g.ID, healthCheck.Cmds, timeout)
 	return f1 && f2 && f3
 }

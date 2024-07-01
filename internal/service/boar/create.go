@@ -91,21 +91,21 @@ func (svc *Boar) Create(ctx context.Context, opts intertypes.GuestCreateOption, 
 }
 
 func (svc *Boar) create(ctx context.Context, vg *guest.Guest) (err error) {
-	logger := log.WithFunc("Boar.create")
+	logger := log.WithFunc("Boar.create").WithField("guest", vg.ID)
 	logger.Debugf(ctx, "starting to cache image")
 	if err := vg.CacheImage(&svc.imageMutex); err != nil {
 		return errors.Wrap(err, "")
 	}
 
-	logger.Debugf(ctx, "creating network")
+	logger.Debug(ctx, "creating network")
 	if err = vg.CreateNetwork(ctx); err != nil {
 		return err
 	}
-	logger.Debugf(ctx, "preparing volumes")
+	logger.Debug(ctx, "preparing volumes")
 	if err = vg.PrepareVolumesForCreate(ctx); err != nil {
 		return err
 	}
-	logger.Debugf(ctx, "defining guest")
+	logger.Debug(ctx, "defining guest")
 	if err = vg.DefineGuestForCreate(ctx); err != nil {
 		return errors.Wrap(err, "")
 	}

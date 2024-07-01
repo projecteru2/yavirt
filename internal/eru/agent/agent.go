@@ -11,6 +11,7 @@ import (
 	"github.com/cockroachdb/errors"
 	"github.com/patrickmn/go-cache"
 	"github.com/projecteru2/core/log"
+	corerpc "github.com/projecteru2/core/rpc"
 	"github.com/projecteru2/yavirt/internal/eru/common"
 	"github.com/projecteru2/yavirt/internal/eru/store"
 	corestore "github.com/projecteru2/yavirt/internal/eru/store/core"
@@ -89,7 +90,7 @@ func NewManager(
 				logger.Error(ctx, err, "failed to add node")
 				return
 			}
-			if e.Code() == 1031 && strings.Contains(e.Message(), "node already exists") {
+			if e.Code() == corerpc.AddNode && strings.Contains(e.Message(), "node already exists") {
 				logger.Infof(ctx, "node %s already exists", config.Hostname)
 			} else {
 				logger.Errorf(ctx, err, "failed to add node %s", config.Hostname)

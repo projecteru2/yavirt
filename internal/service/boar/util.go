@@ -11,6 +11,7 @@ import (
 	"github.com/projecteru2/libyavirt/types"
 	"github.com/projecteru2/yavirt/internal/meta"
 	"github.com/projecteru2/yavirt/internal/models"
+	intertypes "github.com/projecteru2/yavirt/internal/types"
 	"github.com/projecteru2/yavirt/internal/volume"
 	"github.com/projecteru2/yavirt/internal/volume/local"
 	"github.com/projecteru2/yavirt/internal/volume/rbd"
@@ -22,7 +23,7 @@ import (
 )
 
 func extractCPUMem(resources map[string][]byte) (eParams *cpumemtypes.EngineParams, err error) {
-	cpumemRaw, ok := resources["cpumem"]
+	cpumemRaw, ok := resources[intertypes.PluginNameCPUMem]
 	if !ok {
 		return nil, nil //nolint
 	}
@@ -32,7 +33,7 @@ func extractCPUMem(resources map[string][]byte) (eParams *cpumemtypes.EnginePara
 }
 
 func extractGPU(resources map[string][]byte) (eParams *gputypes.EngineParams, err error) {
-	gpuRaw, ok := resources["gpu"]
+	gpuRaw, ok := resources[intertypes.PluginNameGPU]
 	if !ok {
 		return nil, nil //nolint
 	}
@@ -56,7 +57,7 @@ func extractVols(resources map[string][]byte) ([]volume.Volume, error) {
 		return nil
 	}
 
-	stoResRaw, ok := resources["storage"]
+	stoResRaw, ok := resources[intertypes.PluginNameStorage]
 	if ok {
 		eParams := &stotypes.EngineParams{}
 		if err := json.Unmarshal(stoResRaw, eParams); err != nil {
@@ -72,7 +73,7 @@ func extractVols(resources map[string][]byte) ([]volume.Volume, error) {
 			}
 		}
 	}
-	rbdResRaw, ok := resources["rbd"]
+	rbdResRaw, ok := resources[intertypes.PluginNameRBD]
 	if ok {
 		eParams := &rbdtypes.EngineParams{}
 		if err := json.Unmarshal(rbdResRaw, eParams); err != nil {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/projecteru2/core/log"
+	corerpc "github.com/projecteru2/core/rpc"
 	virttypes "github.com/projecteru2/libyavirt/types"
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/eru/common"
@@ -18,7 +19,7 @@ import (
 	"github.com/projecteru2/yavirt/internal/eru/types"
 	"github.com/projecteru2/yavirt/internal/service"
 	"github.com/projecteru2/yavirt/internal/utils"
-	"github.com/projecteru2/yavirt/internal/utils/notify/bison"
+	"github.com/projecteru2/yavirt/pkg/notify/bison"
 	"github.com/samber/lo"
 	"google.golang.org/grpc/status"
 )
@@ -26,13 +27,13 @@ import (
 var (
 	interval   = 1 * time.Minute
 	deleteWait = 15 * time.Second
-	sto        store.Store
+	stor       store.Store
 )
 
 func fetchWorkloads() ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	wrks, err := sto.ListNodeWorkloads(ctx, configs.Hostname())
+	wrks, err := stor.ListNodeWorkloads(ctx, configs.Hostname())
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +55,7 @@ func deleteGuest(svc service.Service, eruID string) error {
 	logger.Infof(ctx, "[recycle] start to remove dangling guest %s", eruID)
 	// since guest deletion is a dangerous operation here,
 	// so we check eru again
-	wrk, err := sto.GetWorkload(ctx, eruID)
+	wrk, err := stor.GetWorkload(ctx, eruID)
 	logger.Infof(ctx, "[recycle]  guest %s, wrk: %v, err: %v", eruID, wrk, err)
 	if err == nil {
 		logger.Errorf(ctx, err, "[recycle] BUG: dangling guest %s is still in eru", eruID)
@@ -65,7 +66,7 @@ func deleteGuest(svc service.Service, eruID string) error {
 	if !ok {
 		return err
 	}
-	if e.Code() == 1051 && strings.Contains(e.Message(), "entity count invalid") { //nolint
+	if e.Code() == corerpc.GetWorkload && strings.Contains(e.Message(), "entity count invalid") { //nolint
 		logger.Infof(ctx, "[recycle] start to remove local guest %s", eruID)
 		// When creating a guest, the core first creates the workload and then creates a record in ETCD.
 		// Therefore, within the time window between these two operations, we may incorrectly detect dangling guests.
@@ -85,14 +86,13 @@ func deleteGuest(svc service.Service, eruID string) error {
 		notifier := bison.GetService()
 		log.Debugf(ctx, "[recycle] notifier: %v", notifier)
 		if notifier != nil {
-			msgList := []string{
-				"<font color=#00CC33 size=10>delete dangling successfully </font>",
-				"---",
-				"",
-				fmt.Sprintf("- **node:** %s", configs.Hostname()),
-				fmt.Sprintf("- **id:** %s", eruID),
-			}
-			text := "\n" + strings.Join(msgList, "\n")
+			text := fmt.Sprintf(`
+<font color=#00CC33 size=10>delete dangling guest successfully </font>
+---
+
+- **node:** %s
+- **id:** %s
+			`, configs.Hostname(), eruID)
 			if err := notifier.SendMarkdown(context.TODO(), "delete dangling guest", text); err != nil {
 				logger.Warnf(ctx, "[recycle] failed to send dingtalk message: %v", err)
 			}
@@ -104,8 +104,9 @@ func deleteGuest(svc service.Service, eruID string) error {
 }
 
 func startLoop(ctx context.Context, svc service.Service) {
-	log.WithFunc("startLoop").Infof(ctx, "[recycle] starting recycle loop")
-	defer log.WithFunc("startLoop").Infof(ctx, "[recycle] recycle loop stopped")
+	logger := log.WithFunc("startLoop")
+	logger.Info(ctx, "[recycle] starting recycle loop")
+	defer logger.Info(ctx, "[recycle] recycle loop stopped")
 
 	for {
 		select {
@@ -116,6 +117,7 @@ func startLoop(ctx context.Context, svc service.Service) {
 
 		coreIDs, err := fetchWorkloads()
 		if err != nil {
+			logger.Error(ctx, err, "failed to fetch workloads")
 			continue
 		}
 		localIDs, err := svc.GetGuestIDList(context.Background())
@@ -139,11 +141,11 @@ func startLoop(ctx context.Context, svc service.Service) {
 func Setup(ctx context.Context, cfg *configs.Config, t *testing.T) (err error) {
 	if t == nil {
 		corestore.Init(ctx, &cfg.Eru)
-		if sto = corestore.Get(); sto == nil {
+		if stor = corestore.Get(); stor == nil {
 			return common.ErrGetStoreFailed
 		}
 	} else {
-		sto = storemocks.NewFakeStore()
+		stor = storemocks.NewFakeStore()
 	}
 	return nil
 }

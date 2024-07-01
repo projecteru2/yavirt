@@ -139,9 +139,9 @@ func (m *Manager) checkAllWorkloads(ctx context.Context) {
 		return
 	}
 
-	for _, workloadID := range workloadIDs {
-		ID := workloadID
-		_ = utils.Pool.Submit(func() { m.checkOneWorkload(ctx, ID) })
+	for idx := range workloadIDs {
+		wrkID := workloadIDs[idx]
+		_ = utils.Pool.Submit(func() { m.checkOneWorkload(ctx, wrkID) })
 	}
 }
 
@@ -157,7 +157,7 @@ func (m *Manager) checkOneWorkload(ctx context.Context, ID string) bool {
 
 	m.wrkStatusCache.Set(workloadStatus.ID, workloadStatus, 0)
 
-	if err = m.setWorkloadStatus(ctx, workloadStatus); err != nil {
+	if err := m.setWorkloadStatus(ctx, workloadStatus); err != nil {
 		logger.Error(ctx, err, "update workload status failed")
 	}
 	return workloadStatus.Healthy

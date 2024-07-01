@@ -8,7 +8,7 @@ import (
 
 	virttypes "github.com/projecteru2/libyavirt/types"
 	"github.com/projecteru2/yavirt/internal/service/mocks"
-	"github.com/projecteru2/yavirt/internal/utils/notify/bison"
+	"github.com/projecteru2/yavirt/pkg/notify/bison"
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 	"github.com/projecteru2/yavirt/pkg/test/mock"
 
@@ -27,7 +27,7 @@ func TestDeleteGuest(t *testing.T) {
 	assert.Nil(t, err)
 
 	svc := &mocks.Service{}
-	mockSto := sto.(*storemocks.MockStore)
+	mockSto := stor.(*storemocks.MockStore)
 
 	// still in eru
 	mockSto.On("GetWorkload", mock.Anything, mock.Anything).Return(
@@ -61,7 +61,7 @@ func TestNormal(t *testing.T) {
 
 	svc := &mocks.Service{}
 	svc.On("GetGuestIDList", mock.Anything).Return([]string{"00033017009174384208170000000001", "00033017009174384208170000000002"}, nil)
-	mockSto := sto.(*storemocks.MockStore)
+	mockSto := stor.(*storemocks.MockStore)
 	mockSto.On("ListNodeWorkloads", mock.Anything, mock.Anything).Return(
 		[]*types.Workload{
 			{

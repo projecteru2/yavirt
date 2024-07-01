@@ -17,7 +17,8 @@ import (
 	stotypes "github.com/projecteru2/resource-storage/storage/types"
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/eru/types"
-	"github.com/projecteru2/yavirt/internal/utils/notify/bison"
+	intertypes "github.com/projecteru2/yavirt/internal/types"
+	"github.com/projecteru2/yavirt/pkg/notify/bison"
 	gputypes "github.com/yuyang0/resource-gpu/gpu/types"
 )
 
@@ -33,7 +34,7 @@ func NewCoreResourcesManager() *CoreResourcesManager {
 	return &CoreResourcesManager{}
 }
 
-func (cm *CoreResourcesManager) fetchResources() {
+func (cm *CoreResourcesManager) fetchResourcesWithLock() {
 	ctx, cancel := context.WithTimeout(context.TODO(), 30*time.Second)
 	defer cancel()
 	logger := log.WithFunc("fetchResources")
@@ -48,7 +49,7 @@ func (cm *CoreResourcesManager) fetchResources() {
 	defer cm.mu.Unlock()
 	for resName, rawParams := range capacity {
 		switch resName {
-		case "cpumem":
+		case intertypes.PluginNameCPUMem:
 			cpumem := cpumemtypes.NodeResource{}
 			if err = mapstructure.Decode(rawParams, &cpumem); err != nil {
 				logger.Errorf(ctx, err, "failed to unmarshal resource cpumem")
@@ -56,7 +57,7 @@ func (cm *CoreResourcesManager) fetchResources() {
 				logger.Debugf(ctx, "[core fetchResources] cpumem: %v", cpumem)
 				cm.cpumem = &cpumem
 			}
-		case "storage":
+		case intertypes.PluginNameStorage:
 			sto := stotypes.NodeResource{}
 			if err = mapstructure.Decode(rawParams, &sto); err != nil {
 				logger.Errorf(ctx, err, "failed to unmarshal resource storage")
@@ -64,7 +65,7 @@ func (cm *CoreResourcesManager) fetchResources() {
 				logger.Debugf(ctx, "[core fetchResources] storage: %v", sto)
 				cm.sto = &sto
 			}
-		case "gpu":
+		case intertypes.PluginNameGPU:
 			gpu := gputypes.NodeResource{}
 			if err = mapstructure.Decode(rawParams, &gpu); err != nil {
 				logger.Errorf(ctx, err, "failed to unmarshal resource gpu")
@@ -83,7 +84,7 @@ func (cm *CoreResourcesManager) GetCpumem() (ans *cpumemtypes.NodeResource) {
 	if ans != nil {
 		return
 	}
-	cm.fetchResources()
+	cm.fetchResourcesWithLock()
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
 	return cm.cpumem
@@ -96,7 +97,7 @@ func (cm *CoreResourcesManager) GetGPU() (ans *gputypes.NodeResource) {
 	if ans != nil {
 		return
 	}
-	cm.fetchResources()
+	cm.fetchResourcesWithLock()
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
 	return cm.gpu
@@ -115,7 +116,7 @@ func (cm *CoreResourcesManager) UpdateGPU(nr *gputypes.NodeResource) {
 		remoteNR1 := remoteNR.DeepCopy()
 		remoteNR1.Sub(nr)
 		if remoteNR1.Count() == 0 {
-			logger.Debugf(ctx, "remote gpu config is consistent")
+			logger.Debug(ctx, "remote gpu config is consistent")
 			return
 		}
 	}
@@ -136,14 +137,14 @@ func (cm *CoreResourcesManager) UpdateGPU(nr *gputypes.NodeResource) {
 
 	notifier := bison.GetService()
 	if notifier != nil {
-		msgList := []string{
-			"<font color=#00CC33 size=10>update core gpu resource successfully</font>",
-			"---",
-			"",
-			fmt.Sprintf("- **node:** %s", configs.Hostname()),
-			fmt.Sprintf("- **gpu:** %v", nr),
-		}
-		text := "\n" + strings.Join(msgList, "\n")
+		text := fmt.Sprintf(`
+<font color=#00CC33 size=10>update core gpu resource successfully</font>
+
+---
+
+- **node:** %s
+- **gpu:** %v
+		`, configs.Hostname(), nr)
 		_ = notifier.SendMarkdown(ctx, "update core gpu resource successfully", text)
 	}
 
@@ -184,14 +185,13 @@ func (cm *CoreResourcesManager) UpdateCPUMem(nr *cpumemtypes.NodeResource) (err 
 
 	notifier := bison.GetService()
 	if notifier != nil {
-		msgList := []string{
-			"<font color=#00CC33 size=10>update core cpumem resource successfully</font>",
-			"---",
-			"",
-			fmt.Sprintf("- **node:** %s", configs.Hostname()),
-			fmt.Sprintf("- **cpumem:** %+v", localNR),
-		}
-		text := "\n" + strings.Join(msgList, "\n")
+		text := fmt.Sprintf(`
+<font color=#00CC33 size=10>update core cpumem resource successfully</font>
+---
+
+- **node:** %s
+- **cpumem:** %+v
+		 `, configs.Hostname(), localNR)
 		_ = notifier.SendMarkdown(ctx, "update core cpumem resource successfully", text)
 	}
 

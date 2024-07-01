@@ -42,6 +42,7 @@ func (m *Manager) nodeStatusReport(ctx context.Context) {
 		return
 	}
 	if err := m.store.CheckHealth(ctx); err != nil {
+		logger.Error(ctx, err, "failed to check health of core")
 		m.mCol.coreHealthy.Store(false)
 	} else {
 		m.mCol.coreHealthy.Store(true)

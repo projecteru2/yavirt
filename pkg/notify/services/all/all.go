@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/cockroachdb/errors"
-	"github.com/projecteru2/yavirt/internal/utils/notify"
+	"github.com/projecteru2/yavirt/pkg/notify"
 )
 
 type Config struct {
