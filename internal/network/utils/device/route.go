@@ -84,7 +84,7 @@ type Routes []*Route
 func newRoutes(raw []netlink.Route, d *Driver) Routes {
 	var routes = make(Routes, len(raw))
 	for i, r := range raw {
-		routes[i] = newRoute(&r, d) //nolint
+		routes[i] = newRoute(&r, d)
 	}
 	return routes
 }

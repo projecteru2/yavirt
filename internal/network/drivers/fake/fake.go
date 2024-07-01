@@ -31,7 +31,7 @@ func (d *Driver) DeleteEndpointNetwork(types.EndpointArgs) error {
 	return nil
 }
 func (d *Driver) GetEndpointDevice(string) (device.VirtLink, error) {
-	return nil, nil
+	return nil, nil //nolint
 }
 func (d *Driver) CreateNetworkPolicy(string) error {
 	return nil

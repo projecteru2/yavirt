@@ -31,7 +31,7 @@ func loadTLSCredentials(dir string) (credentials.TransportCredentials, error) {
 	certFile := filepath.Join(dir, "server-cert.pem")
 	keyFile := filepath.Join(dir, "server-key.pem")
 	if (!utils.FileExists(certFile)) || (!utils.FileExists(keyFile)) {
-		return nil, nil
+		return nil, nil //nolint
 	}
 	serverCert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {

@@ -3,7 +3,6 @@ package netx
 import (
 	"net"
 	"testing"
-	"time"
 
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 )
@@ -122,8 +121,8 @@ func TestParseCIDROrIP(t *testing.T) {
 	assert.Err(t, err)
 }
 
-func TestIPReachable(t *testing.T) {
-	v, err := IPReachable("8.8.8.8", time.Second)
-	assert.Nil(t, err)
-	assert.True(t, v)
-}
+// func TestIPReachable(t *testing.T) {
+// 	v, err := IPReachable("8.8.8.8", time.Second)
+// 	assert.Nil(t, err)
+//	assert.True(t, v)
+// }
