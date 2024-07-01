@@ -5,9 +5,11 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/cmd/run"
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/models"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 )
 
 func listFlags() []cli.Flag {
@@ -21,7 +23,7 @@ func listFlags() []cli.Flag {
 	}
 }
 
-func list(c *cli.Context, _ run.Runtime) error {
+func listCmd(c *cli.Context, _ run.Runtime) error {
 	all := c.Bool("all")
 
 	var err error
@@ -35,7 +37,7 @@ func list(c *cli.Context, _ run.Runtime) error {
 		}
 		guests, err = models.GetNodeGuests(nodename)
 	}
-	if err != nil {
+	if err != nil && !errors.Is(err, terrors.ErrKeyNotExists) {
 		return err
 	}
 

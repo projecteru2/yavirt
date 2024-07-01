@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 )
 
 type ExitCodeMap struct {
@@ -19,7 +19,7 @@ func NewSyncMap() *ExitCodeMap {
 func (s *ExitCodeMap) Get(id string, pid int) (int, error) {
 	v, ok := s.Load(id + strconv.Itoa(pid))
 	if !ok {
-		return 0, errors.ErrKeyNotExists
+		return 0, terrors.ErrKeyNotExists
 	}
 	return v.(int), nil
 }

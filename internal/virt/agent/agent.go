@@ -6,6 +6,7 @@ import (
 
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/virt/agent/types"
+	"github.com/projecteru2/yavirt/pkg/libvirt"
 )
 
 // Interface .
@@ -20,15 +21,18 @@ type Interface interface { //nolint
 	IsFolder(ctx context.Context, path string) (bool, error)
 	RemoveAll(ctx context.Context, path string) error
 	Grep(ctx context.Context, keyword, filepath string) (bool, error)
-	OpenFile(path, mode string) (handle int, err error)
-	CloseFile(handle int) error
-	FlushFile(handle int) error
-	ReadFile(handle int, p []byte) (int, bool, error)
-	WriteFile(handle int, buf []byte) error
-	SeekFile(handle int, offset int, whence int) (position int, eof bool, err error)
-	AppendLine(filepath string, p []byte) error
+	OpenFile(ctx context.Context, path, mode string) (handle int, err error)
+	CloseFile(ctx context.Context, handle int) error
+	FlushFile(ctx context.Context, handle int) error
+	ReadFile(ctx context.Context, handle int, p []byte) (int, bool, error)
+	WriteFile(ctx context.Context, handle int, buf []byte) error
+	SeekFile(ctx context.Context, handle int, offset int, whence int) (position int, eof bool, err error)
+	AppendLine(ctx context.Context, filepath string, p []byte) error
 	Blkid(ctx context.Context, dev string) (string, error)
 	GetDiskfree(ctx context.Context, mnt string) (*types.Diskfree, error)
+	FSFreezeAll(ctx context.Context) (int, error)
+	FSThawAll(ctx context.Context) (int, error)
+	FSFreezeStatus(ctx context.Context) (string, error)
 }
 
 // Agent .
@@ -37,9 +41,9 @@ type Agent struct {
 }
 
 // New .
-func New(sockfile string) *Agent {
+func New(name string, virt libvirt.Libvirt) *Agent {
 	return &Agent{
-		qmp: newQmp(sockfile, true),
+		qmp: newQmp(name, virt, true),
 	}
 }
 

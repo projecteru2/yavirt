@@ -3,7 +3,7 @@ package utils
 import (
 	"testing"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/test/assert"
 )
 
@@ -11,7 +11,7 @@ func TestSyncMap(t *testing.T) {
 	mp := NewSyncMap()
 
 	_, err := mp.Get("a", 0)
-	assert.Equal(t, errors.ErrKeyNotExists, err)
+	assert.Equal(t, terrors.ErrKeyNotExists, err)
 
 	mp.Put("a", 0, 5)
 	v, err := mp.Get("a", 0)

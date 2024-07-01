@@ -1,0 +1,49 @@
+#cloud-config
+
+{{if gt (len .files) 0}}
+write_files:
+  {{ range .files }}
+  - path: {{ .path }}
+    encoding: b64
+    content: {{ .content }}
+  {{ end }}
+{{ end }}
+
+packages:
+  - qemu-guest-agent
+
+{{ if eq .username "root" }}
+bootcmd:
+  - sed -i '/^\s*PermitRootLogin.*$/d' /etc/ssh/sshd_config
+  - echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+{{ end }}
+
+runcmd:
+  - systemctl restart ssh
+  - systemctl start qemu-guest-agent
+{{ range .commands }}
+  - {{ . }}
+{{ end }}
+
+users:
+  - name: "{{ .username }}"
+    plain_text_passwd: "{{ .password }}"
+    lock_passwd: false
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo
+    shell: /bin/bash
+
+{{ if ne .sshPubKey "" }}
+    ssh_authorized_keys:
+      - {{ .sshPubKey }}
+{{ end }}
+
+{{ if eq .sshPubKey "" }}
+ssh_pwauth: true
+{{ end }}
+
+{{ if eq .username "root" }}
+disable_root: false
+{{ else }}
+disable_root: true
+{{ end }}

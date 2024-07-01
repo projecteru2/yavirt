@@ -4,7 +4,8 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
@@ -30,7 +31,7 @@ func (p Parted) GetSize(ctx context.Context) (int64, error) {
 	st := <-p.ga.ExecOutput(ctx, "parted", "-s", p.dev, "unit", "B", "p")
 	so, _, err := st.Stdio()
 	if err != nil {
-		return 0, errors.Annotatef(err, "parted %s print failed", p.dev)
+		return 0, errors.Wrapf(err, "parted %s print failed", p.dev)
 	}
 	return p.getSize(string(so))
 }
@@ -38,7 +39,7 @@ func (p Parted) GetSize(ctx context.Context) (int64, error) {
 func (p Parted) getSize(so string) (int64, error) {
 	mat := printSizeRegex.FindStringSubmatch(so)
 	if len(mat) != 2 {
-		return 0, errors.Annotatef(errors.ErrInvalidValue, "invalid parted: %s", so)
+		return 0, errors.Wrapf(terrors.ErrInvalidValue, "invalid parted: %s", so)
 	}
 
 	return utils.Atoi64(mat[1])

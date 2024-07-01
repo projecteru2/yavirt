@@ -5,16 +5,12 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/cmd/run"
-	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
 func captureFlags() []cli.Flag {
 	return []cli.Flag{
-		&cli.StringFlag{
-			Name:     "user",
-			Required: true,
-		},
 		&cli.StringFlag{
 			Name:     "name",
 			Required: true,
@@ -31,12 +27,11 @@ func capture(c *cli.Context, runtime run.Runtime) error {
 		return errors.New("Guest ID is required")
 	}
 
-	user := c.String("user")
 	name := c.String("name")
 	overridden := c.Bool("overridden")
-	_, err := runtime.Guest.Capture(runtime.VirtContext(), id, user, name, overridden)
+	_, err := runtime.Svc.CaptureGuest(runtime.Ctx, id, name, overridden)
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	fmt.Printf("%s captured\n", name)

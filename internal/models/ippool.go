@@ -7,16 +7,17 @@ import (
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/internal/meta"
-	"github.com/projecteru2/yavirt/pkg/errors"
 	"github.com/projecteru2/yavirt/pkg/netx"
 	"github.com/projecteru2/yavirt/pkg/store"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
 // IPPool .
 type IPPool struct {
-	*Generic
+	*meta.Generic
 
 	Name  string          `json:"name"`
 	Raw   string          `json:"raw"`
@@ -34,7 +35,7 @@ func LoadIPPool(name string) (*IPPool, error) {
 	ipp := newIPPool(name)
 
 	if err := meta.Load(ipp); err != nil {
-		return nil, errors.Annotatef(err, "load IPPool %s failed", name)
+		return nil, errors.WithMessagef(err, "load IPPool %s failed", name)
 	}
 
 	return ipp, ipp.parse()
@@ -52,27 +53,27 @@ func NewIPPool(name, cidr string) (ipp *IPPool, err error) {
 
 func newIPPool(name string) *IPPool {
 	ipp := &IPPool{
-		Generic: newGeneric(),
+		Generic: meta.NewGeneric(),
 		Name:    name,
 		blocks:  IPBlocks{},
 		sync:    true,
 	}
 
-	ipp.Status = StatusRunning
+	ipp.Status = meta.StatusRunning
 
 	return ipp
 }
 
 func (ipp *IPPool) parse() (err error) {
 	if _, ipp.ipnet, err = netx.ParseCIDR(ipp.Raw); err != nil {
-		return errors.Annotatef(err, "parse CIDR %s failed", ipp.Raw)
+		return errors.Wrapf(err, "parse CIDR %s failed", ipp.Raw)
 	}
 
 	switch {
 	case ipp.MaskBits() > MaxMaskBits:
-		return errors.Annotatef(errors.ErrTooLargeMaskBits, "at most", MaxMaskBits)
+		return errors.Wrapf(terrors.ErrTooLargeMaskBits, "at most", MaxMaskBits)
 	case ipp.MaskBits() < MinMaskBits:
-		return errors.Annotatef(errors.ErrTooSmallMaskBits, "at least", MinMaskBits)
+		return errors.Wrapf(terrors.ErrTooSmallMaskBits, "at least", MinMaskBits)
 	}
 
 	ipp.CIDR = fmt.Sprintf("%s/%d", ipp.Subnet().String(), ipp.MaskBits())
@@ -89,7 +90,7 @@ func (ipp *IPPool) Assign() (ipn *net.IPNet, err error) {
 	}
 	defer func() {
 		if ue := unlock(context.Background()); ue != nil {
-			err = errors.Wrap(err, ue)
+			err = errors.CombineErrors(err, ue)
 		}
 	}()
 
@@ -125,7 +126,7 @@ func (ipp *IPPool) getAvailBlock() (block *IPBlock, err error) {
 
 	// there's no any available block.
 	if err == nil && block == nil {
-		err = errors.Annotatef(errors.ErrInsufficientIP,
+		err = errors.Wrapf(terrors.ErrInsufficientIP,
 			"%s CIDR %s hasn't free IP", ipp.Name, ipp.ipnet)
 	}
 
@@ -135,7 +136,7 @@ func (ipp *IPPool) getAvailBlock() (block *IPBlock, err error) {
 // Release .
 func (ipp *IPPool) Release(ipn *net.IPNet) (err error) {
 	if !ipp.Contains(ipn) {
-		return errors.Annotatef(errors.ErrInvalidValue, "%s doesn't contain %s", ipp.Name, ipn)
+		return errors.Wrapf(terrors.ErrInvalidValue, "%s doesn't contain %s", ipp.Name, ipn)
 	}
 
 	var unlock utils.Unlocker
@@ -144,7 +145,7 @@ func (ipp *IPPool) Release(ipn *net.IPNet) (err error) {
 	}
 	defer func() {
 		if ue := unlock(context.Background()); ue != nil {
-			err = errors.Wrap(err, ue)
+			err = errors.CombineErrors(err, ue)
 		}
 	}()
 
@@ -165,7 +166,7 @@ func (ipp *IPPool) Release(ipn *net.IPNet) (err error) {
 // IsAssigned .
 func (ipp *IPPool) IsAssigned(ipn *net.IPNet) (assigned bool, err error) {
 	if !ipp.Contains(ipn) {
-		return false, errors.Annotatef(errors.ErrInvalidValue, "%s doesn't contain %s", ipp.Name, ipn)
+		return false, errors.Wrapf(terrors.ErrInvalidValue, "%s doesn't contain %s", ipp.Name, ipn)
 	}
 
 	var unlock utils.Unlocker
@@ -174,7 +175,7 @@ func (ipp *IPPool) IsAssigned(ipn *net.IPNet) (assigned bool, err error) {
 	}
 	defer func() {
 		if ue := unlock(context.Background()); ue != nil {
-			err = errors.Wrap(err, ue)
+			err = errors.CombineErrors(err, ue)
 		}
 	}()
 
@@ -194,7 +195,7 @@ func (ipp *IPPool) getBlock(ipn *net.IPNet) (*IPBlock, error) {
 	i := ipp.getBlockIndex(ipn.IP)
 
 	if int64(ipp.blocks.Len()) <= i {
-		return nil, errors.Annotatef(errors.ErrInsufficientBlocks,
+		return nil, errors.Wrapf(terrors.ErrInsufficientBlocks,
 			"block %s not found", netx.Int2ip(ipp.intSubnet()+i))
 	}
 
@@ -222,7 +223,7 @@ func (ipp *IPPool) Contains(ipn *net.IPNet) bool {
 
 func (ipp *IPPool) spawnBlock(offset int) (block *IPBlock, err error) {
 	if err = ipp.Flags.Set(offset); err != nil {
-		return nil, errors.Annotatef(err, "spawn %d block %s failed",
+		return nil, errors.Wrapf(err, "spawn %d block %s failed",
 			offset, netx.Int2ip(ipp.intSubnet()+int64(offset)))
 	}
 
@@ -240,7 +241,7 @@ func (ipp *IPPool) spawnBlock(offset int) (block *IPBlock, err error) {
 func (ipp *IPPool) reload() error {
 	newOne := newIPPool(ipp.Name)
 	if err := meta.Load(newOne); err != nil {
-		return errors.Annotatef(err, "load IPPool %s failed", ipp.Name)
+		return errors.Wrapf(err, "load IPPool %s failed", ipp.Name)
 	}
 
 	ipp.Flags = newOne.Flags
@@ -257,11 +258,11 @@ func (ipp *IPPool) reloadBlocks() error {
 	data, vers, err := store.GetPrefix(ctx, prefix, int64(ipp.blockCount()))
 	if err != nil {
 		// there's no any block yet.
-		if errors.Contain(err, errors.ErrKeyNotExists) {
+		if errors.Is(err, terrors.ErrKeyNotExists) {
 			return nil
 		}
 
-		return errors.Annotatef(err, "get IPPool %s all blocks failed", ipp.Name)
+		return errors.Wrapf(err, "get IPPool %s all blocks failed", ipp.Name)
 	}
 
 	delete(data, prefix)
@@ -275,31 +276,31 @@ func (ipp *IPPool) parseBlocksBytes(data map[string][]byte, vers map[string]int6
 	for key, bytes := range data {
 		ver, exists := vers[key]
 		if !exists {
-			return errors.Annotatef(errors.ErrKeyBadVersion, key)
+			return errors.Wrapf(terrors.ErrKeyBadVersion, key)
 		}
 
 		ipn, err := ipp.parseBlockMetaKey(key)
 		if err != nil {
-			return errors.Annotatef(err, "parse block key %s failed", key)
+			return errors.Wrapf(err, "parse block key %s failed", key)
 		}
 
 		block := newIPBlock(ipp, ipn)
 		if err := utils.JSONDecode(bytes, block); err != nil {
-			return errors.Annotatef(err, "decode IPBlock bytes %s failed", bytes)
+			return errors.Wrapf(err, "decode IPBlock bytes %s failed", bytes)
 		}
 
 		block.SetVer(ver)
 
 		i := ipp.getBlockIndex(block.BlockIP())
 		if int64(blocks.Len()) <= i {
-			return errors.Annotatef(errors.ErrInsufficientBlocks, "%d block %s not found", i, ipn)
+			return errors.Wrapf(terrors.ErrInsufficientBlocks, "%d block %s not found", i, ipn)
 		}
 
 		blocks[i] = block
 	}
 
 	if err := ipp.checkBlocks(blocks); err != nil {
-		return errors.Trace(err)
+		return errors.WithMessagef(err, "parse blocks %s failed", blocks)
 	}
 
 	ipp.blocks = blocks
@@ -318,7 +319,7 @@ func (ipp *IPPool) checkBlocks(blocks IPBlocks) (err error) {
 			return true
 		}
 
-		err = errors.Annotatef(errors.ErrInvalidValue,
+		err = errors.Wrapf(terrors.ErrInvalidValue,
 			"IPPool %s %d block %s should be spawned (%t) but not",
 			ipp.ipnet, offset, ipp.getBlockIPNet(offset), set)
 
@@ -346,12 +347,12 @@ func (ipp *IPPool) save(block *IPBlock) error {
 
 	ippBytes, err := ipp.Marshal()
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrapf(err, "failed to marshal %s", ipp)
 	}
 
 	blockBytes, err := block.Marshal()
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrapf(err, "failed to marshal %s", block)
 	}
 
 	ops := []clientv3.Op{
@@ -364,9 +365,9 @@ func (ipp *IPPool) save(block *IPBlock) error {
 
 	switch succ, err := store.BatchOperate(ctx, ops); {
 	case err != nil:
-		return errors.Trace(err)
+		return errors.Wrap(err, "failed to batch operate")
 	case !succ:
-		return errors.Annotatef(errors.ErrBatchOperate,
+		return errors.Wrapf(terrors.ErrBatchOperate,
 			"put: %s / %s", ipp.MetaKey(), block.MetaKey())
 	}
 

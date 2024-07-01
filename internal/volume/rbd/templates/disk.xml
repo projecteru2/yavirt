@@ -1,0 +1,11 @@
+<disk type='network' device='disk'>
+  <source protocol='rbd' name='{{.source}}'>
+      {{ range .monitorAddrs }}
+      <host name='{{.host}}' port='{{ .port }}'/>
+      {{ end }}
+  </source>
+  <auth username='{{.username}}'>
+      <secret type='ceph' uuid='{{ .secretUUID }}'/>
+  </auth>
+  <target dev='{{.dev}}' bus='virtio'/>
+</disk>

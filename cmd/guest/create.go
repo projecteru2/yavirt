@@ -1,17 +1,20 @@
 package guest
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/urfave/cli/v2"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/cmd/run"
-	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/internal/virt/types"
-	"github.com/projecteru2/yavirt/internal/vnet"
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/internal/network"
+	"github.com/projecteru2/yavirt/internal/types"
 	"github.com/projecteru2/yavirt/pkg/utils"
+
+	stotypes "github.com/projecteru2/resource-storage/storage/types"
+	rbdtypes "github.com/yuyang0/resource-rbd/rbd/types"
 )
 
 func createFlags() []cli.Flag {
@@ -45,24 +48,27 @@ func createFlags() []cli.Flag {
 }
 
 func create(c *cli.Context, runtime run.Runtime) error {
-	vols, err := getVols(c.String("storage"))
+	res, err := generateResources(c)
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
+	cnt := c.Int("count")
+	networkMode := c.String("network")
+
+	if networkMode == "" {
+		return errors.New("network can't be empty")
+	}
 	opts := types.GuestCreateOption{
 		CPU:       c.Int("cpu"),
 		Mem:       c.Int64("memory"),
 		ImageName: c.Args().First(),
 		ImageUser: c.String("image-user"),
 		DmiUUID:   c.String("dmi"),
-	}
-
-	cnt := c.Int("count")
-	network := c.String("network")
-
-	if len(network) < 1 {
-		network = runtime.Host.NetworkMode
+		Labels: map[string]string{
+			network.ModeLabelKey: networkMode,
+		},
+		Resources: res,
 	}
 
 	switch {
@@ -74,14 +80,12 @@ func create(c *cli.Context, runtime run.Runtime) error {
 		return fmt.Errorf("--memory is required")
 	case cnt < 1:
 		return fmt.Errorf("--count must be greater than 0")
-	case network != vnet.NetworkCalico && network != vnet.NetworkVlan:
-		return fmt.Errorf("--network is invalid: %s", network)
+	case networkMode != network.CalicoMode && networkMode != network.VlanMode:
+		return fmt.Errorf("--network is invalid: %s", networkMode)
 	}
 
-	runtime.Host.NetworkMode = network
-
 	for i := 0; i < cnt; i++ {
-		g, err := runtime.Guest.Create(runtime.VirtContext(), opts, runtime.Host, vols)
+		g, err := runtime.Svc.CreateGuest(runtime.Ctx, opts)
 		if err != nil {
 			return err
 		}
@@ -92,28 +96,38 @@ func create(c *cli.Context, runtime run.Runtime) error {
 	return nil
 }
 
-func getVols(mounts string) ([]*models.Volume, error) {
-	if len(mounts) < 1 {
-		return nil, nil
+func generateResources(c *cli.Context) (ans map[string][]byte, err error) {
+	ans = map[string][]byte{}
+	// for storage resources
+	{
+		mounts := c.String("storage")
+		if len(mounts) < 1 {
+			return
+		}
+		eParmas := stotypes.EngineParams{
+			Volumes: strings.Split(mounts, ","),
+		}
+		bs, err := json.Marshal(eParmas)
+		if err != nil {
+			return nil, err
+		}
+		ans["storage"] = bs
 	}
 
-	var vols = []*models.Volume{}
-
-	for _, raw := range strings.Split(mounts, ",") {
-		mnt, rawCap := utils.PartRight(raw, ":")
-
-		volCap, err := utils.Atoi64(rawCap)
-		if err != nil {
-			return nil, errors.Trace(err)
+	// for rbd resources
+	{
+		mounts := c.String("rbd")
+		if len(mounts) < 1 {
+			return
 		}
-
-		vol, err := models.NewDataVolume(mnt, volCap)
-		if err != nil {
-			return nil, errors.Trace(err)
+		eParmas := rbdtypes.EngineParams{
+			Volumes: strings.Split(mounts, ","),
 		}
-
-		vols = append(vols, vol)
+		bs, err := json.Marshal(eParmas)
+		if err != nil {
+			return nil, err
+		}
+		ans["rbd"] = bs
 	}
-
-	return vols, nil
+	return
 }

@@ -66,3 +66,18 @@ func TestFlockSingle(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+func TestRemoveExists(t *testing.T) {
+	var rand = strconv.FormatInt(time.Now().UnixNano(), 10)
+
+	var fpth = filepath.Join(os.TempDir(), rand)
+	defer os.Remove(fpth)
+
+	var flock = NewFlock(fpth)
+	assert.False(t, flock.FileExists())
+	assert.NilErr(t, flock.Trylock())
+	assert.True(t, flock.FileExists())
+	assert.Nil(t, flock.RemoveFile())
+	assert.False(t, flock.FileExists())
+	assert.Nil(t, flock.RemoveFile())
+}

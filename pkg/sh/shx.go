@@ -7,7 +7,7 @@ import (
 	"io"
 	"os/exec"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
 )
 
 type shx struct{}
@@ -46,20 +46,20 @@ func (s shx) Exec(ctx context.Context, name string, args ...string) error {
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	if err := cmd.Start(); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	slurp, err := io.ReadAll(stderr)
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return errors.Annotatef(err, string(slurp))
+		return errors.Wrap(err, string(slurp))
 	}
 
 	return nil

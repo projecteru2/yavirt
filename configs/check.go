@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
 )
 
 type checker struct { //nolint
@@ -29,15 +29,15 @@ func (c *checker) check() (err error) { //nolint
 	}
 
 	if c.fieldObj, c.val, err = c.getFieldValue(reflect.ValueOf(c.conf), c.field); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	if err := c.checkEnum(); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	if err := c.checkRange(); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	return

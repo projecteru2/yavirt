@@ -1,87 +1,87 @@
 package models
 
 import (
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/internal/meta"
-	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
 // ForwardCreating .
 func (g *Guest) ForwardCreating() error {
-	return g.ForwardStatus(StatusCreating, false)
+	return g.ForwardStatus(meta.StatusCreating, false)
 }
 
 // ForwardStarting .
-func (g *Guest) ForwardStarting() error {
-	return g.ForwardStatus(StatusStarting, false)
+func (g *Guest) ForwardStarting(force bool) error {
+	return g.ForwardStatus(meta.StatusStarting, force)
 }
 
 // ForwardStopped .
 func (g *Guest) ForwardStopped(force bool) error {
-	return g.ForwardStatus(StatusStopped, force)
+	return g.ForwardStatus(meta.StatusStopped, force)
 }
 
 // ForwardStopping .
 func (g *Guest) ForwardStopping() error {
-	return g.ForwardStatus(StatusStopping, false)
+	return g.ForwardStatus(meta.StatusStopping, false)
 }
 
 // ForwardCaptured .
 func (g *Guest) ForwardCaptured() error {
-	return g.ForwardStatus(StatusCaptured, false)
+	return g.ForwardStatus(meta.StatusCaptured, false)
 }
 
 // ForwardCapturing .
 func (g *Guest) ForwardCapturing() error {
-	return g.ForwardStatus(StatusCapturing, false)
+	return g.ForwardStatus(meta.StatusCapturing, false)
 }
 
 // ForwardDestroying .
 func (g *Guest) ForwardDestroying(force bool) error {
-	return g.ForwardStatus(StatusDestroying, force)
+	return g.ForwardStatus(meta.StatusDestroying, force)
 }
 
 // ForwardRunning .
 func (g *Guest) ForwardRunning() error {
-	return g.ForwardStatus(StatusRunning, false)
+	return g.ForwardStatus(meta.StatusRunning, false)
 }
 
 // ForwardPaused .
 func (g *Guest) ForwardPaused() error {
-	return g.ForwardStatus(StatusPaused, false)
+	return g.ForwardStatus(meta.StatusPaused, false)
 }
 
 // ForwardPausing .
 func (g *Guest) ForwardPausing() error {
-	return g.ForwardStatus(StatusPausing, false)
+	return g.ForwardStatus(meta.StatusPausing, false)
 }
 
 // ForwardResuming .
 func (g *Guest) ForwardResuming() error {
-	return g.ForwardStatus(StatusResuming, false)
+	return g.ForwardStatus(meta.StatusResuming, false)
 }
 
 // ForwardResizing .
 func (g *Guest) ForwardResizing() error {
-	return g.ForwardStatus(StatusResizing, false)
+	return g.ForwardStatus(meta.StatusResizing, false)
 }
 
 // ForwardMigrating .
 func (g *Guest) ForwardMigrating() error {
-	return g.ForwardStatus(StatusMigrating, false)
+	return g.ForwardStatus(meta.StatusMigrating, false)
 }
 
 // ForwardStatus .
 func (g *Guest) ForwardStatus(st string, force bool) error {
-	if err := g.setStatus(st, force); err != nil {
-		return errors.Trace(err)
+	if err := g.SetStatus(st, force); err != nil {
+		return errors.WithMessagef(err, "ForwardStatus: failed to set guest status to %s", st)
 	}
 
-	if err := g.Vols.setStatus(st, force); err != nil {
-		return errors.Trace(err)
+	if err := g.Vols.SetStatus(st, force); err != nil {
+		return errors.WithMessagef(err, "ForwardStatus: failed to set volumes status to %s", st)
 	}
 
 	var res = meta.Resources{g}
-	res.Concate(g.Vols.resources())
+	res.Concate(g.Vols.Resources())
 
 	return meta.Save(res)
 }

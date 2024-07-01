@@ -1,7 +1,8 @@
 package utils
 
 import (
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 )
 
 const bitsPerSection = 32
@@ -130,7 +131,7 @@ func (b *Bitmap32) GetIndex(offset int) (mi, bi int) {
 
 func (b *Bitmap32) checkOffset(offset int) error {
 	if offset >= b.Count {
-		return errors.Annotatef(errors.ErrTooLargeOffset,
+		return errors.Wrapf(terrors.ErrTooLargeOffset,
 			"at most %d, but %d", b.Count-1, offset)
 	}
 	return nil
