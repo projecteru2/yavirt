@@ -35,7 +35,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/projectcalico/api v0.0.0-20230222223746-44aa60c2201f
 	github.com/projectcalico/calico v1.11.0-cni-plugin.0.20230510161715-15d193738928
-	github.com/projecteru2/core v0.0.0-20240613084815-dff459401ad7
+	github.com/projecteru2/core v0.0.0-20240614132727-08e4fbc219d1
 	github.com/projecteru2/libyavirt v0.0.0-20231128023216-96fef06a6ca4
 	github.com/projecteru2/resource-storage v0.0.0-20230206062354-d828802f6b96
 	github.com/prometheus-community/pro-bing v0.4.0
@@ -150,7 +150,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/projectcalico/go-json v0.0.0-20161128004156-6219dc7339ba // indirect
 	github.com/projectcalico/go-yaml-wrapper v0.0.0-20191112210931-090425220c54 // indirect
-	github.com/projecteru2/vmihub v0.0.0-20240628073228-3417154bf02a // indirect
+	github.com/projecteru2/vmihub v0.0.0-20240702045253-4fa15dba054f // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect

@@ -1,4 +1,4 @@
-FROM ubuntu:jammy AS BUILD
+FROM ubuntu:noble AS BUILD
 
 # make binary
 # RUN git clone https://github.com/projecteru2/yavirt.git /go/src/github.com/projecteru2/yavirt
@@ -6,16 +6,15 @@ COPY . /go/src/github.com/projecteru2/yavirt
 WORKDIR /go/src/github.com/projecteru2/yavirt
 ARG KEEP_SYMBOL
 RUN apt update
-RUN apt install -y golang-1.20 build-essential libvirt-dev make genisoimage libguestfs-dev libcephfs-dev librbd-dev librados-dev
-RUN apt install -y git
+RUN apt install -y golang-1.22 build-essential libvirt-dev make genisoimage libguestfs-dev libcephfs-dev librbd-dev librados-dev git
 # RUN snap install go --classic
-ENV PATH="$PATH:/usr/lib/go-1.20/bin/"
+ENV PATH="$PATH:/usr/lib/go-1.22/bin/"
 
 RUN go version
 RUN make deps
 RUN make && ./bin/yavirtd --version
 
-FROM ubuntu:jammy
+FROM ubuntu:noble
 
 RUN mkdir /etc/yavirt/ && \
     apt update && \

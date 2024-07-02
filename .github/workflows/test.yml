@@ -21,15 +21,9 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
-      
       - name: "Install dependencies"
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libvirt-dev make genisoimage libguestfs-dev libcephfs-dev librbd-dev librados-dev
-      - name: "Install dependencies"
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libvirt-dev make genisoimage libguestfs-dev libcephfs-dev librbd-dev librados-dev
-
       - name: unit tests
         run: make test
