@@ -2,16 +2,19 @@ package netx
 
 import (
 	"net"
+	"time"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/utils"
+	probing "github.com/prometheus-community/pro-bing"
 )
 
 // GetOutboundIP .
 func GetOutboundIP(dest string) (string, error) {
 	conn, err := net.Dial("udp", dest)
 	if err != nil {
-		return "", errors.Trace(err)
+		return "", errors.Wrap(err, "")
 	}
 	defer conn.Close()
 
@@ -45,7 +48,7 @@ func Int2ip(i64 int64) net.IP {
 // IPv4ToInt .
 func IPv4ToInt(ipv4 string) (i64 int64, err error) {
 	if i64 = IP2int(net.ParseIP(ipv4).To4()); i64 == 0 {
-		err = errors.Annotatef(errors.ErrInvalidValue, "invalid IPv4: %s", ipv4)
+		err = errors.Wrapf(terrors.ErrInvalidValue, "invalid IPv4: %s", ipv4)
 	}
 	return
 }
@@ -68,12 +71,12 @@ func ParseCIDROrIP(s string) (*net.IPNet, error) {
 
 	var ip = &net.IP{}
 	if err = ip.UnmarshalText([]byte(s)); err != nil {
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 	}
 
 	var ipv4 = ip.To4()
 	if ipv4 == nil {
-		return nil, errors.Annotatef(errors.ErrInvalidValue, "invalid IPv4: %s", s)
+		return nil, errors.Wrapf(terrors.ErrInvalidValue, "invalid IPv4: %s", s)
 	}
 
 	return &net.IPNet{
@@ -86,7 +89,7 @@ func ParseCIDROrIP(s string) (*net.IPNet, error) {
 func ParseCIDR2(cidr string) (*net.IPNet, error) {
 	var ip, ipn, err = ParseCIDR(cidr)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 	}
 
 	ipn.IP = ip
@@ -98,7 +101,7 @@ func ParseCIDR2(cidr string) (*net.IPNet, error) {
 func CheckIPv4(ip net.IP, mask net.IPMask) error {
 	var ipv4 = ip.To4()
 	if ipv4 == nil {
-		return errors.Annotatef(errors.ErrInvalidValue, "invalid IPv4: %s", ip)
+		return errors.Wrapf(terrors.ErrInvalidValue, "invalid IPv4: %s", ip)
 	}
 
 	var bits = net.IPv4len * 8
@@ -107,13 +110,13 @@ func CheckIPv4(ip net.IP, mask net.IPMask) error {
 
 	switch dec, err := ConvIPv4ToUint32(ipv4); {
 	case err != nil:
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 
 	case dec&allone == 0:
-		return errors.Annotatef(errors.ErrIPv4IsNetworkNumber, "%s", ip)
+		return errors.Wrapf(terrors.ErrIPv4IsNetworkNumber, "%s", ip)
 
 	case dec&allone == allone:
-		return errors.Annotatef(errors.ErrIPv4IsBroadcastAddr, "%s", ip)
+		return errors.Wrapf(terrors.ErrIPv4IsBroadcastAddr, "%s", ip)
 
 	default:
 		return nil
@@ -124,7 +127,7 @@ func CheckIPv4(ip net.IP, mask net.IPMask) error {
 func ConvIPv4ToUint32(ip net.IP) (dec uint32, err error) {
 	var ipv4 = ip.To4()
 	if ipv4 == nil {
-		return dec, errors.Annotatef(errors.ErrInvalidValue, "invalid IPv4: %s", ip)
+		return dec, errors.Wrapf(terrors.ErrInvalidValue, "invalid IPv4: %s", ip)
 	}
 
 	for i := 0; i < 4; i++ {
@@ -137,7 +140,56 @@ func ConvIPv4ToUint32(ip net.IP) (dec uint32, err error) {
 // ParseCIDR .
 func ParseCIDR(cidr string) (ip net.IP, ipn *net.IPNet, err error) {
 	if ip, ipn, err = net.ParseCIDR(cidr); err != nil {
-		err = errors.Annotatef(errors.ErrInvalidValue, "invalid CIDR: %s", cidr)
+		err = errors.Wrapf(terrors.ErrInvalidValue, "invalid CIDR: %s", cidr)
 	}
 	return
+}
+
+func DefaultGatewayIP(ipNet *net.IPNet) (net.IP, error) {
+	// Check if the IPNet is not nil
+	if ipNet == nil {
+		return nil, errors.New("IPNet is nil")
+	}
+
+	// Get the first IP address in the range
+	firstIP := ipNet.IP
+
+	// Increment the IP address to get the second IP
+	secondIP := make(net.IP, len(firstIP))
+	copy(secondIP, firstIP)
+	for i := len(secondIP) - 1; i >= 0; i-- {
+		secondIP[i]++
+		if secondIP[i] > firstIP[i] {
+			break
+		}
+	}
+
+	return secondIP, nil
+}
+
+func InSubnet(ip string, subnet string) bool {
+	_, ipNet, err := net.ParseCIDR(subnet)
+	if err != nil {
+		return false
+	}
+	ipAddr := net.ParseIP(ip)
+	if ipAddr == nil {
+		return false
+	}
+	return ipNet.Contains(ipAddr)
+}
+
+func IPReachable(ip string, timeout time.Duration) (bool, error) {
+	pinger, err := probing.NewPinger(ip)
+	if err != nil {
+		return false, err
+	}
+	pinger.Timeout = timeout
+	pinger.Count = 2
+	err = pinger.Run() // Blocks until finished.
+	if err != nil {
+		return false, err
+	}
+	stats := pinger.Statistics()
+	return stats.PacketsRecv > 0, nil
 }

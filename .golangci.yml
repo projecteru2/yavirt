@@ -1,12 +1,17 @@
 run:
   timeout: 5m
   tests: false
-  skip-dirs:
+  modules-download-mode: readonly
+
+issues:
+  exclude-dirs:
     - vendor
     - tools
     - 3rdmocks
-  modules-download-mode: readonly
-
+    - thirdpart
+    - tmp
+    - mocks
+    
 linters-settings:
   nakedret:
     max-func-lines: 59
@@ -27,7 +32,6 @@ linters-settings:
     for-loops: true
   errcheck:
     check-type-assertions: true
-    check-blank: true
   gocritic:
     disabled-checks:
       - captLocal

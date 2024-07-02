@@ -1,12 +1,14 @@
 package utils
 
 import (
+	"context"
 	"os"
 	"sync"
 	"syscall"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/log"
+	"github.com/cockroachdb/errors"
+	"github.com/projecteru2/core/log"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 )
 
 const perm = os.FileMode(0600)
@@ -34,7 +36,7 @@ func (f *Flock) Trylock() error {
 	}
 
 	if err := f.open(); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	return f.flock(true)
@@ -51,17 +53,17 @@ func (f *Flock) flock(retry bool) error {
 	case err != syscall.EIO && err != syscall.EBADF:
 		fallthrough
 	case !retry:
-		return errors.Errorf("%s has locked yet", f.fpth)
+		return errors.WithMessagef(terrors.ErrFlockLocked, "%s has locked yet", f.fpth)
 	}
 
 	var stat, err = f.file.Stat()
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	if stat.Mode()&0600 == 0600 {
 		if err := f.reopen(); err != nil {
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		}
 	}
 
@@ -80,7 +82,7 @@ func (f *Flock) open() error {
 
 	var fh, err = os.OpenFile(f.fpth, os.O_CREATE|os.O_RDWR, perm)
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	f.file = fh
@@ -98,11 +100,11 @@ func (f *Flock) Close() {
 	}
 
 	if err := f.unlock(); err != nil {
-		log.WarnStack(err)
+		log.Error(context.TODO(), err)
 	}
 
 	if err := os.Remove(f.fpth); err != nil {
-		log.WarnStack(err)
+		log.Error(context.TODO(), err)
 	}
 }
 
@@ -112,13 +114,28 @@ func (f *Flock) Unlock() {
 	defer f.mut.Unlock()
 
 	if err := f.unlock(); err != nil {
-		log.WarnStack(err)
+		log.Error(context.TODO(), err)
 	}
+}
+
+func (f *Flock) RemoveFile() error {
+	f.mut.Lock()
+	defer f.mut.Unlock()
+	err := os.Remove(f.fpth)
+	if err == nil || os.IsNotExist(err) {
+		return nil
+	}
+	return err
+}
+
+func (f *Flock) FileExists() bool {
+	_, err := os.Stat(f.fpth)
+	return err == nil
 }
 
 func (f *Flock) unlock() error {
 	if err := syscall.Flock(int(f.file.Fd()), syscall.LOCK_UN); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	f.locked = false
@@ -130,7 +147,7 @@ func (f *Flock) unlock() error {
 
 func (f *Flock) close() {
 	if err := f.file.Close(); err != nil {
-		log.Warnf("[util] close %s failed", f.fpth)
+		log.Warnf(context.TODO(), "[util] close %s failed", f.fpth)
 	}
 	f.file = nil
 }

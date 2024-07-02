@@ -5,9 +5,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs/types"
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 	libguestfs "github.com/projecteru2/yavirt/third_party/guestfs"
 )
 
@@ -19,6 +20,13 @@ type Gfsx struct {
 
 // New .
 func New(path string) (_ guestfs.Guestfs, err error) {
+	opts := &libguestfs.OptargsAdd_drive{
+		Readonly_is_set: false,
+	}
+	return NewFromOpts(path, opts)
+}
+
+func NewFromOpts(path string, opts *libguestfs.OptargsAdd_drive) (_ guestfs.Guestfs, err error) {
 	gfsx := &Gfsx{osDevs: []string{}}
 	if gfsx.gfs, err = libguestfs.Create(); err != nil {
 		return
@@ -29,9 +37,7 @@ func New(path string) (_ guestfs.Guestfs, err error) {
 		}
 	}()
 
-	if err = gfsx.gfs.Add_drive(path, &libguestfs.OptargsAdd_drive{
-		Readonly_is_set: false,
-	}); err != nil {
+	if err = gfsx.gfs.Add_drive(path, opts); err != nil {
 		return
 	}
 
@@ -43,7 +49,7 @@ func New(path string) (_ guestfs.Guestfs, err error) {
 	case err != nil:
 		return
 	case len(gfsx.osDevs) != 1:
-		return nil, errors.Annotatef(errors.ErrInvalidValue, "%d OS in the image", len(gfsx.osDevs))
+		return nil, errors.Wrapf(terrors.ErrInvalidValue, "%d OS in the image", len(gfsx.osDevs))
 	}
 
 	if err = gfsx.gfs.Mount(gfsx.osDevs[0], "/"); err != nil {
@@ -67,7 +73,7 @@ func (g *Gfsx) Close() error {
 func (g *Gfsx) GetFstabEntries() (map[string]string, error) {
 	cont, err := g.Cat(types.FstabFile)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 	}
 	return g.parseFstab(cont)
 }
@@ -75,7 +81,7 @@ func (g *Gfsx) GetFstabEntries() (map[string]string, error) {
 func (g *Gfsx) parseFstab(cont string) (map[string]string, error) {
 	re, err := regexp.Compile(`^(.*?)\s`) //nolint
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 	}
 
 	entries := map[string]string{}
@@ -101,14 +107,14 @@ func (g *Gfsx) parseFstab(cont string) (map[string]string, error) {
 func (g *Gfsx) GetBlkids() (types.Blkids, error) {
 	fss, err := g.gfs.List_filesystems()
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 	}
 
 	blkids := types.Blkids{}
 	for dev := range fss {
 		blkid, err := g.Blkid(dev)
 		if err != nil {
-			return nil, errors.Annotatef(err, "get blkid %s failed", dev)
+			return nil, errors.WithMessagef(err, "get blkid %s failed", dev)
 		}
 		blkids.Add(blkid)
 	}
@@ -120,7 +126,7 @@ func (g *Gfsx) GetBlkids() (types.Blkids, error) {
 func (g *Gfsx) Blkid(dev string) (*types.Blkid, error) {
 	entries, err := g.gfs.Blkid(dev)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "failed to get blkid")
 	}
 
 	blkid := &types.Blkid{Dev: dev}

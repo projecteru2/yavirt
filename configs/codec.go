@@ -5,13 +5,13 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
 )
 
 // Decode .
 func Decode(raw string, conf *Config) error {
 	if _, err := toml.Decode(raw, conf); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 	return nil
 }
@@ -26,7 +26,7 @@ func Encode(conf *Config, noIndents ...bool) (string, error) {
 	}
 
 	if err := enc.Encode(conf); err != nil {
-		return "", errors.Trace(err)
+		return "", errors.Wrap(err, "")
 	}
 
 	return buf.String(), nil

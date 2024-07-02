@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/projecteru2/yavirt/internal/vnet/device"
+	"github.com/projecteru2/yavirt/internal/network/utils/device"
 	"github.com/projecteru2/yavirt/pkg/netx"
 )
 
@@ -64,6 +64,10 @@ func (ipn IPNet) CIDR() string {
 // GatewayIPNet .
 func (ipn IPNet) GatewayIPNet() (*net.IPNet, error) {
 	return netx.ParseCIDR2(ipn.GatewayCIDR())
+}
+
+func (ipn IPNet) GatewayAddr() string {
+	return netx.IntToIPv4(ipn.IntGateway)
 }
 
 // GatewayCIDR .

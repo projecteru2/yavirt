@@ -5,8 +5,8 @@ import (
 
 	"github.com/urfave/cli/v2"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/cmd/run"
-	"github.com/projecteru2/yavirt/pkg/errors"
 )
 
 func connectExtraNetworkFlags() []cli.Flag {
@@ -38,8 +38,8 @@ func disconnectExtraNetwork(c *cli.Context, runtime run.Runtime) error {
 
 	network := c.String("network")
 
-	if err := runtime.Guest.DisconnectExtraNetwork(runtime.VirtContext(), id, network); err != nil {
-		return errors.Trace(err)
+	if err := runtime.Svc.DisconnectNetwork(runtime.Ctx, id, network); err != nil {
+		return errors.Wrap(err, "")
 	}
 
 	fmt.Printf("guest %s had been disconnected from network %s\n", id, network)
@@ -56,9 +56,9 @@ func connectExtraNetwork(c *cli.Context, runtime run.Runtime) error {
 	network := c.String("network")
 	ipv4 := c.String("ipv4")
 
-	dest, err := runtime.Guest.ConnectExtraNetwork(runtime.VirtContext(), id, network, ipv4)
+	dest, err := runtime.Svc.ConnectNetwork(runtime.Ctx, id, network, ipv4)
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	if len(ipv4) < 1 {

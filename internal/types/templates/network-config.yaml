@@ -1,0 +1,22 @@
+version: 2
+ethernets:
+  eth0:
+    # cloud-init has BUG, On ubuntu if set-name is set, the network config will not take effect and we must run `netplan apply` manually
+    # set-name: eth0 
+    match:     
+      name: en*
+    # dhcp4: false
+    # dhcp6: false
+    macaddress: {{ .mac }}
+    addresses:
+      - {{ .cidr }}
+    mtu: {{ .mtu }}
+    # gateway4: 169.254.1.1
+    nameservers:
+      addresses:
+        - 8.8.8.8
+        - 8.8.4.4
+    routes:
+      - to: 0.0.0.0/0
+        via: {{index .defaultGW "ip" }}
+        on-link: {{index .defaultGW "onLink" }}

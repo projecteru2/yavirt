@@ -3,14 +3,14 @@ package utils
 import (
 	"github.com/google/uuid"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
 )
 
 // UUIDStr .
 func UUIDStr() (string, error) {
 	var u, err = uuid.NewUUID()
 	if err != nil {
-		return "", errors.Trace(err)
+		return "", errors.Wrap(err, "NewUUID error")
 	}
 	return u.String(), nil
 }

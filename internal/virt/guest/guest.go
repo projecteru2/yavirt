@@ -1,51 +1,62 @@
 package guest
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/cockroachdb/errors"
+	"github.com/projecteru2/core/log"
+	cpumemtypes "github.com/projecteru2/core/resource/plugins/cpumem/types"
+	"github.com/projecteru2/yavirt/configs"
+	"github.com/projecteru2/yavirt/internal/meta"
 	"github.com/projecteru2/yavirt/internal/models"
-	"github.com/projecteru2/yavirt/internal/virt"
-	"github.com/projecteru2/yavirt/internal/virt/types"
-	"github.com/projecteru2/yavirt/internal/virt/volume"
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/internal/types"
+	interutils "github.com/projecteru2/yavirt/internal/utils"
+	"github.com/projecteru2/yavirt/internal/vmcache"
+	"github.com/projecteru2/yavirt/internal/volume"
+	"github.com/projecteru2/yavirt/internal/volume/base"
+	volFact "github.com/projecteru2/yavirt/internal/volume/factory"
 	"github.com/projecteru2/yavirt/pkg/libvirt"
-	"github.com/projecteru2/yavirt/pkg/log"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/utils"
+	gputypes "github.com/yuyang0/resource-gpu/gpu/types"
+	vmiFact "github.com/yuyang0/vmimage/factory"
+	vmitypes "github.com/yuyang0/vmimage/types"
 )
 
 // Guest .
 type Guest struct {
 	*models.Guest
 
-	ctx virt.Context
-
 	newBot func(*Guest) (Bot, error)
 }
 
 // New initializes a new Guest.
-func New(ctx virt.Context, g *models.Guest) *Guest {
+func New(_ context.Context, g *models.Guest) *Guest {
 	return &Guest{
 		Guest:  g,
-		ctx:    ctx,
 		newBot: newVirtGuest,
 	}
 }
 
 // ListLocalIDs lists all local guest domain names.
-func ListLocalIDs(virt.Context) ([]string, error) {
+func ListLocalIDs(ctx context.Context) ([]string, error) {
 	virt, err := connectSystemLibvirt()
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 	}
 
 	defer func() {
 		if _, ce := virt.Close(); ce != nil {
-			log.ErrorStack(ce)
+			log.WithFunc("ListLocalIDs").Errorf(ctx, ce, "failed to close virt")
 		}
 	}()
 
@@ -53,40 +64,38 @@ func ListLocalIDs(virt.Context) ([]string, error) {
 }
 
 // Load .
-func (g *Guest) Load() error {
+func (g *Guest) Load(opts ...models.Option) error {
 	host, err := models.LoadHost()
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
-	hand, err := g.NetworkHandler(host)
+	hand, err := g.NetworkHandler()
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
-	if err := g.Guest.Load(host, hand); err != nil {
-		return errors.Trace(err)
+	if err := g.Guest.Load(host, hand, opts...); err != nil {
+		return errors.Wrap(err, "")
 	}
 
 	return g.loadExtraNetworks()
 }
 
 // SyncState .
-func (g *Guest) SyncState() error {
+func (g *Guest) SyncState(ctx context.Context) error {
 	switch g.Status {
-	case models.StatusDestroying:
-		return g.ProcessDestroy()
+	case meta.StatusDestroying:
+		return g.ProcessDestroy(ctx, false)
 
-	case models.StatusStopping:
-		return g.stop(true)
+	case meta.StatusStopping, meta.StatusStopped:
+		return g.stop(ctx, true)
 
-	case models.StatusRunning:
-		fallthrough
-	case models.StatusStarting:
-		return g.start()
+	case meta.StatusRunning, meta.StatusStarting:
+		return g.start(ctx)
 
-	case models.StatusCreating:
-		return g.create()
+	case meta.StatusCreating:
+		return g.create(ctx)
 
 	default:
 		// nothing to do
@@ -94,120 +103,217 @@ func (g *Guest) SyncState() error {
 	}
 }
 
-// Start .
-func (g *Guest) Start() error {
-	return utils.Invoke([]func() error{
-		g.ForwardStarting,
-		g.start,
+func (g *Guest) UpdateStateIfNecessary() error {
+	err := g.botOperate(func(bot Bot) error { //nolint
+		// check if there is inconsistent status
+		dce := vmcache.FetchDomainEntry(g.ID)
+		if dce != nil {
+			switch {
+			case (g.Status == meta.StatusRunning) && dce.IsStopped():
+				_ = g.ForwardStatus(meta.StatusStopped, true)
+			case (g.Status == meta.StatusStopped) && dce.IsRunning():
+				_ = g.ForwardStatus(meta.StatusRunning, true)
+			}
+		}
+		return nil
 	})
+	if err == nil || errors.Is(err, terrors.ErrFlockLocked) {
+		return nil
+	}
+	return err
 }
 
-func (g *Guest) start() error {
+// Start .
+func (g *Guest) Start(ctx context.Context, force bool) error {
+	if err := g.ForwardStarting(force); err != nil {
+		return err
+	}
+	defer log.Debugf(ctx, "exit g.Start")
+	return g.start(ctx)
+}
+
+func (g *Guest) start(ctx context.Context) error {
 	return g.botOperate(func(bot Bot) error {
 		switch st, err := bot.GetState(); {
 		case err != nil:
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		case st == libvirt.DomainRunning:
-			return nil
+			return g.ForwardRunning()
 		}
-
-		return utils.Invoke([]func() error{
-			bot.Boot,
-			g.joinEthernet,
-			g.ForwardRunning,
-		})
+		log.Debugf(ctx, "Entering Boot")
+		if err := bot.Boot(ctx); err != nil {
+			return err
+		}
+		log.Debugf(ctx, "Entering joinEthernet")
+		if err := g.joinEthernet(); err != nil {
+			return err
+		}
+		log.Debugf(ctx, "Limiting bandwidth")
+		if err := g.limitBandwidth(); err != nil {
+			return err
+		}
+		log.Debugf(ctx, "Entering forwardRunning")
+		return g.ForwardRunning()
 	})
 }
 
 // Resize .
-func (g *Guest) Resize(cpu int, mem int64, mntCaps map[string]int64) error {
+func (g *Guest) Resize(cpumem *cpumemtypes.EngineParams, gpu *gputypes.EngineParams, vols []volume.Volume) error {
 	// Only checking, without touch metadata
 	// due to we wanna keep further booting successfully all the time.
-	if !g.CheckForwardStatus(models.StatusResizing) {
-		return errors.Annotatef(errors.ErrForwardStatus, "only stopped/running guest can be resized, but it's %s", g.Status)
+	if !g.CheckForwardStatus(meta.StatusResizing) {
+		return errors.Wrapf(terrors.ErrForwardStatus, "only stopped/running guest can be resized, but it's %s", g.Status)
 	}
 
-	// Actually, mntCaps from ERU will include completed volumes,
-	// even those volumes aren't affected.
-	if len(mntCaps) > 0 {
-		// Just amplifies those original volumes.
-		if err := g.amplifyOrigVols(mntCaps); err != nil {
-			return errors.Trace(err)
+	newVolMap := map[string]volume.Volume{}
+	for _, vol := range vols {
+		newVolMap[vol.GetMountDir()] = vol
+	}
+	if !cpumem.Remap {
+		// Actually, mntCaps from ERU will include completed volumes,
+		// even those volumes aren't affected.
+		if err := g.handleResizeVolumes(newVolMap); err != nil {
+			return errors.Wrap(err, "")
 		}
-		// Attaches new extra volumes.
-		if err := g.attachVols(mntCaps); err != nil {
-			return errors.Trace(err)
+		if err := g.handleResizeGPU(gpu); err != nil {
+			return errors.Wrap(err, "")
 		}
 	}
 
-	if cpu == g.CPU && mem == g.Memory {
+	log.WithFunc("Guest.Resize").Infof(context.TODO(), "Resize(%s): Resize cpu and memory if necessary", g.ID)
+	if int(cpumem.CPU) == g.CPU && cpumem.Memory == g.Memory {
 		return nil
 	}
 
-	return g.resizeSpec(cpu, mem)
+	return g.resizeSpec(int(cpumem.CPU), cpumem.Memory)
 }
 
-func (g *Guest) amplifyOrigVols(mntCaps map[string]int64) error {
-	newCapMods := map[string]*models.Volume{}
-	for mnt, cap := range mntCaps {
-		mod, err := models.NewDataVolume(mnt, cap)
-		if err != nil {
-			return errors.Trace(err)
-		}
-		newCapMods[mod.MountDir] = mod
-	}
-
-	var err error
-	g.rangeVolumes(func(sn int, vol volume.Virt) bool {
-		newCapMod, affected := newCapMods[vol.Model().MountDir]
-		if !affected {
-			return true
-		}
-
-		var delta int64
-		switch delta = newCapMod.Capacity - vol.Model().Capacity; {
-		case delta < 0:
-			err = errors.Annotatef(errors.ErrCannotShrinkVolume, "mount dir: %s", newCapMod.MountDir)
-			return false
-		case delta == 0: // nothing changed
-			return true
-		}
-
+func (g *Guest) handleResizeGPU(eParams *gputypes.EngineParams) (err error) {
+	addDiff := eParams.DeepCopy()
+	addDiff.Sub(g.GPUEngineParams)
+	subDiff := g.GPUEngineParams.DeepCopy()
+	subDiff.Sub(eParams)
+	needUpdate := false
+	if addDiff.Count() > 0 {
+		// attach new GPU
 		err = g.botOperate(func(bot Bot) error {
-			return bot.AmplifyVolume(vol, delta, vol.Model().GetDevicePathBySerialNumber(sn))
+			return bot.AttachGPUs(addDiff.ProdCountMap)
 		})
-		return err == nil
-	})
-
-	return err
+		if err != nil {
+			return
+		}
+		needUpdate = true
+	}
+	if subDiff.Count() > 0 {
+		// detach old GPU
+		err = g.botOperate(func(bot Bot) error {
+			return bot.DetachGPUs(subDiff.ProdCountMap)
+		})
+		if err != nil {
+			return
+		}
+		needUpdate = true
+	}
+	if needUpdate {
+		g.GPUEngineParams = eParams
+		err = g.Save()
+	}
+	return
 }
 
-func (g *Guest) attachVols(mntCaps map[string]int64) error {
-	for mnt, cap := range mntCaps {
-		volmod, err := models.NewDataVolume(mnt, cap)
-		switch {
-		case err != nil:
-			return errors.Trace(err)
-		case g.Vols.Exists(volmod.MountDir):
+func (g *Guest) handleResizeVolumes(newVolMap map[string]volume.Volume) error {
+	existVolMap := make(map[string]volume.Volume)
+	for _, existVol := range g.Vols {
+		existVolMap[existVol.GetMountDir()] = existVol
+		if existVol.IsSys() {
 			continue
 		}
-
-		volmod.GuestID = g.ID
-		volmod.Status = g.Status
-		volmod.GenerateID()
-		if err := g.attachVol(volmod); err != nil {
-			return errors.Trace(err)
+		if _, ok := newVolMap[existVol.GetMountDir()]; !ok {
+			if err := g.detachVol(existVol); err != nil {
+				return errors.Wrap(err, "")
+			}
 		}
 	}
-
+	for mountDir, newVol := range newVolMap {
+		existVol, ok := existVolMap[mountDir]
+		if !ok { //nolint
+			if err := g.attachVol(newVol); err != nil {
+				return errors.Wrap(err, "")
+			}
+		} else {
+			if newVol.GetSize() > 0 {
+				if err := g.amplifyOrigVol(existVol, newVol.GetSize()); err != nil {
+					return errors.Wrap(err, "")
+				}
+			} else {
+				if err := g.detachVol(existVol); err != nil {
+					return errors.Wrap(err, "")
+				}
+			}
+		}
+	}
 	return nil
 }
 
-func (g *Guest) attachVol(volmod *models.Volume) (err error) {
+func (g *Guest) amplifyOrigVol(existVol volume.Volume, expectSize int64) error {
+	ctx := context.TODO()
+
+	log.Infof(ctx, "[amplifyOrigVol] Amplifying volume %s(device:%s, guest %s)", existVol.GetID(), existVol.GetDevice(), g.ID)
+	var err error
+	delta := expectSize - existVol.GetSize()
+	if delta <= 0 {
+		if delta < 0 {
+			log.Warnf(ctx, "[amplifyOrigVol] Don't allow to shrink volume(%s)", existVol.GetID())
+		}
+		return nil
+	}
+
+	err = g.botOperate(func(bot Bot) error {
+		return bot.AmplifyVolume(existVol, delta)
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (g *Guest) detachVol(existVol volume.Volume) error {
+	ctx := context.TODO()
+	logger := log.WithFunc("detachVol").WithField("guest", g.ID)
+
+	var err error
+	logger.Infof(ctx, "Detaching volume %v(device:%s, guest %s)", existVol, existVol.GetDevice(), g.ID)
+	err = g.botOperate(func(bot Bot) error {
+		return bot.DetachVolume(existVol)
+	})
+	if err != nil {
+		logger.Errorf(ctx, err, "Failed to detach volume(%s)", existVol.GetID())
+		return err
+	}
+	g.RemoveVol(existVol.GetID())
+	err = existVol.Delete(true)
+	if err != nil {
+		logger.Errorf(ctx, err, "Failed to delete volume in etcd(%s)", existVol.GetID())
+		return err
+	}
+	err = g.Save()
+	if err != nil {
+		logger.Errorf(ctx, err, "Failed to detach volume(%s)", existVol.GetID())
+		return err
+	}
+	return err
+}
+
+func (g *Guest) attachVol(vol volume.Volume) (err error) {
 	devName := g.nextVolumeName()
 
-	if err = g.AppendVols(volmod); err != nil {
-		return errors.Trace(err)
+	vol.SetGuestID(g.ID)
+	vol.SetStatus(g.Status, true) //nolint:errcheck
+	vol.GenerateID()
+	vol.SetDevice(devName)
+	log.Infof(context.TODO(), "[attachVol] Attaching volume %v(device: %s, guest %s)", vol, vol.GetDevice(), g.ID)
+	if err = g.AppendVols(vol); err != nil {
+		return errors.Wrap(err, "")
 	}
 
 	var rollback func()
@@ -216,12 +322,12 @@ func (g *Guest) attachVol(volmod *models.Volume) (err error) {
 			if rollback != nil {
 				rollback()
 			}
-			g.RemoveVol(volmod.ID)
+			g.RemoveVol(vol.GetID())
 		}
 	}()
 
 	if err = g.botOperate(func(bot Bot) (ae error) {
-		rollback, ae = bot.AttachVolume(volmod, devName)
+		rollback, ae = bot.AttachVolume(vol)
 		return ae
 	}); err != nil {
 		return
@@ -234,26 +340,27 @@ func (g *Guest) resizeSpec(cpu int, mem int64) error {
 	if err := g.botOperate(func(bot Bot) error {
 		return bot.Resize(cpu, mem)
 	}); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	return g.Guest.Resize(cpu, mem)
 }
 
 // ListSnapshot If volID == "", list snapshots of all vols. Else will find vol with matching volID.
-func (g *Guest) ListSnapshot(volID string) (map[*models.Volume]models.Snapshots, error) {
-	volSnap := make(map[*models.Volume]models.Snapshots)
+func (g *Guest) ListSnapshot(volID string) (map[volume.Volume]base.Snapshots, error) {
+	volSnap := make(map[volume.Volume]base.Snapshots)
 
 	matched := false
 	for _, v := range g.Vols {
-		if v.ID == volID || volID == "" {
-			volSnap[v] = v.Snaps
+		if v.GetID() == volID || volID == "" {
+			api := v.NewSnapshotAPI()
+			volSnap[v] = api.List()
 			matched = true
 		}
 	}
 
 	if !matched {
-		return nil, errors.Annotatef(errors.ErrInvalidValue, "volID %s not exists", volID)
+		return nil, errors.Wrapf(terrors.ErrInvalidValue, "volID %s not exists", volID)
 	}
 
 	return volSnap, nil
@@ -261,8 +368,8 @@ func (g *Guest) ListSnapshot(volID string) (map[*models.Volume]models.Snapshots,
 
 // CheckVolume .
 func (g *Guest) CheckVolume(volID string) error {
-	if g.Status != models.StatusStopped && g.Status != models.StatusPaused {
-		return errors.Annotatef(errors.ErrForwardStatus,
+	if g.Status != meta.StatusStopped && g.Status != meta.StatusPaused {
+		return errors.Wrapf(terrors.ErrForwardStatus,
 			"only paused/stopped guest can be perform volume check, but it's %s", g.Status)
 	}
 
@@ -274,7 +381,7 @@ func (g *Guest) CheckVolume(volID string) error {
 	if err := g.botOperate(func(bot Bot) error {
 		return bot.CheckVolume(vol)
 	}); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	return nil
@@ -282,8 +389,8 @@ func (g *Guest) CheckVolume(volID string) error {
 
 // RepairVolume .
 func (g *Guest) RepairVolume(volID string) error {
-	if g.Status != models.StatusStopped {
-		return errors.Annotatef(errors.ErrForwardStatus,
+	if g.Status != meta.StatusStopped {
+		return errors.Wrapf(terrors.ErrForwardStatus,
 			"only stopped guest can be perform volume check, but it's %s", g.Status)
 	}
 
@@ -295,7 +402,7 @@ func (g *Guest) RepairVolume(volID string) error {
 	if err := g.botOperate(func(bot Bot) error {
 		return bot.RepairVolume(vol)
 	}); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	return nil
@@ -303,8 +410,8 @@ func (g *Guest) RepairVolume(volID string) error {
 
 // CreateSnapshot .
 func (g *Guest) CreateSnapshot(volID string) error {
-	if g.Status != models.StatusStopped && g.Status != models.StatusPaused {
-		return errors.Annotatef(errors.ErrForwardStatus,
+	if g.Status != meta.StatusStopped && g.Status != meta.StatusPaused {
+		return errors.Wrapf(terrors.ErrForwardStatus,
 			"only paused/stopped guest can be perform snapshot operation, but it's %s", g.Status)
 	}
 
@@ -316,7 +423,7 @@ func (g *Guest) CreateSnapshot(volID string) error {
 	if err := g.botOperate(func(bot Bot) error {
 		return bot.CreateSnapshot(vol)
 	}); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	return nil
@@ -324,8 +431,8 @@ func (g *Guest) CreateSnapshot(volID string) error {
 
 // CommitSnapshot .
 func (g *Guest) CommitSnapshot(volID string, snapID string) error {
-	if g.Status != models.StatusStopped {
-		return errors.Annotatef(errors.ErrForwardStatus,
+	if g.Status != meta.StatusStopped {
+		return errors.Wrapf(terrors.ErrForwardStatus,
 			"only stopped guest can be perform snapshot operation, but it's %s", g.Status)
 	}
 
@@ -337,7 +444,7 @@ func (g *Guest) CommitSnapshot(volID string, snapID string) error {
 	if err := g.botOperate(func(bot Bot) error {
 		return bot.CommitSnapshot(vol, snapID)
 	}); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	return nil
@@ -345,8 +452,8 @@ func (g *Guest) CommitSnapshot(volID string, snapID string) error {
 
 // CommitSnapshot .
 func (g *Guest) CommitSnapshotByDay(volID string, day int) error {
-	if g.Status != models.StatusStopped {
-		return errors.Annotatef(errors.ErrForwardStatus,
+	if g.Status != meta.StatusStopped {
+		return errors.Wrapf(terrors.ErrForwardStatus,
 			"only stopped guest can be perform snapshot operation, but it's %s", g.Status)
 	}
 
@@ -358,7 +465,7 @@ func (g *Guest) CommitSnapshotByDay(volID string, day int) error {
 	if err := g.botOperate(func(bot Bot) error {
 		return bot.CommitSnapshotByDay(vol, day)
 	}); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	return nil
@@ -366,8 +473,8 @@ func (g *Guest) CommitSnapshotByDay(volID string, day int) error {
 
 // RestoreSnapshot .
 func (g *Guest) RestoreSnapshot(volID string, snapID string) error {
-	if g.Status != models.StatusStopped {
-		return errors.Annotatef(errors.ErrForwardStatus,
+	if g.Status != meta.StatusStopped {
+		return errors.Wrapf(terrors.ErrForwardStatus,
 			"only stopped guest can be perform snapshot operation, but it's %s", g.Status)
 	}
 
@@ -379,29 +486,22 @@ func (g *Guest) RestoreSnapshot(volID string, snapID string) error {
 	if err := g.botOperate(func(bot Bot) error {
 		return bot.RestoreSnapshot(vol, snapID)
 	}); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	return nil
 }
 
 // Capture .
-func (g *Guest) Capture(user, name string, overridden bool) (uimg *models.UserImage, err error) {
-	var orig *models.UserImage
-	if overridden {
-		if orig, err = models.LoadUserImage(user, name); err != nil {
-			return
-		}
-	}
-
+func (g *Guest) Capture(imgName string, overridden bool) (uimg *vmitypes.Image, err error) {
 	if err = g.ForwardCapturing(); err != nil {
 		return
 	}
 
 	if err = g.botOperate(func(bot Bot) error {
 		var ce error
-		if uimg, ce = bot.Capture(user, name); ce != nil {
-			return errors.Trace(ce)
+		if uimg, ce = bot.Capture(imgName); ce != nil {
+			return errors.Wrap(ce, "Failed to capture image")
 		}
 		return g.ForwardCaptured()
 	}); err != nil {
@@ -411,14 +511,11 @@ func (g *Guest) Capture(user, name string, overridden bool) (uimg *models.UserIm
 	if err = g.ForwardStopped(false); err != nil {
 		return
 	}
-
-	if overridden {
-		orig.Distro = uimg.Distro
-		orig.Size = uimg.Size
-		err = orig.Save()
-	} else {
-		err = uimg.Create()
+	rc, err := vmiFact.Push(context.TODO(), uimg, overridden)
+	if err != nil {
+		return
 	}
+	defer interutils.EnsureReaderClosed(rc)
 
 	return uimg, err
 }
@@ -437,34 +534,59 @@ func (g *Guest) migrate() error {
 	})
 }
 
-// Create .
-func (g *Guest) Create() error {
-	return utils.Invoke([]func() error{
-		g.ForwardCreating,
-		g.create,
-	})
+func (g *Guest) PrepareVolumesForCreate(ctx context.Context) error {
+	rl := interutils.GetRollbackListFromContext(ctx)
+	for _, vol := range g.Vols {
+		if err := volume.WithLocker(vol, func() error {
+			if vol.IsSys() {
+				return vol.PrepareSysDisk(ctx, g.Img)
+			}
+			return vol.PrepareDataDisk(ctx)
+		}); err != nil {
+			return err
+		}
+		if rl != nil {
+			rl.Append(func() error { return volFact.Undefine(vol) }, "dealloc volume")
+		}
+	}
+	return nil
 }
 
-func (g *Guest) create() error {
+// DefineGuestForCreate .
+func (g *Guest) DefineGuestForCreate(ctx context.Context) error {
+	if err := g.ForwardCreating(); err != nil {
+		return err
+	}
+	rl := interutils.GetRollbackListFromContext(ctx)
+	// add a rollback function here, so
+	if rl != nil {
+		rl.Append(func() error {
+			return g.botOperate(func(bot Bot) error {
+				return bot.Undefine()
+			}, true)
+		}, "Undefine guest")
+	}
+	return g.create(ctx)
+}
+
+func (g *Guest) create(ctx context.Context) error {
 	return g.botOperate(func(bot Bot) error {
-		return utils.Invoke([]func() error{
-			bot.Create,
-		})
+		return bot.Define(ctx)
 	})
 }
 
 // Stop .
-func (g *Guest) Stop(force bool) error {
+func (g *Guest) Stop(ctx context.Context, force bool) error {
 	if err := g.ForwardStopping(); !force && err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
-	return g.stop(force)
+	return g.stop(ctx, force)
 }
 
-func (g *Guest) stop(force bool) error {
+func (g *Guest) stop(ctx context.Context, force bool) error {
 	return g.botOperate(func(bot Bot) error {
-		if err := bot.Shutdown(force); err != nil {
-			return errors.Trace(err)
+		if err := bot.Shutdown(ctx, force); err != nil {
+			return errors.Wrap(err, "")
 		}
 		return g.ForwardStopped(force)
 	})
@@ -504,27 +626,105 @@ func (g *Guest) resume() error {
 	})
 }
 
-// Destroy .
-func (g *Guest) Destroy(force bool) (<-chan error, error) {
-	if force {
-		if err := g.stop(true); err != nil && !errors.IsDomainNotExistsErr(err) {
-			return nil, errors.Trace(err)
+// rewrite the sys disk with image
+func (g *Guest) InitSysDisk(
+	ctx context.Context, img *vmitypes.Image,
+	args *types.InitSysDiskArgs, newSysVol volume.Volume,
+) error {
+	logger := log.WithFunc("InitSysDisk")
+	ciCfg, err := g.GenCloudInit()
+	if err != nil {
+		return errors.Wrap(err, "failed to generate cloud init config")
+	}
+	var (
+		ciUpdated bool
+	)
+	if args.Username != "" {
+		ciCfg.Username = args.Username
+		ciUpdated = true
+	}
+	if args.Password != "" {
+		ciCfg.Password = args.Password
+		ciUpdated = true
+	}
+	if ciUpdated {
+		bs, _ := json.Marshal(ciCfg)
+		g.JSONLabels["instance/cloud-init"] = string(bs)
+	}
+	if g.ImageName != img.Fullname() {
+		g.ImageName = img.Fullname()
+		g.Img = img
+	}
+	return g.botOperate(func(bot Bot) error {
+		if err := bot.Shutdown(ctx, true); err != nil {
+			return errors.Wrap(err, "")
 		}
-	}
+		if err := g.ForwardStopped(true); err != nil {
+			return errors.Wrap(err, "")
+		}
+		oldSysVol := g.Vols[0]
+		newSysVol.SetDevice(oldSysVol.GetDevice())
+		newSysVol.SetGuestID(g.ID)
+		newSysVol.SetHostname(g.HostName)
+		newSysVol.GenerateID()
+		newSysVol.SetStatus(g.Status, true) //nolint:errcheck
+		if err := newSysVol.Save(); err != nil {
+			logger.Errorf(ctx, err, "failed to save new system volume: %v", newSysVol)
+			return errors.Wrapf(err, "failed to save new system volume")
+		}
+		logger.Infof(ctx, "new system volume: %v", newSysVol)
+		// create new sys disk and write image to it
+		if err := newSysVol.PrepareSysDisk(ctx, img); err != nil {
+			return errors.Wrap(err, "")
+		}
 
-	if err := g.ForwardDestroying(force); err != nil {
-		return nil, errors.Trace(err)
+		if err := g.SwitchVol(newSysVol, 0); err != nil {
+			return errors.Wrap(err, "")
+		}
+
+		// remove local or rbd disk
+		if err := oldSysVol.Cleanup(); err != nil {
+			return errors.Wrap(err, "")
+		}
+		if err := oldSysVol.Delete(true); err != nil {
+			return errors.Wrap(err, "")
+		}
+
+		if ciUpdated {
+			output := filepath.Join(configs.Conf.VirtCloudInitDir, fmt.Sprintf("%s.iso", g.ID))
+			if err := ciCfg.ReplaceUserData(output); err != nil {
+				return errors.Wrap(err, "")
+			}
+		}
+		// change domain xml
+		if err := bot.ReplaceSysVolume(newSysVol); err != nil {
+			return errors.Wrapf(err, "failed to undefine domain when init sys disk")
+		}
+		if err := g.Save(); err != nil {
+			return errors.Wrap(err, "")
+		}
+		return nil
+	})
+}
+
+// Destroy .
+func (g *Guest) Destroy(ctx context.Context, force bool) (<-chan error, error) {
+	if err := g.Stop(ctx, force); err != nil && !terrors.IsDomainNotExistsErr(err) {
+		return nil, errors.Wrap(err, "")
 	}
-	log.Infof("[guest.Destroy] set state of guest %s to destroying", g.ID)
+	if err := g.ForwardDestroying(force); err != nil {
+		return nil, errors.Wrap(err, "")
+	}
+	log.Infof(ctx, "[guest.Destroy] set state of guest %s to destroying", g.ID)
 
 	done := make(chan error, 1)
 
 	// will return immediately as the destroy request has been accepted.
 	// the detail work will be processed asynchronously
 	go func() {
-		err := g.ProcessDestroy()
+		err := g.ProcessDestroy(ctx, force)
 		if err != nil {
-			log.ErrorStackf(err, "destroy guest %s failed", g.ID)
+			log.Errorf(ctx, err, "destroy guest %s failed", g.ID)
 			//TODO: move to recovery list
 		}
 		done <- err
@@ -533,28 +733,67 @@ func (g *Guest) Destroy(force bool) (<-chan error, error) {
 	return done, nil
 }
 
-func (g *Guest) ProcessDestroy() error {
-	log.Infof("[guest.destroy] begin to destroy guest %s ", g.ID)
+func (g *Guest) ProcessDestroy(ctx context.Context, force bool) error {
+	logger := log.WithFunc("Guest.ProcessDestroy").WithField("guest", g.ID)
+	logger.Infof(ctx, "begin to destroy guest")
 	return g.botOperate(func(bot Bot) error {
-		if err := g.DeleteNetwork(); err != nil {
-			return errors.Trace(err)
-		}
-
 		if err := bot.Undefine(); err != nil {
-			return errors.Trace(err)
+			logger.Errorf(ctx, err, "failed to undefine guest")
+			return errors.Wrap(err, "")
+		}
+		// delete cloud-init iso
+		ciISOFname := filepath.Join(configs.Conf.VirtCloudInitDir, fmt.Sprintf("%s.iso", g.ID))
+		_ = os.Remove(ciISOFname)
+
+		// try best behavior
+		if err := g.DeleteNetwork(); err != nil {
+			logger.Errorf(ctx, err, "failed to delete network")
 		}
 
-		return g.Delete(false)
+		for _, vol := range g.Vols {
+			// try best behavior
+			if err := volFact.Undefine(vol); err != nil {
+				logger.Errorf(ctx, err, "failed to undefine volume (volID: %s)", vol.GetID())
+			}
+		}
+		return g.Delete(force)
+	}, force)
+}
+
+func (g *Guest) FSFreezeAll(ctx context.Context) (nFS int, err error) {
+	err = g.botOperate(func(bot Bot) error {
+		var err error
+		nFS, err = bot.FSFreezeAll(ctx)
+		return err
 	})
+	return
+}
+
+func (g *Guest) FSThawAll(ctx context.Context) (nFS int, err error) {
+	err = g.botOperate(func(bot Bot) error {
+		var err error
+		nFS, err = bot.FSThawAll(ctx)
+		return err
+	})
+	return
+}
+
+func (g *Guest) FSFreezeStatus(ctx context.Context) (status string, err error) {
+	err = g.botOperate(func(bot Bot) error {
+		var err error
+		status, err = bot.FSFreezeStatus(ctx)
+		return err
+	})
+	return
 }
 
 const waitRetries = 30 // 30 second
 // Wait .
 func (g *Guest) Wait(toStatus string, block bool) error {
 	if !g.CheckForwardStatus(toStatus) {
-		return errors.ErrForwardStatus
+		return terrors.ErrForwardStatus
 	}
-	return g.botOperate(func(bot Bot) error {
+	return g.botOperate(func(bot Bot) error { //nolint:revive
 		cnt := 0
 		ticker := time.NewTicker(time.Second)
 		for range ticker.C {
@@ -583,14 +822,14 @@ func (g *Guest) GetUUID() (uuid string, err error) {
 func (g *Guest) botOperate(fn func(bot Bot) error, skipLock ...bool) error {
 	var bot, err = g.newBot(g)
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	defer bot.Close()
 
 	if !(len(skipLock) > 0 && skipLock[0]) {
 		if err := bot.Trylock(); err != nil {
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		}
 		defer bot.Unlock()
 	}
@@ -603,8 +842,8 @@ func (g *Guest) CacheImage(_ sync.Locker) error {
 	return nil
 }
 
-func (g *Guest) sysVolume() (vol volume.Virt, err error) {
-	g.rangeVolumes(func(_ int, v volume.Virt) bool {
+func (g *Guest) sysVolume() (vol volume.Volume, err error) {
+	g.rangeVolumes(func(_ int, v volume.Volume) bool {
 		if v.IsSys() {
 			vol = v
 			return false
@@ -613,15 +852,15 @@ func (g *Guest) sysVolume() (vol volume.Virt, err error) {
 	})
 
 	if vol == nil {
-		err = errors.Annotatef(errors.ErrSysVolumeNotExists, g.ID)
+		err = errors.Wrapf(terrors.ErrSysVolumeNotExists, g.ID)
 	}
 
 	return
 }
 
-func (g *Guest) rangeVolumes(fn func(int, volume.Virt) bool) {
-	for i, volmod := range g.Vols {
-		if !fn(i, volume.New(volmod)) {
+func (g *Guest) rangeVolumes(fn func(int, volume.Volume) bool) {
+	for i, vol := range g.Vols {
+		if !fn(i, vol) {
 			return
 		}
 	}
@@ -629,119 +868,84 @@ func (g *Guest) rangeVolumes(fn func(int, volume.Virt) bool) {
 
 // Distro .
 func (g *Guest) Distro() string {
-	return g.Img.GetDistro()
+	return g.Img.OS.Distrib
 }
 
 // AttachConsole .
 func (g *Guest) AttachConsole(ctx context.Context, serverStream io.ReadWriteCloser, flags types.OpenConsoleFlags) error {
 	return g.botOperate(func(bot Bot) error {
 		// epoller should bind with deamon's lifecycle but just init/destroy here for simplicity
-		epoller := GetCurrentEpoller()
-		if epoller == nil {
-			return errors.New("Epoller is not initialized")
-		}
-		g.ExecuteCommand(ctx, []string{"yaexec", "kill"}) //nolint // to grapple with yavirt collapsed with yaexec alive
-		console, err := bot.OpenConsole(ctx, types.NewOpenConsoleFlags(flags.Force, flags.Safe))
+		console, err := bot.OpenConsole(ctx, flags)
 		if err != nil {
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		}
-		epollConsole, err := epoller.Add(console)
-		if err != nil {
-			return errors.Trace(err)
-		}
-		log.Infof("[guest.AttachConsole] console opened")
 
-		commands := []string{"yaexec", "exec", "--"}
-		commands = append(commands, flags.Commands...)
-		g.ExecuteCommand(ctx, commands) //nolint
-		log.Infof("[guest.AttachConsole] yaexec executing: %v", commands)
-
-		copyDone := make(chan struct{})
-		ctx, cancel := context.WithCancel(ctx)
-		types.ConsoleStateManager.MarkConsoleOpen(ctx, g.ID)
+		done1 := make(chan struct{})
+		done2 := make(chan struct{})
 
 		// pty -> user
-		wg := sync.WaitGroup{}
-		wg.Add(1)
 		go func() {
 			defer func() {
-				log.Infof("[guest.AttachConsole] copy console stream to server stream complete")
-				types.ConsoleStateManager.MarkConsoleClose(ctx, g.ID)
-				select {
-				case copyDone <- struct{}{}:
-				case <-ctx.Done():
-				}
-				wg.Done()
-				log.Infof("[guest.AttachConsole] copy console stream goroutine exited")
+				close(done1)
+				log.Infof(ctx, "[guest.AttachConsole] copy console stream goroutine exited")
 			}()
-			utils.CopyIO(ctx, serverStream, epollConsole) //nolint
+			console.To(ctx, serverStream) //nolint
 		}()
 
 		// user -> pty
-		wg.Add(1)
 		go func() {
 			defer func() {
-				log.Infof("[guest.AttachConsole] copy server stream to console stream complete")
-				select {
-				case copyDone <- struct{}{}:
-				case <-ctx.Done():
-				}
-				wg.Done()
-				log.Infof("[guest.AttachConsole] copy server stream goroutine exited")
+				close(done2)
+				log.Infof(ctx, "[guest.AttachConsole] copy server stream goroutine exited")
 			}()
-			utils.CopyIO(ctx, epollConsole, serverStream) //nolint
-		}()
 
-		// close MPSC chan
-		go func() {
-			wg.Wait()
-			close(copyDone)
-			log.Infof("[guest.AttachConsole] copy closed")
+			initCmds := append([]byte(strings.Join(flags.Commands, " ")), '\r')
+			reader := io.MultiReader(bytes.NewBuffer(initCmds), serverStream)
+			console.From(ctx, reader) //nolint
 		}()
 
 		// either copy goroutine exit
 		select {
-		case <-copyDone:
+		case <-done1:
+		case <-done2:
 		case <-ctx.Done():
+			log.Debugf(ctx, "[guest.AttachConsole] context done")
 		}
-		cancel()
-		// remove from epoller and shutdown console
-		if err := epollConsole.Shutdown(epoller.CloseConsole); err != nil {
-			log.Errorf("[guest.AttachConsole] failed to shutdown epoll console")
-		}
-		if err := epollConsole.Close(); err != nil {
-			log.Errorf("[guest.AttachConsole] failed to close epoll console")
-		}
-		g.ExecuteCommand(context.Background(), []string{"yaexec", "kill"}) //nolint
-		log.Infof("[guest.AttachConsole] yaexec completes: %v", commands)
+		console.Close()
+		<-done1
+		<-done2
+		log.Infof(ctx, "[guest.AttachConsole] exit.")
+		// g.ExecuteCommand(context.Background(), []string{"yaexec", "kill"}) //nolint
+		// log.Infof(ctx, "[guest.AttachConsole] yaexec completes: %v", commands)
 		return nil
 	})
 }
 
 // ResizeConsoleWindow .
-func (g *Guest) ResizeConsoleWindow(ctx context.Context, height, width uint) (err error) {
-	return g.botOperate(func(bot Bot) error {
-		types.ConsoleStateManager.WaitUntilConsoleOpen(ctx, g.ID)
-		resizeCmd := fmt.Sprintf("yaexec resize -r %d -c %d", height, width)
-		output, code, _, err := g.ExecuteCommand(ctx, strings.Split(resizeCmd, " "))
-		if code != 0 || err != nil {
-			log.Errorf("[guest.ResizeConsoleWindow] resize failed: %v, %v", output, err)
-		}
-		return err
-	}, true)
+func (g *Guest) ResizeConsoleWindow(ctx context.Context, height, width uint) (err error) { //nolint
+	// TODO better way to resize console window size
+	return nil
+	// return g.botOperate(func(bot Bot) error {
+	// 	resizeCmd := fmt.Sprintf("yaexec resize -r %d -c %d", height, width)
+	// 	output, code, _, err := g.ExecuteCommand(ctx, strings.Split(resizeCmd, " "))
+	// 	if code != 0 || err != nil {
+	// 		log.Errorf("[guest.ResizeConsoleWindow] resize failed: %v, %v", output, err)
+	// 	}
+	// 	return err
+	// }, true)
 }
 
 // Cat .
-func (g *Guest) Cat(ctx context.Context, path string, dest io.WriteCloser) error {
+func (g *Guest) Cat(ctx context.Context, path string, dest io.Writer) error {
 	return g.botOperate(func(bot Bot) error {
-		src, err := bot.OpenFile(path, "r")
+		src, err := bot.OpenFile(ctx, path, "r")
 		if err != nil {
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		}
 
-		defer src.Close()
+		defer src.Close(ctx)
 
-		_, err = utils.CopyIO(ctx, dest, src)
+		_, err = src.CopyTo(ctx, dest)
 
 		return err
 	})
@@ -754,9 +958,9 @@ func (g *Guest) Log(ctx context.Context, n int, logPath string, dest io.WriteClo
 			return nil
 		}
 		switch g.Status {
-		case models.StatusRunning:
+		case meta.StatusRunning:
 			return g.logRunning(ctx, bot, n, logPath, dest)
-		case models.StatusStopped:
+		case meta.StatusStopped:
 			gfx, err := g.getGfx(logPath)
 			if err != nil {
 				return err
@@ -764,7 +968,7 @@ func (g *Guest) Log(ctx context.Context, n int, logPath string, dest io.WriteClo
 			defer gfx.Close()
 			return g.logStopped(n, logPath, dest, gfx)
 		default:
-			return errors.Annotatef(errors.ErrNotValidLogStatus, "guest is %s", g.Status)
+			return errors.Wrapf(terrors.ErrNotValidLogStatus, "guest is %s", g.Status)
 		}
 	})
 }
@@ -773,19 +977,19 @@ func (g *Guest) Log(ctx context.Context, n int, logPath string, dest io.WriteClo
 func (g *Guest) CopyToGuest(ctx context.Context, dest string, content chan []byte, overrideFolder bool) error {
 	return g.botOperate(func(bot Bot) error {
 		switch g.Status {
-		case models.StatusRunning:
+		case meta.StatusRunning:
 			return g.copyToGuestRunning(ctx, dest, content, bot, overrideFolder)
-		case models.StatusStopped:
+		case meta.StatusStopped:
 			fallthrough
-		case models.StatusCreating:
+		case meta.StatusCreating:
 			gfx, err := g.getGfx(dest)
 			if err != nil {
-				return errors.Trace(err)
+				return errors.Wrap(err, "")
 			}
 			defer gfx.Close()
 			return g.copyToGuestNotRunning(dest, content, overrideFolder, gfx)
 		default:
-			return errors.Annotatef(errors.ErrNotValidCopyStatus, "guest is %s", g.Status)
+			return errors.Wrapf(terrors.ErrNotValidCopyStatus, "guest is %s", g.Status)
 		}
 	})
 }
@@ -795,9 +999,9 @@ func (g *Guest) ExecuteCommand(ctx context.Context, commands []string) (output [
 	err = g.botOperate(func(bot Bot) error {
 		switch st, err := bot.GetState(); {
 		case err != nil:
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		case st != libvirt.DomainRunning:
-			return errors.Annotatef(errors.ErrExecOnNonRunningGuest, g.ID)
+			return errors.Wrapf(terrors.ErrExecOnNonRunningGuest, g.ID)
 		}
 
 		output, exitCode, pid, err = bot.ExecuteCommand(ctx, commands)
@@ -807,6 +1011,20 @@ func (g *Guest) ExecuteCommand(ctx context.Context, commands []string) (output [
 }
 
 // nextVolumeName .
+// 这里不能通过guest的vols长度来生成名字，原因如下：
+// vda, vdb, vdc, 如果detach vdb, 那么这时候长度为2, 在生成名字就是vdc, 那么就冲突了
 func (g *Guest) nextVolumeName() string {
-	return models.GetDeviceName(g.Vols.Len())
+	seenDev := make(map[string]bool)
+	g.rangeVolumes(func(_ int, vol volume.Volume) bool {
+		seenDev[vol.GetDevice()] = true
+		return true
+	})
+
+	for idx := 0; idx < 26; idx++ {
+		dev := base.GetDeviceName(idx)
+		if !seenDev[dev] {
+			return dev
+		}
+	}
+	return ""
 }

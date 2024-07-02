@@ -4,24 +4,23 @@ import (
 	"context"
 	"io"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs"
-	"github.com/projecteru2/yavirt/pkg/errors"
-	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
-func (g *Guest) logRunning(ctx context.Context, bot Bot, n int, logPath string, dest io.WriteCloser) error {
-	src, err := bot.OpenFile(logPath, "r")
+func (g *Guest) logRunning(ctx context.Context, bot Bot, n int, logPath string, dest io.Writer) error {
+	src, err := bot.OpenFile(ctx, logPath, "r")
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
-	defer src.Close()
+	defer src.Close(ctx)
 
 	if n < 0 { // read all
-		_, err = utils.CopyIO(ctx, dest, src)
+		_, err = src.CopyTo(ctx, dest)
 		return err
 	}
 
-	content, err := src.Tail(n)
+	content, err := src.Tail(ctx, n)
 	if err != nil {
 		return err
 	}
@@ -30,7 +29,7 @@ func (g *Guest) logRunning(ctx context.Context, bot Bot, n int, logPath string, 
 	return err
 }
 
-func (g *Guest) logStopped(n int, logPath string, dest io.WriteCloser, gfx guestfs.Guestfs) error {
+func (g *Guest) logStopped(n int, logPath string, dest io.Writer, gfx guestfs.Guestfs) error {
 	if n < 0 { // Read all
 		content, err := gfx.Read(logPath)
 		if err != nil {

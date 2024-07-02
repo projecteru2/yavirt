@@ -1,0 +1,3 @@
+dsmode: local
+instance-id: {{ .instanceID }}
+local-hostname: {{ .hostname }}

@@ -5,41 +5,41 @@ import (
 	"os"
 	"path"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs"
-	"github.com/projecteru2/yavirt/internal/virt/guestfs/gfsx"
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 )
 
 func (g *Guest) copyToGuestRunning(ctx context.Context, dest string, content chan []byte, bot Bot, overrideFolder bool) error {
 	if !overrideFolder {
 		if isFolder, err := bot.IsFolder(ctx, dest); err != nil {
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		} else if isFolder {
-			return errors.ErrFolderExists
+			return terrors.ErrFolderExists
 		}
 	}
 
 	if err := bot.RemoveAll(ctx, dest); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	if err := bot.MakeDirectory(ctx, path.Dir(dest), true); err != nil {
 		return err
 	}
 
-	src, err := bot.OpenFile(dest, "w")
+	src, err := bot.OpenFile(ctx, dest, "w")
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
-	defer src.Close()
+	defer src.Close(ctx)
 
 	for {
 		buffer, ok := <-content
 		if !ok {
 			return nil
 		}
-		if _, err = src.Write(buffer); err != nil {
-			return errors.Trace(err)
+		if _, err = src.Write(ctx, buffer); err != nil {
+			return errors.Wrap(err, "")
 		}
 	}
 }
@@ -51,12 +51,12 @@ func (g *Guest) copyToGuestNotRunning(dest string, content chan []byte, override
 			return err
 		}
 		if isDir {
-			return errors.ErrFolderExists
+			return terrors.ErrFolderExists
 		}
 	}
 
 	if err := gfx.Remove(dest); err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 
 	if err := gfx.MakeDirectory(path.Dir(dest), true); err != nil {
@@ -65,7 +65,7 @@ func (g *Guest) copyToGuestNotRunning(dest string, content chan []byte, override
 
 	f, err := os.CreateTemp(os.TempDir(), "toCopy-*")
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
 	defer os.Remove(f.Name())
 	defer f.Close()
@@ -76,11 +76,11 @@ func (g *Guest) copyToGuestNotRunning(dest string, content chan []byte, override
 			break
 		}
 		if _, err = f.Write(buffer); err != nil {
-			return errors.Trace(err)
+			return errors.Wrap(err, "")
 		}
 	}
 
-	return errors.Trace(gfx.Upload(f.Name(), dest))
+	return errors.Wrap(gfx.Upload(f.Name(), dest), "gfx upload error")
 }
 
 func (g *Guest) getGfx(dest string) (guestfs.Guestfs, error) {
@@ -88,6 +88,5 @@ func (g *Guest) getGfx(dest string) (guestfs.Guestfs, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return gfsx.New(vol.Filepath())
+	return vol.GetGfx()
 }

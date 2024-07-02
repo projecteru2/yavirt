@@ -3,5 +3,6 @@ cscope.*
 vendor/
 dist/
 yavirt
-
+.idea/
 .vscode
+/tmp

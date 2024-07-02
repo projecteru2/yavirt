@@ -1,0 +1,8 @@
+{
+    "GA104 [GeForce RTX 3070]": "nvidia-3070",
+    "GA104 [GeForce RTX 3070 Lite Hash Rate]": "nvidia-3070-lhr",
+    "GA102 [GeForce RTX 3090]": "nvidia-3090",
+    "NVIDIA Corporation": "nvidia-4090",
+    "GA104M [GeForce RTX 3070 Mobile / Max-Q]": "nvidia-3070m",
+    "Aldebaran": "amd-mi210"
+}

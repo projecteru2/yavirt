@@ -9,8 +9,11 @@ import (
 	libcaliopt "github.com/projectcalico/calico/libcalico-go/lib/options"
 	"github.com/urfave/cli/v2"
 
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/cmd/run"
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/projecteru2/yavirt/internal/network"
+	"github.com/projecteru2/yavirt/internal/network/drivers/calico"
+	networkFactory "github.com/projecteru2/yavirt/internal/network/factory"
 )
 
 func alignFlags() []cli.Flag {
@@ -22,23 +25,28 @@ func alignFlags() []cli.Flag {
 	}
 }
 
-func align(c *cli.Context, runtime run.Runtime) error {
-	bound, err := getGatewayBoundIPs(runtime)
+func align(c *cli.Context, _ run.Runtime) error {
+	bound, err := getGatewayBoundIPs()
 	if err != nil {
-		return errors.Trace(err)
+		return errors.Wrap(err, "")
 	}
-	return alignGatewayIPs(runtime, bound, c.Bool("dry-run"))
+	return alignGatewayIPs(bound, c.Bool("dry-run"))
 }
 
-func getGatewayBoundIPs(runtime run.Runtime) ([]net.IP, error) {
-	if err := runtime.CalicoHandler.InitGateway("yavirt-cali-gw"); err != nil {
-		return nil, errors.Trace(err)
+func getGatewayBoundIPs() ([]net.IP, error) {
+	drv := networkFactory.GetDriver(network.CalicoMode)
+	if drv == nil {
+		return nil, errors.New("calico driver is not intialized")
+	}
+	cali, _ := drv.(*calico.Driver)
+	if err := cali.InitGateway("yavirt-cali-gw"); err != nil {
+		return nil, errors.Wrap(err, "")
 	}
 
-	gw := runtime.CalicoHandler.Gateway()
+	gw := cali.Gateway()
 	addrs, err := gw.ListAddr()
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 	}
 
 	ips := make([]net.IP, addrs.Len())
@@ -49,8 +57,13 @@ func getGatewayBoundIPs(runtime run.Runtime) ([]net.IP, error) {
 	return ips, nil
 }
 
-func alignGatewayIPs(runtime run.Runtime, bound []net.IP, dryRun bool) error {
-	wep := runtime.CalicoHandler.GatewayWorkloadEndpoint()
+func alignGatewayIPs(bound []net.IP, dryRun bool) error {
+	drv := networkFactory.GetDriver(network.CalicoMode)
+	if drv == nil {
+		return errors.New("calico driver is not intialized")
+	}
+	cali, _ := drv.(*calico.Driver)
+	wep := cali.GatewayWorkloadEndpoint()
 
 	for _, bip := range bound {
 		ipn := libcalinet.IPNet{
@@ -81,7 +94,12 @@ func alignGatewayIPs(runtime run.Runtime, bound []net.IP, dryRun bool) error {
 			continue
 		}
 
-		_, err := runtime.CalicoDriver.WorkloadEndpoint().WorkloadEndpoints().Update(context.Background(), wep, libcaliopt.SetOptions{})
+		drv := networkFactory.GetDriver(network.CalicoMode)
+		if drv == nil {
+			return errors.New("calico driver is not intialized")
+		}
+		cali, _ := drv.(*calico.Driver)
+		_, err := cali.WorkloadEndpoints().Update(context.Background(), wep, libcaliopt.SetOptions{})
 		if err != nil {
 			return err
 		}

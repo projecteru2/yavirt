@@ -6,7 +6,7 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/client/v3/concurrency"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
@@ -20,7 +20,7 @@ type Mutex struct {
 func NewMutex(cli *clientv3.Client, key string) (utils.Locker, error) {
 	var sess, err = concurrency.NewSession(cli)
 	if err != nil {
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 	}
 
 	return &Mutex{
@@ -32,7 +32,7 @@ func NewMutex(cli *clientv3.Client, key string) (utils.Locker, error) {
 // Lock .
 func (m *Mutex) Lock(ctx context.Context) (utils.Unlocker, error) {
 	if err := m.mutex.Lock(ctx); err != nil {
-		return nil, errors.Trace(err)
+		return nil, errors.Wrap(err, "")
 	}
 	return m.Unlock, nil
 }
@@ -41,7 +41,7 @@ func (m *Mutex) Lock(ctx context.Context) (utils.Unlocker, error) {
 func (m *Mutex) Unlock(ctx context.Context) (err error) {
 	defer func() {
 		if e := m.session.Close(); e != nil {
-			err = errors.Wrap(err, e)
+			err = errors.CombineErrors(err, e)
 		}
 	}()
 	return m.mutex.Unlock(ctx)

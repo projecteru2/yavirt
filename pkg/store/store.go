@@ -2,11 +2,14 @@ package store
 
 import (
 	"context"
+	"testing"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 
-	"github.com/projecteru2/yavirt/pkg/errors"
+	"github.com/cockroachdb/errors"
+	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/pkg/store/etcd"
+	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
@@ -28,21 +31,16 @@ type Store interface {
 	NewMutex(key string) (utils.Locker, error)
 }
 
-// New .
-func New(metatype string) (Store, error) {
-	switch metatype {
-	case "etcd":
-		return etcd.New()
-	default:
-		return nil, errors.Annotatef(errors.ErrInvalidValue, "invalid meta type: %s", metatype)
-	}
-}
-
 var store Store
 
 // Setup .
-func Setup(metatype string) (err error) {
-	store, err = New(metatype)
+func Setup(cfg configs.Config, t *testing.T) (err error) {
+	switch cfg.MetaType {
+	case "etcd":
+		store, err = etcd.New(cfg.Etcd, t)
+	default:
+		err = errors.Wrapf(terrors.ErrInvalidValue, "invalid meta type: %s", cfg.MetaType)
+	}
 	return
 }
 
@@ -108,7 +106,7 @@ func IncrUint32(ctx context.Context, key string) (uint32, error) {
 func Lock(ctx context.Context, key string) (utils.Unlocker, error) {
 	mutex, err := store.NewMutex(key)
 	if err != nil {
-		return nil, errors.Annotatef(err, "create mutex %s failed", key)
+		return nil, errors.Wrapf(err, "create mutex %s failed", key)
 	}
 	return mutex.Lock(ctx)
 }

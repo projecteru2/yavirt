@@ -120,3 +120,9 @@ func TestParseCIDROrIP(t *testing.T) {
 	_, err = ParseCIDROrIP("10.256.300.0")
 	assert.Err(t, err)
 }
+
+// func TestIPReachable(t *testing.T) {
+// 	v, err := IPReachable("8.8.8.8", time.Second)
+// 	assert.Nil(t, err)
+//	assert.True(t, v)
+// }
