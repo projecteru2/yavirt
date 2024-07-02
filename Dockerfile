@@ -5,7 +5,6 @@ FROM ubuntu:jammy AS BUILD
 COPY . /go/src/github.com/projecteru2/yavirt
 WORKDIR /go/src/github.com/projecteru2/yavirt
 ARG KEEP_SYMBOL
-RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.ustc.edu.cn@g' /etc/apt/sources.list
 RUN apt update
 RUN apt install -y golang-1.20 build-essential libvirt-dev make genisoimage libguestfs-dev libcephfs-dev librbd-dev librados-dev
 RUN apt install -y git
@@ -13,13 +12,12 @@ RUN apt install -y git
 ENV PATH="$PATH:/usr/lib/go-1.20/bin/"
 
 RUN go version
-RUN make deps CN=1
+RUN make deps
 RUN make && ./bin/yavirtd --version
 
 FROM ubuntu:jammy
 
 RUN mkdir /etc/yavirt/ && \
-    sed -i 's@//.*archive.ubuntu.com@//mirrors.ustc.edu.cn@g' /etc/apt/sources.list && \
     apt update && \
     apt install -y libvirt-dev libguestfs-dev genisoimage libcephfs-dev librbd-dev librados-dev
 
