@@ -150,7 +150,7 @@ func getBIRDPeers(ipv string) ([]bgpPeer, error) {
 		birdSuffix = "6"
 	}
 
-	fmt.Printf("\nIPv%s BGP status\n", ipv)
+	log.Debugf(context.TODO(), "IPv%s BGP status", ipv)
 
 	// Try connecting to the bird socket in `/var/run/calico/` first to get the data
 	c, err := net.Dial("unix", fmt.Sprintf("/var/run/calico/bird%s.ctl", birdSuffix))
