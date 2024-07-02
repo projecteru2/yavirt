@@ -164,16 +164,17 @@ func (svc *Boar) IsHealthy(ctx context.Context) (ans bool) {
 	// check image service
 	if err1 := vmiFact.CheckHealth(ctx); err1 != nil {
 		svc.mCol.imageHealthy.Store(false)
-		err = errors.CombineErrors(err, errors.WithMessagef(err1, "failed to check image hub")) //nolint
-		return false
+		err = errors.CombineErrors(err, errors.WithMessagef(err1, "failed to check image hub"))
+	} else {
+		svc.mCol.imageHealthy.Store(true)
 	}
-	svc.mCol.imageHealthy.Store(true)
 	// check libvirt health
 	if err1 := checkLibvirtSocket(); err1 != nil {
 		svc.mCol.libvirtHealthy.Store(false)
 		err = errors.CombineErrors(err, errors.WithMessagef(err1, "failed to check libvirt socket"))
+	} else {
+		svc.mCol.libvirtHealthy.Store(true)
 	}
-	svc.mCol.libvirtHealthy.Store(true)
 	// check network drivers, including clico, ovn etc
 	if err1 := networkFactory.CheckHealth(ctx); err1 != nil {
 		err = errors.CombineErrors(err, errors.WithMessagef(err1, "failed to check network drivers"))
