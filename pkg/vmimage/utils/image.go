@@ -14,9 +14,8 @@ import (
 )
 
 func NormalizeImageName(fullname string) (user, name, tag string, err error) {
-	parts := strings.Split(fullname, "/")
 	var nameTag string
-	switch len(parts) {
+	switch parts := strings.Split(fullname, "/"); len(parts) {
 	case 1:
 		nameTag = parts[0]
 	case 2:
@@ -25,11 +24,8 @@ func NormalizeImageName(fullname string) (user, name, tag string, err error) {
 		err = fmt.Errorf("invalid image name: %s", fullname)
 		return
 	}
-	if user == "" {
-		user = ""
-	}
-	parts = strings.Split(nameTag, ":")
-	switch len(parts) {
+
+	switch parts := strings.Split(nameTag, ":"); len(parts) {
 	case 1:
 		name, tag = parts[0], "latest"
 	case 2:
