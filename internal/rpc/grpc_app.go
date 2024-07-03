@@ -17,7 +17,7 @@ import (
 	"github.com/projecteru2/yavirt/internal/service"
 	intertypes "github.com/projecteru2/yavirt/internal/types"
 	"github.com/projecteru2/yavirt/internal/utils"
-	vmiFact "github.com/yuyang0/vmimage/factory"
+	vmiFact "github.com/projecteru2/yavirt/pkg/vmimage/factory"
 )
 
 // GRPCYavirtd .

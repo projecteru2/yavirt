@@ -22,8 +22,8 @@ import (
 	"github.com/projecteru2/yavirt/pkg/sh"
 	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	vmiFact "github.com/yuyang0/vmimage/factory"
-	vmitypes "github.com/yuyang0/vmimage/types"
+	vmiFact "github.com/projecteru2/yavirt/pkg/vmimage/factory"
+	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 )
 
 var (
@@ -301,7 +301,7 @@ func (v *Volume) CaptureImage(imgName string) (uimg *vmitypes.Image, err error) 
 	if err != nil {
 		return nil, err
 	}
-	rc, err := vmiFact.Prepare(orig, uimg)
+	rc, err := vmiFact.Prepare(context.TODO(), orig, uimg)
 	if err != nil {
 		return nil, errors.Wrap(err, "")
 	}

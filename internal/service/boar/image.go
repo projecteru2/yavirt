@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/cockroachdb/errors"
-	vmiFact "github.com/yuyang0/vmimage/factory"
-	vmitypes "github.com/yuyang0/vmimage/types"
+	vmiFact "github.com/projecteru2/yavirt/pkg/vmimage/factory"
+	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 )
 
 func (svc *Boar) PushImage(ctx context.Context, imgName string, force bool) (rc io.ReadCloser, err error) {

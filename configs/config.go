@@ -15,7 +15,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	coretypes "github.com/projecteru2/core/types"
-	vmitypes "github.com/yuyang0/vmimage/types"
+	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 )
 
 var (

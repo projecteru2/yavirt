@@ -15,7 +15,7 @@ import (
 	"github.com/projecteru2/yavirt/cmd/run"
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/utils"
-	vmiFact "github.com/yuyang0/vmimage/factory"
+	vmiFact "github.com/projecteru2/yavirt/pkg/vmimage/factory"
 )
 
 // Command .
@@ -144,7 +144,7 @@ func add(c *cli.Context, _ run.Runtime) error {
 		return err
 	}
 	fmt.Printf("*** Prepare image\n")
-	if rc, err := vmiFact.Prepare(filePath, img); err != nil {
+	if rc, err := vmiFact.Prepare(c.Context, filePath, img); err != nil {
 		return errors.Wrap(err, "")
 	} else { //nolint
 		defer rc.Close()

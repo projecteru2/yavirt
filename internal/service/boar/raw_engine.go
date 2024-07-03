@@ -12,7 +12,7 @@ import (
 	intertypes "github.com/projecteru2/yavirt/internal/types"
 	"github.com/projecteru2/yavirt/internal/vmcache"
 	volFact "github.com/projecteru2/yavirt/internal/volume/factory"
-	vmiFact "github.com/yuyang0/vmimage/factory"
+	vmiFact "github.com/projecteru2/yavirt/pkg/vmimage/factory"
 )
 
 type VMParams struct {

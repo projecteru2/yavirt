@@ -7,7 +7,7 @@ import (
 	"github.com/projecteru2/yavirt/internal/meta"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs"
 	"github.com/projecteru2/yavirt/internal/volume/base"
-	vmitypes "github.com/yuyang0/vmimage/types"
+	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 )
 
 type Volume interface { //nolint:interfacebloat

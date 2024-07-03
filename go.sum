@@ -517,8 +517,6 @@ github.com/yuyang0/resource-gpu v0.0.0-20231026065700-1577d804efa8 h1:U1GBBWRCG0
 github.com/yuyang0/resource-gpu v0.0.0-20231026065700-1577d804efa8/go.mod h1:oggnae33QHkm9k2Xd0J4BFjdIV1VhPdpm4VUujYUvo0=
 github.com/yuyang0/resource-rbd v0.0.2-0.20230701090628-cb86da0f60b9 h1:2La8T7mqVy98jyAkwxIN9gB+Akx3qbLGmVEtleaxND4=
 github.com/yuyang0/resource-rbd v0.0.2-0.20230701090628-cb86da0f60b9/go.mod h1:ANjyr7r+YfKtpWiIsZPzF7+krI55Uf84R9AvbNr5WAg=
-github.com/yuyang0/vmimage v0.0.0-20240628091041-9f45a357a3ae h1:qsuhmk0vb2uNRdWsI+23DaOODto0/fG8tmEnqwHmjCA=
-github.com/yuyang0/vmimage v0.0.0-20240628091041-9f45a357a3ae/go.mod h1:sx0f5ijzfuwsxQnDlU8CpRbEzAoQu6TxpEKN6gozBAw=
 go.etcd.io/etcd v3.3.27+incompatible h1:5hMrpf6REqTHV2LW2OclNpRtxI0k9ZplMemJsMSWju0=
 go.etcd.io/etcd v3.3.27+incompatible/go.mod h1:yaeTdrJi5lOmYerz05bd8+V7KubZs8YSFZfzsF9A6aI=
 go.etcd.io/etcd/api/v3 v3.5.12 h1:W4sw5ZoU2Juc9gBWuLk5U6fHfNVyY1WC5g9uiXZio/c=

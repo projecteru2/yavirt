@@ -53,6 +53,7 @@ mock: deps
 	mockery --dir pkg/sh --output pkg/sh/mocks --name Shell
 	mockery --dir pkg/store --output pkg/store/mocks --name Store
 	mockery --dir pkg/utils --output pkg/utils/mocks --name Locker
+	mockery --dir pkg/vmimage --output mocks --name Manager
 	mockery --dir internal/virt/agent --output internal/virt/agent/mocks --all
 	mockery --dir internal/virt/domain --output internal/virt/domain/mocks --name Domain
 	mockery --dir internal/virt/guest --output internal/virt/guest/mocks --name Bot

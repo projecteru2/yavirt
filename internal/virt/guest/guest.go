@@ -27,9 +27,9 @@ import (
 	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/utils"
+	vmiFact "github.com/projecteru2/yavirt/pkg/vmimage/factory"
+	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 	gputypes "github.com/yuyang0/resource-gpu/gpu/types"
-	vmiFact "github.com/yuyang0/vmimage/factory"
-	vmitypes "github.com/yuyang0/vmimage/types"
 )
 
 // Guest .

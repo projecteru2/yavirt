@@ -20,10 +20,10 @@ import (
 	"github.com/projecteru2/yavirt/internal/virt/guestfs"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs/gfsx"
 	"github.com/projecteru2/yavirt/internal/volume/base"
+	vmiFact "github.com/projecteru2/yavirt/pkg/vmimage/factory"
+	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 	libguestfs "github.com/projecteru2/yavirt/third_party/guestfs"
 	rbdtypes "github.com/yuyang0/resource-rbd/rbd/types"
-	vmiFact "github.com/yuyang0/vmimage/factory"
-	vmitypes "github.com/yuyang0/vmimage/types"
 )
 
 var (

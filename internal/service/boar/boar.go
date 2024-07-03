@@ -31,8 +31,8 @@ import (
 	"github.com/projecteru2/yavirt/pkg/notify/bison"
 	"github.com/projecteru2/yavirt/pkg/store"
 	"github.com/projecteru2/yavirt/pkg/utils"
-	vmiFact "github.com/yuyang0/vmimage/factory"
-	vmitypes "github.com/yuyang0/vmimage/types"
+	vmiFact "github.com/projecteru2/yavirt/pkg/vmimage/factory"
+	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 )
 
 // Boar .
