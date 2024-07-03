@@ -15,7 +15,7 @@ import (
 
 	pkglibvirt "github.com/projecteru2/yavirt/pkg/libvirt"
 
-	types "github.com/yuyang0/vmimage/types"
+	types "github.com/projecteru2/yavirt/pkg/vmimage/types"
 
 	volume "github.com/projecteru2/yavirt/internal/volume"
 )

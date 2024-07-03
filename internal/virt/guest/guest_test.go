@@ -26,9 +26,9 @@ import (
 	"github.com/projecteru2/yavirt/pkg/test/mock"
 	"github.com/projecteru2/yavirt/pkg/utils"
 	utilmocks "github.com/projecteru2/yavirt/pkg/utils/mocks"
+	vmiFact "github.com/projecteru2/yavirt/pkg/vmimage/factory"
+	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 	gputypes "github.com/yuyang0/resource-gpu/gpu/types"
-	vmiFact "github.com/yuyang0/vmimage/factory"
-	vmitypes "github.com/yuyang0/vmimage/types"
 )
 
 const (

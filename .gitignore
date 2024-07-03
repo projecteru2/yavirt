@@ -6,3 +6,4 @@ yavirt
 .idea/
 .vscode
 /tmp
+.secrets

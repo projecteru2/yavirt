@@ -7,7 +7,7 @@ import (
 	"github.com/projecteru2/libyavirt/types"
 	intertypes "github.com/projecteru2/yavirt/internal/types"
 	"github.com/projecteru2/yavirt/internal/utils"
-	vmitypes "github.com/yuyang0/vmimage/types"
+	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 )
 
 // Service interface

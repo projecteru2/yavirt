@@ -17,6 +17,7 @@ require (
 	github.com/containernetworking/cni v1.1.2
 	github.com/deckarep/golang-set/v2 v2.3.1
 	github.com/digitalocean/go-libvirt v0.0.0-20221205150000-2939327a8519
+	github.com/docker/docker v24.0.9+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/emirpasic/gods v1.18.1
 	github.com/florianl/go-tc v0.4.2
@@ -38,6 +39,7 @@ require (
 	github.com/projecteru2/core v0.0.0-20240614132727-08e4fbc219d1
 	github.com/projecteru2/libyavirt v0.0.0-20231128023216-96fef06a6ca4
 	github.com/projecteru2/resource-storage v0.0.0-20230206062354-d828802f6b96
+	github.com/projecteru2/vmihub v0.0.0-20240702045253-4fa15dba054f
 	github.com/prometheus-community/pro-bing v0.4.0
 	github.com/prometheus/client_golang v1.16.0
 	github.com/robfig/cron/v3 v3.0.1
@@ -52,7 +54,6 @@ require (
 	github.com/yuyang0/resource-bandwidth v0.0.0-20231102113253-8e47795c92e5
 	github.com/yuyang0/resource-gpu v0.0.0-20231026065700-1577d804efa8
 	github.com/yuyang0/resource-rbd v0.0.2-0.20230701090628-cb86da0f60b9
-	github.com/yuyang0/vmimage v0.0.0-20240628091041-9f45a357a3ae
 	go.etcd.io/etcd v3.3.27+incompatible
 	go.etcd.io/etcd/client/v3 v3.5.12
 	go.etcd.io/etcd/tests/v3 v3.5.12
@@ -90,7 +91,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/distribution/reference v0.5.0 // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
-	github.com/docker/docker v24.0.9+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.10.2 // indirect
@@ -150,7 +150,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/projectcalico/go-json v0.0.0-20161128004156-6219dc7339ba // indirect
 	github.com/projectcalico/go-yaml-wrapper v0.0.0-20191112210931-090425220c54 // indirect
-	github.com/projecteru2/vmihub v0.0.0-20240702045253-4fa15dba054f // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
