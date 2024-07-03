@@ -13,12 +13,6 @@ import (
 	"github.com/projecteru2/yavirt/pkg/vmimage/vmihub"
 )
 
-const (
-	dockerType = "docker"
-	vmihubType = "vmihub"
-	mockType   = "mock"
-)
-
 var (
 	gF *Factory
 )
@@ -41,11 +35,11 @@ func NewFactory(cfg *types.Config) (f *Factory, err error) {
 
 	var mgr vmimage.Manager
 	switch cfg.Type {
-	case dockerType:
+	case types.TypeDocker:
 		mgr, err = docker.NewManager(cfg)
-	case vmihubType:
+	case types.TypeVMIHub:
 		mgr, err = vmihub.NewManager(cfg)
-	case mockType:
+	case types.TypeMock:
 		mgr = &mocks.Manager{}
 	default:
 		err = fmt.Errorf("invalid type: %s", cfg.Type)
@@ -65,9 +59,9 @@ func (f *Factory) GetManager(ty string) (mgr vmimage.Manager, err error) {
 		return mgr, nil
 	}
 	switch ty {
-	case dockerType:
+	case types.TypeDocker:
 		mgr, err = docker.NewManager(f.cfg)
-	case mockType:
+	case types.TypeMock:
 		mgr = &mocks.Manager{}
 	default:
 		return nil, fmt.Errorf("invalid image manager type: %s", ty)
@@ -145,7 +139,7 @@ func NewImageName(user, name string) string {
 }
 
 func GetMockManager() *mocks.Manager {
-	mgr, _ := GetManager(mockType)
+	mgr, _ := GetManager(types.TypeMock)
 	return mgr.(*mocks.Manager)
 }
 

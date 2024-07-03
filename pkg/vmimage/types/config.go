@@ -31,7 +31,7 @@ type Config struct {
 
 func (cfg *Config) CheckAndRefine() error {
 	switch cfg.Type {
-	case "docker":
+	case TypeDocker:
 		if cfg.Docker.Username == "" || cfg.Docker.Password == "" {
 			return errors.New("docker's username or password should not be empty")
 		}
@@ -41,7 +41,7 @@ func (cfg *Config) CheckAndRefine() error {
 		}
 		authBytes, _ := json.Marshal(auth)
 		cfg.Docker.Auth = base64.StdEncoding.EncodeToString(authBytes)
-	case "vmihub":
+	case TypeVMIHub:
 		if cfg.VMIHub.Username == "" || cfg.VMIHub.Password == "" {
 			return errors.New("ImageHub's username or password should not be empty")
 		}
@@ -55,7 +55,7 @@ func (cfg *Config) CheckAndRefine() error {
 		if u.Scheme == "" || u.Host == "" {
 			return errors.New("invalid image hub addr")
 		}
-	case "mock":
+	case TypeMock:
 		return nil
 	default:
 		return errors.New("unknown image hub type")
