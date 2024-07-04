@@ -123,12 +123,12 @@ func (v *bot) Migrate() error {
 func (v *bot) Boot(ctx context.Context) error {
 	logger := log.WithFunc("Boot").WithField("guest", v.guest.ID)
 
-	logger.Infof(ctx, "Boot: stage1 -> Domain boot...")
+	logger.Info(ctx, "Boot: stage1 -> Domain boot...")
 	if err := v.dom.Boot(ctx); err != nil {
 		return err
 	}
 
-	logger.Infof(ctx, "Boot: stage2 -> Waiting GA...")
+	logger.Info(ctx, "Boot: stage2 -> Waiting GA...")
 	if err := v.waitGA(ctx); err != nil {
 		return err
 	}

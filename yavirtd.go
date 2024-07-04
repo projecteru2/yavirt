@@ -104,7 +104,7 @@ func startHTTPServer(cfg *configs.Config) {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	if err := server.ListenAndServe(); err != nil {
-		log.Errorf(context.TODO(), err, "start http failed")
+		log.Error(context.TODO(), err, "start http failed")
 	}
 }
 
@@ -140,6 +140,7 @@ func Run(c *cli.Context) error {
 
 	br, err := boar.New(ctx, &configs.Conf, nil)
 	if err != nil {
+		log.Error(c.Context, err, "failed to create boar")
 		return err
 	}
 	defer br.Close()
@@ -151,6 +152,7 @@ func Run(c *cli.Context) error {
 	quit := make(chan struct{})
 	grpcSrv, err := grpcserver.New(&configs.Conf, br, quit)
 	if err != nil {
+		log.Error(c.Context, err, "failed to create grpc server")
 		return err
 	}
 
@@ -160,17 +162,17 @@ func Run(c *cli.Context) error {
 	go func() {
 		defer close(errExitCh)
 		if err := grpcSrv.Serve(); err != nil {
-			log.Errorf(c.Context, err, "failed to start grpc server")
+			log.Error(c.Context, err, "failed to start grpc server")
 			metrics.IncrError()
 		}
 	}()
-	log.Infof(c.Context, "[main] all servers are running")
+	log.Info(c.Context, "[main] all servers are running")
 
 	select {
 	case <-ctx.Done():
-		log.Infof(c.Context, "[main] interrupt by signal")
+		log.Info(c.Context, "[main] interrupt by signal")
 	case <-errExitCh:
-		log.Warnf(c.Context, "[main] server exit abnormally.")
+		log.Warn(c.Context, "[main] server exit abnormally.")
 	}
 	close(quit)
 

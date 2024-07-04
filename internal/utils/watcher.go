@@ -49,7 +49,7 @@ func (ws *Watchers) Stop() {
 }
 
 func (ws *Watchers) Run(ctx context.Context) {
-	defer log.Infof(ctx, "watchers loop has done")
+	defer log.Info(ctx, "watchers loop has done")
 
 	for {
 		select {
@@ -74,7 +74,7 @@ func (ws *Watchers) Watched(event types.Event) {
 }
 
 func (ws *Watchers) Notify(event types.Event) {
-	defer log.Infof(context.TODO(), "watchers notification has done")
+	defer log.Info(context.TODO(), "watchers notification has done")
 
 	stopped := []int64{}
 

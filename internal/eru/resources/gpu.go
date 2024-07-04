@@ -3,7 +3,6 @@ package resources
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -17,6 +16,7 @@ import (
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/patrickmn/go-cache"
 
+	"github.com/cockroachdb/errors"
 	"github.com/jaypipes/ghw"
 	"github.com/projecteru2/core/log"
 	"github.com/projecteru2/yavirt/configs"
@@ -176,16 +176,16 @@ func (g *GPUManager) monitor(ctx context.Context) {
 func fetchGPUInfoFromHardware() (map[string]*SingleTypeGPUs, error) {
 	pci, err := ghw.PCI()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to get pci info")
 	}
 
 	cmdOut, err := execCommand("lshw", "-quiet", "-json", "-C", "display").Output()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to run lshw")
 	}
 	params := []map[string]any{}
 	if err = json.Unmarshal(cmdOut, &params); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to unmarshal lshw output")
 	}
 	// map format:
 	//

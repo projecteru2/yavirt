@@ -57,15 +57,15 @@ func New(cfg *configs.Config, svc service.Service, quit chan struct{}) (*GRPCSer
 		return nil, err
 	}
 	if tlsCredentials != nil {
-		logger.Infof(context.TODO(), "grpc server tls enable.")
+		logger.Info(context.TODO(), "grpc server tls enabled")
 		opts = append(opts, grpc.Creds(tlsCredentials))
 	}
 	if cfg.Auth.Username != "" {
-		logger.Infof(context.TODO(), "grpc server auth enable.")
+		logger.Info(context.TODO(), "grpc server auth enabled")
 		auth := auth.NewAuth(cfg.Auth)
 		opts = append(opts, grpc.StreamInterceptor(auth.StreamInterceptor))
 		opts = append(opts, grpc.UnaryInterceptor(auth.UnaryInterceptor))
-		logger.Infof(context.TODO(), "username %s password %s", cfg.Auth.Username, cfg.Auth.Password)
+		logger.Debugf(context.TODO(), "username %s password %s", cfg.Auth.Username, cfg.Auth.Password)
 	}
 	srv := &GRPCServer{
 		server: grpc.NewServer(opts...),

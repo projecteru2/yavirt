@@ -68,24 +68,24 @@ func New(ctx context.Context, cfg *configs.Config, t *testing.T) (br *Boar, err 
 
 	resMgr, err := resources.Setup(ctx, cfg, t)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to setup resources")
 	}
 	cols = append(cols, resMgr.GetMetricsCollector())
 
 	br.Host, err = models.LoadHost()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to load host")
 	}
 	br.pool, err = newTaskPool(cfg.MaxConcurrency)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to new task pool")
 	}
 	if err := idgen.Setup(br.Host.ID); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to setup idgen")
 	}
 
 	if err = store.Setup(configs.Conf, t); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to setup store")
 	}
 	go br.watchers.Run(ctx)
 	if err := vmcache.Setup(ctx, cfg, br.watchers); err != nil {
@@ -110,11 +110,11 @@ func New(ctx context.Context, cfg *configs.Config, t *testing.T) (br *Boar, err 
 			return br, errors.Newf("invalid bind addr %s", cfg.BindGRPCAddr)
 		}
 		grpcPort := parts[1]
-		endpoint := fmt.Sprintf( //nolint
+		eruEndpoint := fmt.Sprintf( //nolint
 			"virt-grpc://%s:%s@%s:%s",
 			cfg.Auth.Username, cfg.Auth.Password, cfg.Host.Addr, grpcPort,
 		)
-		br.agt, err = agent.NewManager(ctx, br, &cfg.Eru, endpoint, t)
+		br.agt, err = agent.NewManager(ctx, br, &cfg.Eru, eruEndpoint, t)
 		if err != nil {
 			return br, errors.Wrap(err, "failed to setup agent")
 		}

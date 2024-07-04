@@ -735,10 +735,10 @@ func (g *Guest) Destroy(ctx context.Context, force bool) (<-chan error, error) {
 
 func (g *Guest) ProcessDestroy(ctx context.Context, force bool) error {
 	logger := log.WithFunc("Guest.ProcessDestroy").WithField("guest", g.ID)
-	logger.Infof(ctx, "begin to destroy guest")
+	logger.Info(ctx, "begin to destroy guest")
 	return g.botOperate(func(bot Bot) error {
 		if err := bot.Undefine(); err != nil {
-			logger.Errorf(ctx, err, "failed to undefine guest")
+			logger.Error(ctx, err, "failed to undefine guest")
 			return errors.Wrap(err, "")
 		}
 		// delete cloud-init iso
@@ -747,7 +747,7 @@ func (g *Guest) ProcessDestroy(ctx context.Context, force bool) error {
 
 		// try best behavior
 		if err := g.DeleteNetwork(); err != nil {
-			logger.Errorf(ctx, err, "failed to delete network")
+			logger.Error(ctx, err, "failed to delete network")
 		}
 
 		for _, vol := range g.Vols {
