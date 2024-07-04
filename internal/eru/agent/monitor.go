@@ -2,13 +2,16 @@ package agent
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/projecteru2/yavirt/internal/eru/common"
 	intertypes "github.com/projecteru2/yavirt/internal/types"
 	"github.com/projecteru2/yavirt/internal/utils"
+	"google.golang.org/grpc/status"
 
 	"github.com/projecteru2/core/log"
+	corerpc "github.com/projecteru2/core/rpc"
 )
 
 func (m *Manager) initMonitor(ctx context.Context) (err error) {
@@ -30,6 +33,8 @@ func (m *Manager) initMonitor(ctx context.Context) (err error) {
 					m.handleWorkloadStart(ctx, event.ID)
 				case intertypes.DieOp:
 					m.handleWorkloadDie(ctx, event.ID)
+				case intertypes.DestroyOp:
+					m.handleWorkloadDestroy(ctx, event.ID)
 				}
 			})
 		case <-watcher.Done():
@@ -116,6 +121,22 @@ func (m *Manager) handleWorkloadDie(ctx context.Context, ID string) {
 	}
 
 	if err := m.store.SetWorkloadStatus(ctx, workloadStatus, m.config.GetHealthCheckStatusTTL()); err != nil {
+		e, ok := status.FromError(err)
+		// workload doesn't exist, ignore it
+		if ok && e.Code() == corerpc.SetWorkloadsStatus && strings.Contains(e.Message(), "entity count invalid") {
+			return
+		}
+
 		logger.Warnf(ctx, "failed to update deploy status: %s", err)
 	}
+}
+
+func (m *Manager) handleWorkloadDestroy(ctx context.Context, ID string) {
+	logger := log.WithFunc("handleWorkloadDestroy").WithField("ID", ID)
+	logger.Debug(ctx, "wrokload destroy")
+	m.wrkStatusCache.Delete(ID)
+	if t, ok := m.startingWorkloads.Get(ID); ok {
+		t.Stop(ctx)
+	}
+	m.startingWorkloads.Del(ID)
 }
