@@ -23,7 +23,6 @@ import (
 type GRPCServer struct {
 	server *grpc.Server
 	app    pb.YavirtdRPCServer
-	quit   chan struct{}
 }
 
 func loadTLSCredentials(dir string) (credentials.TransportCredentials, error) {
@@ -48,7 +47,7 @@ func loadTLSCredentials(dir string) (credentials.TransportCredentials, error) {
 	return credentials.NewTLS(config), nil
 }
 
-func New(cfg *configs.Config, svc service.Service, quit chan struct{}) (*GRPCServer, error) {
+func New(cfg *configs.Config, svc service.Service) (*GRPCServer, error) {
 	logger := log.WithFunc("rpc.New")
 	opts := []grpc.ServerOption{}
 	certDir := filepath.Join(cfg.CertPath, "yavirt")
@@ -70,7 +69,6 @@ func New(cfg *configs.Config, svc service.Service, quit chan struct{}) (*GRPCSer
 	srv := &GRPCServer{
 		server: grpc.NewServer(opts...),
 		app:    &GRPCYavirtd{service: svc},
-		quit:   quit,
 	}
 	reflection.Register(srv.server)
 

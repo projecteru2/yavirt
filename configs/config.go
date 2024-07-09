@@ -219,7 +219,6 @@ type Config struct {
 	CertPath string `toml:"cert_path" default:"/etc/eru/tls"`
 
 	MaxConcurrency         int      `toml:"max_concurrency" default:"100000"`
-	ProfHTTPPort           int      `toml:"prof_http_port" default:"9999"`
 	BindHTTPAddr           string   `toml:"bind_http_addr" default:"0.0.0.0:9696"`
 	BindGRPCAddr           string   `toml:"bind_grpc_addr" default:"0.0.0.0:9697"`
 	SkipGuestReportRegexps []string `toml:"skip_guest_report_regexps"`

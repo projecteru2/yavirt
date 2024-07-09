@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"strings"
 	"syscall"
 	"time"
 
@@ -96,11 +95,11 @@ func initConfig(c *cli.Context) error {
 	return cfg.Prepare(c)
 }
 
-func startHTTPServer(cfg *configs.Config) {
+func startHTTPServer(addr string) {
 	http.Handle("/metrics", metrics.Handler())
-	http.HandleFunc("/debug", debug.Handler)
+	http.HandleFunc("/debug/custom", debug.Handler)
 	server := &http.Server{
-		Addr:              cfg.BindHTTPAddr,
+		Addr:              addr,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	if err := server.ListenAndServe(); err != nil {
@@ -149,16 +148,16 @@ func Run(c *cli.Context) error {
 		return errors.Wrap(err, "")
 	}
 
-	quit := make(chan struct{})
-	grpcSrv, err := grpcserver.New(&configs.Conf, br, quit)
+	grpcSrv, err := grpcserver.New(&configs.Conf, br)
 	if err != nil {
 		log.Error(c.Context, err, "failed to create grpc server")
 		return err
 	}
 
 	errExitCh := make(chan struct{})
-	go prof(configs.Conf.ProfHTTPPort)
-	go startHTTPServer(&configs.Conf)
+	if configs.Conf.BindHTTPAddr != "" {
+		go startHTTPServer(configs.Conf.BindHTTPAddr)
+	}
 	go func() {
 		defer close(errExitCh)
 		if err := grpcSrv.Serve(); err != nil {
@@ -174,25 +173,8 @@ func Run(c *cli.Context) error {
 	case <-errExitCh:
 		log.Warn(c.Context, "[main] server exit abnormally.")
 	}
-	close(quit)
 
 	grpcSrv.Stop(false)
 
 	return nil
-}
-
-func prof(port int) {
-	var enable = strings.ToLower(os.Getenv("YAVIRTD_PPROF"))
-	switch enable {
-	case "":
-		fallthrough
-	case "0":
-		fallthrough
-	case "false":
-		fallthrough
-	case "off":
-		http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil) //nolint
-	default:
-		return
-	}
 }

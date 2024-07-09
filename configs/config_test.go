@@ -65,7 +65,6 @@ func TestDefault(t *testing.T) {
 	cfg := newDefault()
 	assert.Equal(t, cfg.BindHTTPAddr, "0.0.0.0:9696")
 	assert.Equal(t, cfg.BindGRPCAddr, "0.0.0.0:9697")
-	assert.Equal(t, cfg.ProfHTTPPort, 9999)
 	assert.Equal(t, cfg.Resource.MinCPU, 1)
 	assert.Equal(t, cfg.Resource.MaxCPU, 112)
 	assert.Equal(t, cfg.MemStatsPeriod, 10)
