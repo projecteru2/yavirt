@@ -18,7 +18,6 @@ var (
 	MetricHeartbeatCount = "yavirt_heartbeat_total"
 	// MetricErrorCount .
 	MetricErrorCount = "yavirt_error_total"
-	MetricSvcTasks   = "yavirt_svc_task_count"
 
 	metr *Metrics
 )
@@ -27,7 +26,6 @@ func Setup(hn string, cols ...prometheus.Collector) {
 	metr = New(hn)
 	metr.RegisterCounter(MetricErrorCount, "yavirt errors", nil)         //nolint
 	metr.RegisterCounter(MetricHeartbeatCount, "yavirt heartbeats", nil) //nolint
-	metr.RegisterGauge(MetricSvcTasks, "yavirt service tasks", nil)      //nolint
 	e := NewLibvirtExporter(hn)
 	prometheus.MustRegister(e)
 	if len(cols) > 0 {

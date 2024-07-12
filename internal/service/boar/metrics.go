@@ -19,11 +19,17 @@ var (
 		"libvirt healthy status.",
 		[]string{"node"},
 		nil)
+	nrTasksDesc = prometheus.NewDesc(
+		prometheus.BuildFQName("node", "yavirt", "nr_tasks"),
+		"Number of service tasks.",
+		[]string{"node"},
+		nil)
 )
 
 type MetricsCollector struct {
 	imageHealthy   atomic.Bool
 	libvirtHealthy atomic.Bool
+	nrTasks        atomic.Int32
 }
 
 func (d *Boar) GetMetricsCollector() prometheus.Collector {
@@ -33,6 +39,7 @@ func (d *Boar) GetMetricsCollector() prometheus.Collector {
 func (e *MetricsCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- imageHubHealthyDesc
 	ch <- libvirtHealthyDesc
+	ch <- nrTasksDesc
 }
 
 func (e *MetricsCollector) Collect(ch chan<- prometheus.Metric) {
@@ -46,6 +53,12 @@ func (e *MetricsCollector) Collect(ch chan<- prometheus.Metric) {
 		libvirtHealthyDesc,
 		prometheus.GaugeValue,
 		float64(utils.Bool2Int(e.libvirtHealthy.Load())),
+		configs.Hostname(),
+	)
+	ch <- prometheus.MustNewConstMetric(
+		nrTasksDesc,
+		prometheus.GaugeValue,
+		float64(e.nrTasks.Load()),
 		configs.Hostname(),
 	)
 }

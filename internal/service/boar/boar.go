@@ -377,8 +377,8 @@ func (svc *Boar) do(ctx context.Context, id string, op intertypes.Operator, fn d
 		return nil, err
 	}
 
-	metrics.Incr(metrics.MetricSvcTasks, nil)       //nolint:errcheck
-	defer metrics.Decr(metrics.MetricSvcTasks, nil) //nolint:errcheck
+	svc.mCol.nrTasks.Add(1)
+	defer svc.mCol.nrTasks.Add(-1)
 
 	select {
 	case <-t.Done():
