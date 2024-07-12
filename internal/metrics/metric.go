@@ -14,8 +14,6 @@ var (
 	// DefaultLabels .
 	DefaultLabels = []string{"host"}
 
-	// MetricHeartbeatCount .
-	MetricHeartbeatCount = "yavirt_heartbeat_total"
 	// MetricErrorCount .
 	MetricErrorCount = "yavirt_error_total"
 
@@ -24,8 +22,7 @@ var (
 
 func Setup(hn string, cols ...prometheus.Collector) {
 	metr = New(hn)
-	metr.RegisterCounter(MetricErrorCount, "yavirt errors", nil)         //nolint
-	metr.RegisterCounter(MetricHeartbeatCount, "yavirt heartbeats", nil) //nolint
+	metr.RegisterCounter(MetricErrorCount, "yavirt errors", nil) //nolint
 	e := NewLibvirtExporter(hn)
 	prometheus.MustRegister(e)
 	if len(cols) > 0 {
@@ -157,11 +154,6 @@ func Handler() http.Handler {
 // IncrError .
 func IncrError() {
 	Incr(MetricErrorCount, nil) //nolint
-}
-
-// IncrHeartbeat .
-func IncrHeartbeat() {
-	Incr(MetricHeartbeatCount, nil) //nolint
 }
 
 // Incr .
