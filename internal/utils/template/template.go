@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"sync"
 	text "text/template"
 
@@ -52,9 +51,6 @@ func (t *Templates) get(fpth string, defaultTemplStr string) (tmpl *text.Templat
 }
 
 func (t *Templates) parse(fpth string, defaultTemplStr string) (*text.Template, error) {
-	if !t.isTempl(fpth) {
-		return nil, errors.Errorf("%s is not a template file", fpth)
-	}
 	f, err := os.Open(fpth)
 	// if file path doesn't exist, then use default template string
 	if err != nil && os.IsNotExist(err) {
@@ -72,8 +68,4 @@ func (t *Templates) parse(fpth string, defaultTemplStr string) (*text.Template, 
 		return nil, errors.Wrap(err, "")
 	}
 	return text.New(fpth).Funcs(sprig.TxtFuncMap()).Parse(string(buf))
-}
-
-func (t *Templates) isTempl(fpth string) bool {
-	return strings.HasSuffix(fpth, ".xml")
 }

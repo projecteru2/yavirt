@@ -20,7 +20,7 @@ import (
 	"github.com/projecteru2/yavirt/internal/models"
 	"github.com/projecteru2/yavirt/internal/network"
 	"github.com/projecteru2/yavirt/internal/types"
-	"github.com/projecteru2/yavirt/internal/virt/template"
+	"github.com/projecteru2/yavirt/internal/utils/template"
 	"github.com/projecteru2/yavirt/internal/vmcache"
 	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/pkg/terrors"

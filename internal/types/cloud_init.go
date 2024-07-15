@@ -1,15 +1,14 @@
 package types
 
 import (
-	"bytes"
 	_ "embed"
 	"encoding/base64"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"text/template"
 
-	"github.com/Masterminds/sprig/v3"
+	"github.com/projecteru2/yavirt/configs"
+	"github.com/projecteru2/yavirt/internal/utils/template"
 
 	"github.com/kdomanski/iso9660/util"
 
@@ -23,10 +22,6 @@ var (
 	metaData string
 	//go:embed templates/network-config.yaml
 	networkData string
-
-	userDataTpl *template.Template
-	metaDataTpl *template.Template
-	networkTpl  *template.Template
 )
 
 type CloudInitGateway struct {
@@ -54,29 +49,7 @@ type CloudInitConfig struct {
 	DefaultGW CloudInitGateway `json:"-"`
 }
 
-func initTpls() (err error) {
-	if userDataTpl == nil {
-		if userDataTpl, err = template.New("userdata").Funcs(sprig.TxtFuncMap()).Parse(userData); err != nil {
-			return
-		}
-	}
-	if metaDataTpl == nil {
-		if metaDataTpl, err = template.New("metadata").Funcs(sprig.TxtFuncMap()).Parse(metaData); err != nil {
-			return
-		}
-	}
-	if networkTpl == nil {
-		if networkTpl, err = template.New("network").Funcs(sprig.TxtFuncMap()).Parse(networkData); err != nil {
-			return
-		}
-	}
-	return
-}
-
 func (ciCfg *CloudInitConfig) GenFilesContent() (string, string, string, error) {
-	if err := initTpls(); err != nil {
-		return "", "", "", err
-	}
 	d1 := map[string]any{
 		"username":  ciCfg.Username,
 		"password":  ciCfg.Password,
@@ -98,8 +71,12 @@ func (ciCfg *CloudInitConfig) GenFilesContent() (string, string, string, error) 
 			"content": base64.StdEncoding.EncodeToString(v),
 		})
 	}
-	var userDataBs bytes.Buffer
-	if err := userDataTpl.Execute(&userDataBs, d1); err != nil {
+	udataTmplFile := filepath.Join(configs.Conf.VirtTmplDir, "user-data.yaml")
+	mdataTmplFile := filepath.Join(configs.Conf.VirtTmplDir, "meta-data.yaml")
+	networkTmplFile := filepath.Join(configs.Conf.VirtTmplDir, "network-config.yaml")
+
+	uDataBS, err := template.Render(udataTmplFile, userData, d1)
+	if err != nil {
 		return "", "", "", err
 	}
 
@@ -107,15 +84,15 @@ func (ciCfg *CloudInitConfig) GenFilesContent() (string, string, string, error) 
 		"instanceID": ciCfg.InstanceID,
 		"hostname":   ciCfg.Hostname,
 	}
-	var metaDataBs bytes.Buffer
-	if err := metaDataTpl.Execute(&metaDataBs, d2); err != nil {
+	mDataBS, err := template.Render(mdataTmplFile, metaData, d2)
+	if err != nil {
 		return "", "", "", err
 	}
-	var networkBs bytes.Buffer
-	if err := networkTpl.Execute(&networkBs, d1); err != nil {
+	networkBS, err := template.Render(networkTmplFile, networkData, d1)
+	if err != nil {
 		return "", "", "", err
 	}
-	return userDataBs.String(), metaDataBs.String(), networkBs.String(), nil
+	return string(uDataBS), string(mDataBS), string(networkBS), nil
 }
 
 func (ciCfg *CloudInitConfig) GenerateISO(fname string) (err error) {
