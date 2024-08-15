@@ -53,6 +53,7 @@ require (
 	github.com/vishvananda/netlink v1.2.1-beta.2.0.20230206183746-70ca0345eede
 	github.com/yuyang0/resource-bandwidth v0.0.0-20231102113253-8e47795c92e5
 	github.com/yuyang0/resource-gpu v0.0.0-20231026065700-1577d804efa8
+	github.com/yuyang0/resource-hostdir v0.0.0-20240815062057-56acd9dde1f8
 	github.com/yuyang0/resource-rbd v0.0.2-0.20230701090628-cb86da0f60b9
 	go.etcd.io/etcd v3.3.27+incompatible
 	go.etcd.io/etcd/client/v3 v3.5.12

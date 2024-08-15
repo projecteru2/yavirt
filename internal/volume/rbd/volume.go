@@ -17,9 +17,11 @@ import (
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/meta"
 	interutils "github.com/projecteru2/yavirt/internal/utils"
+	"github.com/projecteru2/yavirt/internal/virt/agent"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs/gfsx"
 	"github.com/projecteru2/yavirt/internal/volume/base"
+	"github.com/projecteru2/yavirt/pkg/libvirt"
 	vmiFact "github.com/projecteru2/yavirt/pkg/vmimage/factory"
 	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 	libguestfs "github.com/projecteru2/yavirt/third_party/guestfs"
@@ -39,7 +41,7 @@ type Volume struct {
 
 func New() *Volume {
 	return &Volume{
-		Volume: *base.New(),
+		Volume: *base.New(base.VolumeTypeRBD),
 	}
 }
 
@@ -49,7 +51,7 @@ func NewFromStr(ss string) (*Volume, error) {
 		return nil, err
 	}
 	return &Volume{
-		Volume:        *base.New(),
+		Volume:        *base.New(base.VolumeTypeRBD),
 		VolumeBinding: *vb,
 	}, nil
 }
@@ -58,7 +60,7 @@ func (v *Volume) Name() string {
 	return fmt.Sprintf("rbd-%s", v.ID)
 }
 
-func (v *Volume) QemuImagePath() string {
+func (v *Volume) qemuImagePath() string {
 	rbdDisk := fmt.Sprintf("rbd:%s/%s:id=%s", v.Pool, v.Image, configs.Conf.Storage.Ceph.Username)
 	return rbdDisk
 }
@@ -143,6 +145,19 @@ func (v *Volume) Check() error {
 
 func (v *Volume) Repair() error {
 	return nil
+}
+
+func (v *Volume) Mount(ctx context.Context, ga agent.Interface, devPath string) error {
+	return base.MountBlockDevice(ctx, ga, v.Name(), devPath, v.GetMountDir())
+}
+
+func (v *Volume) AmplifyOffline(ctx context.Context, delta int64) error {
+	return interutils.AmplifyImage(ctx, v.qemuImagePath(), delta)
+}
+
+func (v *Volume) AmplifyOnline(newCap int64, dom libvirt.Domain, ga agent.Interface) error {
+	devPath := base.GetDevicePathByName(v.GetDevice())
+	return base.AmplifyOnline(newCap, dom, ga, devPath)
 }
 
 func (v *Volume) GenerateXML() ([]byte, error) {

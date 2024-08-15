@@ -1,6 +1,7 @@
 package base
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"path/filepath"
@@ -8,10 +9,13 @@ import (
 	"strings"
 
 	"github.com/cockroachdb/errors"
+	"github.com/projecteru2/core/log"
+	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/types"
 	"github.com/projecteru2/yavirt/internal/virt/agent"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs"
 	"github.com/projecteru2/yavirt/internal/virt/nic"
+	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/pkg/utils"
 )
 
@@ -34,6 +38,234 @@ func ResetFstab(gfs guestfs.Guestfs) error {
 	}
 
 	return gfs.Write(types.FstabFile, cont)
+}
+
+// func SaveFstab(
+// 	ctx context.Context, ga agent.Interface,
+// 	devPath, mountDir, fs string,
+// 	backupDump, fsckPass int,
+// ) error {
+// 	var blkid, err = ga.Blkid(ctx, devPath)
+// 	if err != nil {
+// 		return errors.Wrap(err, "")
+// 	}
+// 	searchStrs := []string{blkid, mountDir}
+// 	for _, searchStr := range searchStrs {
+// 		switch exists, err := ga.Grep(ctx, searchStr, types.FstabFile); {
+// 		case err != nil:
+// 			return errors.Wrap(err, "")
+// 		case exists:
+// 			return nil
+// 		}
+// 	}
+
+// 	var line = fmt.Sprintf("\nUUID=%s %s %s defaults %d %d",
+// 		blkid, mountDir, fs, backupDump, fsckPass)
+
+// 	return ga.AppendLine(ctx, types.FstabFile, []byte(line))
+// }
+
+func SaveFstab(
+	ctx context.Context, ga agent.Interface,
+	devPath, mountDir, fs string,
+	backupDump, fsckPass int,
+) error {
+	searchStrs := []string{mountDir, devPath}
+	for _, searchStr := range searchStrs {
+		switch exists, err := ga.Grep(ctx, searchStr, types.FstabFile); {
+		case err != nil:
+			return errors.Wrap(err, "")
+		case exists:
+			return nil
+		}
+	}
+
+	var line = fmt.Sprintf("\n%s %s %s defaults %d %d",
+		devPath, mountDir, fs, backupDump, fsckPass)
+
+	return ga.AppendLine(ctx, types.FstabFile, []byte(line))
+}
+
+func MountBlockDevice(
+	ctx context.Context, ga agent.Interface,
+	name, devPath, mountDir string,
+) error {
+	const (
+		fs = "ext4"
+		// Disable backing up of the device/partition
+		backupDump = 0
+		// Enable fsck checking the device/partition for errors at boot time.
+		fsckPass = 2
+	)
+	log.Debugf(ctx, "Mount: format")
+	if err := Format(ctx, ga, name, devPath, fs); err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	log.Debugf(ctx, "Mount: mount")
+	if err := Mount(ctx, ga, devPath, mountDir, fs); err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	log.Debugf(ctx, "Mount: save fstab")
+	if err := SaveFstab(ctx, ga, devPath, mountDir, fs, backupDump, fsckPass); err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	log.Debugf(ctx, "Mount: amplify if necessary")
+	switch amplified, err := IsAmplifying(ctx, ga, devPath, mountDir); {
+	case err != nil:
+		return errors.Wrap(err, "")
+
+	case amplified:
+		return AmplifyDiskInGuest(ctx, ga, devPath)
+
+	default:
+		return nil
+	}
+}
+
+func UmountDevice(
+	ctx context.Context, ga agent.Interface, devPath string,
+) error {
+	logger := log.WithFunc("base.UmountDevice")
+	logger.Debugf(ctx, "Umount: umount %s", devPath)
+	cmds := []string{"umount", devPath}
+	st := <-ga.ExecOutput(ctx, cmds[0], cmds[1:]...)
+	if err := st.Error(); err != nil {
+		logger.Warnf(ctx, "failed to run `%s`: %s", strings.Join(cmds, " "), err)
+	}
+
+	logger.Debugf(ctx, "Umount: save fstab")
+	escapeDir := strings.ReplaceAll(devPath, "/", "\\/")
+	regex := fmt.Sprintf("/%s/d", escapeDir)
+	cmds = []string{"sed", "-i", regex, "/etc/fstab"}
+	st = <-ga.ExecOutput(ctx, cmds[0], cmds[1:]...)
+	if err := st.Error(); err != nil {
+		return errors.Wrapf(err, "failed to run `%v`", strings.Join(cmds, " "))
+	}
+	return nil
+}
+
+func Mount(
+	ctx context.Context, ga agent.Interface,
+	devPath, mountDir, fs string,
+) error {
+	var st = <-ga.Exec(ctx, "mkdir", "-p", mountDir)
+	if err := st.Error(); err != nil {
+		return errors.Wrapf(err, "mkdir %s failed", mountDir)
+	}
+
+	st = <-ga.ExecOutput(ctx, "mount", "-t", fs, devPath, mountDir)
+	_, _, err := st.CheckStdio(func(_, se []byte) bool {
+		return bytes.Contains(se, []byte("already mounted"))
+	})
+	if err != nil {
+		return errors.Wrapf(err, "mount %s failed", mountDir)
+	}
+	return nil
+}
+
+func Format(
+	ctx context.Context, ga agent.Interface,
+	volName, devPath, fs string,
+) error {
+	switch formatted, err := isFormatted(ctx, ga, volName); {
+	case err != nil:
+		return errors.Wrap(err, "")
+	case formatted:
+		return nil
+	}
+
+	if err := fdisk(ctx, ga, devPath, fs); err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	return ga.Touch(ctx, formattedFlagPath(volName))
+}
+
+// parted -s /dev/vdN mklabel gpt
+// parted -s /dev/vdN mkpart primary 1049K -- -1
+// mkfs -F -t ext4 /dev/vdN
+func fdisk(ctx context.Context, ga agent.Interface, devPath, fs string) error {
+	var cmds = [][]string{
+		{"parted", "-s", devPath, "mklabel", "gpt"},
+		{"parted", "-s", devPath, "mkpart", "primary", "1049K", "--", "-1"},
+		{"mkfs", "-F", "-t", fs, devPath},
+	}
+	return ExecCommands(ctx, ga, cmds)
+}
+
+func isFormatted(ctx context.Context, ga agent.Interface, name string) (bool, error) {
+	return ga.IsFile(ctx, formattedFlagPath(name))
+}
+
+func formattedFlagPath(name string) string {
+	return fmt.Sprintf("/etc/%s", name)
+}
+
+func IsAmplifying(ctx context.Context, ga agent.Interface, devPath, mountDir string) (bool, error) {
+	mbs, err := getMountedBlocks(ctx, ga, mountDir)
+	if err != nil {
+		return false, errors.Wrap(err, "")
+	}
+
+	cap, err := agent.NewParted(ga, devPath).GetSize(ctx) //nolint
+	if err != nil {
+		return false, errors.Wrap(err, "")
+	}
+
+	mbs = int64(float64(mbs) * (1 + configs.Conf.ResizeVolumeMinRatio))
+	cap >>= 10 //nolint // in bytes, aka. 1K-blocks.
+
+	return cap > mbs, nil
+}
+
+func getMountedBlocks(ctx context.Context, ga agent.Interface, mountDir string) (int64, error) {
+	df, err := ga.GetDiskfree(ctx, mountDir)
+	if err != nil {
+		return 0, errors.Wrap(err, "")
+	}
+	return df.Blocks, nil
+}
+
+func AmplifyOnline(newCap int64, dom libvirt.Domain, ga agent.Interface, devPath string) error {
+	devname := filepath.Base(devPath)
+	if err := dom.AmplifyVolume(devname, uint64(newCap)); err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), configs.Conf.GADiskTimeout)
+	defer cancel()
+	return AmplifyDiskInGuest(ctx, ga, devPath)
+}
+
+func AmplifyDiskInGuest(ctx context.Context, ga agent.Interface, devPath string) error {
+	// NOTICE:
+	//   Actually, volume raw devices aren't necessary for re-parting.
+
+	stoppedServices, err := StopSystemdServices(ctx, ga, devPath)
+	if err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	cmds := [][]string{
+		{"umount", devPath},
+		{"partprobe"},
+		{"e2fsck", "-fy", devPath},
+		{"resize2fs", devPath},
+		{"mount", "-a"},
+	}
+
+	if err := ExecCommands(ctx, ga, cmds); err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	if err := RestartSystemdServices(ctx, ga, stoppedServices); err != nil {
+		return errors.Wrap(err, "")
+	}
+
+	return nil
 }
 
 func ResetUserImage(gfs guestfs.Guestfs) error {

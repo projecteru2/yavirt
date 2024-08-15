@@ -13,12 +13,14 @@ import (
 	"github.com/projecteru2/yavirt/internal/models"
 	intertypes "github.com/projecteru2/yavirt/internal/types"
 	"github.com/projecteru2/yavirt/internal/volume"
+	"github.com/projecteru2/yavirt/internal/volume/hostdir"
 	"github.com/projecteru2/yavirt/internal/volume/local"
 	"github.com/projecteru2/yavirt/internal/volume/rbd"
 
 	cpumemtypes "github.com/projecteru2/core/resource/plugins/cpumem/types"
 	stotypes "github.com/projecteru2/resource-storage/storage/types"
 	gputypes "github.com/yuyang0/resource-gpu/gpu/types"
+	hostdirtypes "github.com/yuyang0/resource-hostdir/hostdir/types"
 	rbdtypes "github.com/yuyang0/resource-rbd/rbd/types"
 )
 
@@ -42,7 +44,7 @@ func extractGPU(resources map[string][]byte) (eParams *gputypes.EngineParams, er
 	return &ans, err
 }
 
-func extractVols(resources map[string][]byte) ([]volume.Volume, error) {
+func extractVols(resources map[string][]byte) ([]volume.Volume, error) { //nolint
 	var sysVol volume.Volume
 	vols := make([]volume.Volume, 1) // first place is for sys volume
 	appendVol := func(vol volume.Volume) error {
@@ -57,8 +59,7 @@ func extractVols(resources map[string][]byte) ([]volume.Volume, error) {
 		return nil
 	}
 
-	stoResRaw, ok := resources[intertypes.PluginNameStorage]
-	if ok {
+	if stoResRaw, ok := resources[intertypes.PluginNameStorage]; ok {
 		eParams := &stotypes.EngineParams{}
 		if err := json.Unmarshal(stoResRaw, eParams); err != nil {
 			return nil, errors.Wrap(err, "")
@@ -73,14 +74,28 @@ func extractVols(resources map[string][]byte) ([]volume.Volume, error) {
 			}
 		}
 	}
-	rbdResRaw, ok := resources[intertypes.PluginNameRBD]
-	if ok {
+	if rbdResRaw, ok := resources[intertypes.PluginNameRBD]; ok {
 		eParams := &rbdtypes.EngineParams{}
 		if err := json.Unmarshal(rbdResRaw, eParams); err != nil {
 			return nil, errors.Wrap(err, "")
 		}
 		for _, part := range eParams.Volumes {
 			vol, err := rbd.NewFromStr(part)
+			if err != nil {
+				return nil, err
+			}
+			if err := appendVol(vol); err != nil {
+				return nil, err
+			}
+		}
+	}
+	if hostdirResRaw, ok := resources[intertypes.PluginNameHostdir]; ok {
+		eParams := &hostdirtypes.EngineParams{}
+		if err := json.Unmarshal(hostdirResRaw, eParams); err != nil {
+			return nil, errors.Wrap(err, "")
+		}
+		for _, part := range eParams.Volumes {
+			vol, err := hostdir.NewFromStr(part)
 			if err != nil {
 				return nil, err
 			}

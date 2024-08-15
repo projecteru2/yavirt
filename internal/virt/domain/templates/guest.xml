@@ -43,12 +43,11 @@
     <suspend-to-disk enabled='no'/>
   </pm>
 
-  {{if .host_dirs }}
+  <!-- for filesystem(hostdir) -->
   <memoryBacking>
     <source type='memfd'/>
     <access mode='shared'/>
   </memoryBacking>
-  {{end}}
 
   <devices>
     {{ .sysvol }}
@@ -64,14 +63,6 @@
       <readonly/>
       <address type='drive' controller='0' bus='0' target='0' unit='0'/>
     </disk>
-
-    {{range .host_dirs}}
-    <filesystem type='mount' accessmode='passthrough'>
-      <driver type='virtiofs' queue='1024'/>
-      <source dir='{{.src}}'/>
-      <target dir='{{.dst}}'/>
-    </filesystem>
-    {{end}}
 
     <controller type='usb' index='0' model='ich9-ehci1'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x7'/>

@@ -1,0 +1,5 @@
+<filesystem type='mount' accessmode='passthrough'>
+  <driver type='virtiofs' queue='1024'/>
+  <source dir='{{.src}}'/>
+  <target dir='{{.dst}}'/>
+</filesystem>

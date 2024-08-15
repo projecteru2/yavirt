@@ -515,6 +515,8 @@ github.com/yuyang0/resource-bandwidth v0.0.0-20231102113253-8e47795c92e5 h1:qLiO
 github.com/yuyang0/resource-bandwidth v0.0.0-20231102113253-8e47795c92e5/go.mod h1:qq6SbQf88tieRqLkMzUgAoANLszQWdcH8H4Ji7xo2sE=
 github.com/yuyang0/resource-gpu v0.0.0-20231026065700-1577d804efa8 h1:U1GBBWRCG0kmo3XG3sI5pz0i4nMwjDsM92uxfOOc/1A=
 github.com/yuyang0/resource-gpu v0.0.0-20231026065700-1577d804efa8/go.mod h1:oggnae33QHkm9k2Xd0J4BFjdIV1VhPdpm4VUujYUvo0=
+github.com/yuyang0/resource-hostdir v0.0.0-20240815062057-56acd9dde1f8 h1:VOtdr1qCKiCfhpe1Shv3GZjW4bOgiFjauC92iv6M6is=
+github.com/yuyang0/resource-hostdir v0.0.0-20240815062057-56acd9dde1f8/go.mod h1:7lboIilJ/Ck1qALkQm5hj0kzUgF6Qm063bVH21riMSE=
 github.com/yuyang0/resource-rbd v0.0.2-0.20230701090628-cb86da0f60b9 h1:2La8T7mqVy98jyAkwxIN9gB+Akx3qbLGmVEtleaxND4=
 github.com/yuyang0/resource-rbd v0.0.2-0.20230701090628-cb86da0f60b9/go.mod h1:ANjyr7r+YfKtpWiIsZPzF7+krI55Uf84R9AvbNr5WAg=
 go.etcd.io/etcd v3.3.27+incompatible h1:5hMrpf6REqTHV2LW2OclNpRtxI0k9ZplMemJsMSWju0=

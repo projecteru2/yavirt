@@ -16,9 +16,11 @@ import (
 	"github.com/projecteru2/yavirt/configs"
 	"github.com/projecteru2/yavirt/internal/meta"
 	interutils "github.com/projecteru2/yavirt/internal/utils"
+	"github.com/projecteru2/yavirt/internal/virt/agent"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs"
 	"github.com/projecteru2/yavirt/internal/virt/guestfs/gfsx"
 	"github.com/projecteru2/yavirt/internal/volume/base"
+	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/pkg/sh"
 	"github.com/projecteru2/yavirt/pkg/terrors"
 	"github.com/projecteru2/yavirt/pkg/utils"
@@ -69,7 +71,7 @@ func NewVolumeFromStr(s string) (*Volume, error) {
 	}
 	return &Volume{
 		Format:        VolQcow2Format,
-		Volume:        *base.New(),
+		Volume:        *base.New(base.VolumeTypeLocal),
 		VolumeBinding: *vb,
 	}, nil
 }
@@ -106,7 +108,7 @@ func NewDataVolume(mnt string, cap int64) (*Volume, error) {
 
 func NewVolume() *Volume {
 	return &Volume{
-		Volume: *base.New(),
+		Volume: *base.New(base.VolumeTypeLocal),
 		Format: VolQcow2Format,
 	}
 }
@@ -125,7 +127,7 @@ func (v *Volume) Unlock() {
 	v.flock.Close()
 }
 
-func (v *Volume) QemuImagePath() string {
+func (v *Volume) qemuImagePath() string {
 	return v.Filepath()
 }
 
@@ -242,6 +244,19 @@ func (v *Volume) Check() error {
 // Repair .
 func (v *Volume) Repair() error {
 	return interutils.Repair(context.Background(), v.Filepath())
+}
+
+func (v *Volume) Mount(ctx context.Context, ga agent.Interface, devPath string) error {
+	return base.MountBlockDevice(ctx, ga, v.Name(), devPath, v.GetMountDir())
+}
+
+func (v *Volume) AmplifyOffline(ctx context.Context, delta int64) error {
+	return interutils.AmplifyImage(ctx, v.qemuImagePath(), delta)
+}
+
+func (v *Volume) AmplifyOnline(newCap int64, dom libvirt.Domain, ga agent.Interface) error {
+	devPath := base.GetDevicePathByName(v.GetDevice())
+	return base.AmplifyOnline(newCap, dom, ga, devPath)
 }
 
 // IsSys .

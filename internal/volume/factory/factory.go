@@ -10,6 +10,7 @@ import (
 	gfsmocks "github.com/projecteru2/yavirt/internal/virt/guestfs/mocks"
 	"github.com/projecteru2/yavirt/internal/volume"
 	"github.com/projecteru2/yavirt/internal/volume/base"
+	"github.com/projecteru2/yavirt/internal/volume/hostdir"
 	"github.com/projecteru2/yavirt/internal/volume/local"
 	"github.com/projecteru2/yavirt/internal/volume/rbd"
 	"github.com/projecteru2/yavirt/pkg/utils"
@@ -26,10 +27,27 @@ func LoadVolumes(ids []string) (vols Volumes, err error) {
 			return nil, errors.Wrap(err, "")
 		}
 		var vol volume.Volume
-		if _, ok := rawVal["pool"]; ok {
+		ty := base.VolumeTypeUndefined
+		if rawType := rawVal["type"]; rawType != nil {
+			// golang json will convert all integer to float64
+			ty = base.VolumeType(rawType.(float64))
+		}
+		switch ty {
+		case base.VolumeTypeRBD:
 			vol = rbd.New()
-		} else {
+		case base.VolumeTypeLocal:
 			vol = local.NewVolume()
+		case base.VolumeTypeHostDir:
+			vol = hostdir.New()
+		case base.VolumeTypeUndefined:
+			// for compatibility
+			if _, ok := rawVal["pool"]; ok {
+				vol = rbd.New()
+			} else if _, ok := rawVal["format"]; ok {
+				vol = local.NewVolume()
+			} else {
+				vol = hostdir.New()
+			}
 		}
 
 		if err := mapstructure.Decode(rawVal, &vol); err != nil {

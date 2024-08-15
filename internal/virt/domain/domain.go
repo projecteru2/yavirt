@@ -402,17 +402,12 @@ func (d *VirtDomain) render() ([]byte, error) {
 			return nil, err
 		}
 	}
-	hostDirs, err := d.hostDirs()
-	if err != nil {
-		return nil, err
-	}
 	var args = map[string]any{
 		"name":              d.guest.ID,
 		"uuid":              uuid,
 		"memory":            d.guest.MemoryInMiB(),
 		"cpu":               d.guest.CPU,
 		"gpus":              gpus,
-		"host_dirs":         hostDirs,
 		"sysvol":            string(sysVolXML),
 		"datavols":          dataVols,
 		"interface":         d.getInterfaceType(),
@@ -558,29 +553,6 @@ func allocGPUs(eParams *gputypes.EngineParams) ([]map[string]string, error) {
 }
 func (d *VirtDomain) gpus() ([]map[string]string, error) {
 	return allocGPUs(d.guest.GPUEngineParams)
-}
-
-func (d *VirtDomain) hostDirs() ([]map[string]string, error) {
-	ss, ok := d.guest.JSONLabels["instance/host-dirs"]
-	if !ok {
-		return nil, nil
-	}
-	parts := strings.FieldsFunc(ss, func(r rune) bool {
-		return r == ',' || r == ' ' || r == ';'
-	})
-	ans := make([]map[string]string, 0, len(parts))
-	for _, p := range parts {
-		switch parts2 := strings.Split(p, ":"); len(parts2) {
-		case 2:
-			ans = append(ans, map[string]string{
-				"src": parts2[0],
-				"dst": parts2[1],
-			})
-		default:
-			return nil, fmt.Errorf("invalid host dir: %s", p)
-		}
-	}
-	return ans, nil
 }
 
 type vncConfig struct {
@@ -755,24 +727,23 @@ func (d *VirtDomain) AttachVolume(buf []byte) (st libvirt.DomainState, err error
 	return dom.AttachDevice(string(buf))
 }
 
-func (d *VirtDomain) DetachVolume(devPath string) (st libvirt.DomainState, err error) {
+func (d *VirtDomain) DetachVolume(xmlQStr string) (st libvirt.DomainState, err error) {
 	x, err := d.GetXMLString()
 	if err != nil {
 		return
 	}
-	dev := filepath.Base(devPath)
 	doc, err := xmlquery.Parse(strings.NewReader(x))
 	if err != nil {
 		return
 	}
-	node := xmlquery.FindOne(doc, fmt.Sprintf("//devices/disk[target[@dev='%s']]", dev))
+	node := xmlquery.FindOne(doc, xmlQStr)
 	if node == nil {
 		err = errors.New("can't find device")
 		return
 	}
 
 	xml := node.OutputXML(true)
-	log.Infof(context.TODO(), "Detach volume, device(%s) xml: %s", devPath, xml)
+	log.Infof(context.TODO(), "Detach volume, device(%s) xml: %s", xmlQStr, xml)
 	var dom libvirt.Domain
 	if dom, err = d.Lookup(); err != nil {
 		return

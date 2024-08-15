@@ -279,20 +279,19 @@ func (v *bot) AttachVolume(vol volume.Volume) (rollback func(), err error) {
 // DetachVolume .
 func (v *bot) DetachVolume(vol volume.Volume) (err error) {
 	logger := log.WithFunc("DetachVolume")
-	devPath := vol.GetDevice()
 	if configs.Conf.Storage.InitGuestVolume {
 		switch st, err := v.GetState(); {
 		case err != nil:
 			return errors.Wrap(err, "")
 		case st == libvirt.DomainRunning:
-			if err := volFact.Unmount(vol, v.ga, devPath); err != nil {
+			if err := volFact.Umount(vol, v.ga); err != nil {
 				return errors.Wrap(err, "")
 			}
 		default:
 			logger.Warnf(context.TODO(), "the guest is not running, so ignore to umount")
 		}
 	}
-	_, err = v.dom.DetachVolume(devPath)
+	_, err = v.dom.DetachVolume(vol.GetXMLQStr())
 	return
 }
 
@@ -306,12 +305,11 @@ func (v *bot) ReplaceSysVolume(vol volume.Volume) error {
 
 // AmplifyVolume .
 func (v *bot) AmplifyVolume(vol volume.Volume, delta int64) (err error) {
-	devPath := base.GetDevicePathByName(vol.GetDevice())
 	dom, err := v.dom.Lookup()
 	if err != nil {
 		return errors.Wrap(err, "")
 	}
-	_, err = volFact.Amplify(vol, delta, dom, v.ga, devPath)
+	_, err = volFact.Amplify(vol, delta, dom, v.ga)
 
 	return err
 }
