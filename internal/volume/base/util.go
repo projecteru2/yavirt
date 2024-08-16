@@ -98,7 +98,7 @@ func MountBlockDevice(
 		fsckPass = 2
 	)
 	log.Debugf(ctx, "Mount: format")
-	if err := Format(ctx, ga, name, devPath, fs); err != nil {
+	if err := Format(ctx, ga, name, devPath, fs, false); err != nil {
 		return errors.Wrap(err, "")
 	}
 
@@ -169,14 +169,22 @@ func Mount(
 func Format(
 	ctx context.Context, ga agent.Interface,
 	volName, devPath, fs string,
+	force bool,
 ) error {
-	switch formatted, err := isFormatted(ctx, ga, volName); {
-	case err != nil:
-		return errors.Wrap(err, "")
-	case formatted:
-		return nil
+	if !force {
+		// 双保险的思路：先检查/etc目录有没有对应的标志文件，如果没有就检查对应的设备是否已经包含文件系统，如果没有就格式化
+		switch formatted, err := isFormatted(ctx, ga, volName); {
+		case err != nil:
+			return errors.Wrap(err, "")
+		case formatted:
+			return nil
+		}
+		info, err := ga.Blkid(ctx, devPath)
+		if err == nil && info.ID != "" && strings.EqualFold(fs, info.Type) {
+			log.Infof(ctx, "device %s is already contains a filesystem in format %s, so ignore format", devPath, info.Type)
+			return nil
+		}
 	}
-
 	if err := fdisk(ctx, ga, devPath, fs); err != nil {
 		return errors.Wrap(err, "")
 	}

@@ -30,6 +30,10 @@ type ExecStatus struct {
 	Pid int
 	Err error
 }
+type BlkidInfo struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+}
 
 // CheckStdio .
 func (s ExecStatus) CheckStdio(check func([]byte, []byte) bool) (so, se []byte, err error) {

@@ -28,7 +28,7 @@ type Interface interface { //nolint
 	WriteFile(ctx context.Context, handle int, buf []byte) error
 	SeekFile(ctx context.Context, handle int, offset int, whence int) (position int, eof bool, err error)
 	AppendLine(ctx context.Context, filepath string, p []byte) error
-	Blkid(ctx context.Context, dev string) (string, error)
+	Blkid(ctx context.Context, dev string) (*types.BlkidInfo, error)
 	GetDiskfree(ctx context.Context, mnt string) (*types.Diskfree, error)
 	FSFreezeAll(ctx context.Context) (int, error)
 	FSThawAll(ctx context.Context) (int, error)
