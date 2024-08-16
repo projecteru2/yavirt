@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	_ "embed"
@@ -39,10 +40,11 @@ type SingleTypeGPUs struct {
 }
 
 type GPUManager struct {
-	mu           sync.Mutex
-	gpuTypeMap   map[string]*SingleTypeGPUs
-	coreMgr      *CoreResourcesManager
-	lostGPUCache *cache.Cache
+	mu            sync.Mutex
+	gpuTypeMap    map[string]*SingleTypeGPUs
+	coreMgr       *CoreResourcesManager
+	lostGPUCache  *cache.Cache
+	passthroughOK atomic.Bool
 }
 
 func initGPUNameMap(gpuProdMapCfg map[string]string) error {
@@ -63,9 +65,15 @@ func NewGPUManager(ctx context.Context, cfg *configs.Config, coreMgr *CoreResour
 	if err := initGPUNameMap(cfg.Resource.GPUProductMap); err != nil {
 		return nil, err
 	}
-	gpuMap, err := fetchGPUInfoFromHardware()
-	if err != nil {
-		return nil, err
+	passthroughOK := checkPassthrough()
+	var (
+		gpuMap = make(map[string]*SingleTypeGPUs)
+		err    error
+	)
+	if passthroughOK {
+		if gpuMap, err = fetchGPUInfoFromHardware(); err != nil {
+			return nil, err
+		}
 	}
 	log.WithFunc("NewGPUManager").Infof(ctx, "hardware gpu info: %# v", pretty.Formatter(gpuMap))
 
@@ -74,6 +82,8 @@ func NewGPUManager(ctx context.Context, cfg *configs.Config, coreMgr *CoreResour
 		coreMgr:      coreMgr,
 		lostGPUCache: cache.New(3*time.Minute, 1*time.Minute),
 	}
+	mgr.passthroughOK.Store(passthroughOK)
+
 	go mgr.monitor(ctx)
 	return mgr, nil
 }
@@ -124,6 +134,13 @@ func (g *GPUManager) Alloc(req *gputypes.EngineParams) (ans []types.GPUInfo, err
 }
 
 func (g *GPUManager) monitor(ctx context.Context) {
+	logger := log.WithFunc("GPUManager.monitor")
+	if !g.passthroughOK.Load() {
+		logger.Warn(ctx, "passthrough is not setup yet, so monitor does nothing")
+		// GPU passthrough is not setup yet, so we set gpu capacity to 0 here.
+		g.coreMgr.UpdateGPU(g.GetResource())
+		return
+	}
 	for {
 		select {
 		case <-ctx.Done():
@@ -132,7 +149,7 @@ func (g *GPUManager) monitor(ctx context.Context) {
 		}
 		gpuMap, err := fetchGPUInfoFromHardware()
 		if err != nil {
-			log.WithFunc("GPUManager.monitor").Errorf(ctx, err, "failed to fetch gpu info from hardware")
+			logger.Errorf(ctx, err, "failed to fetch gpu info from hardware")
 			continue
 		}
 
@@ -171,6 +188,11 @@ func (g *GPUManager) monitor(ctx context.Context) {
 
 		g.coreMgr.UpdateGPU(g.GetResource())
 	}
+}
+
+func checkPassthrough() bool {
+	err := execCommand("sh", "-c", "dmesg | grep -E 'DMAR|IOMMU'").Run()
+	return err == nil
 }
 
 func fetchGPUInfoFromHardware() (map[string]*SingleTypeGPUs, error) {
