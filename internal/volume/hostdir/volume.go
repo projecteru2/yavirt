@@ -99,7 +99,7 @@ func (v *Volume) Repair() error {
 
 // mount -t virtiofs mount_tag /mnt/mount/path
 // we use destination as mount tag
-func (v *Volume) Mount(ctx context.Context, ga agent.Interface, _ string) error {
+func (v *Volume) Mount(ctx context.Context, ga agent.Interface) error {
 	const (
 		fs         = "virtiofs"
 		backupDump = 0

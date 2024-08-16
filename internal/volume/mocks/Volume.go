@@ -446,17 +446,17 @@ func (_m *Volume) MetaKey() string {
 	return r0
 }
 
-// Mount provides a mock function with given fields: ctx, ga, devPath
-func (_m *Volume) Mount(ctx context.Context, ga agent.Interface, devPath string) error {
-	ret := _m.Called(ctx, ga, devPath)
+// Mount provides a mock function with given fields: ctx, ga
+func (_m *Volume) Mount(ctx context.Context, ga agent.Interface) error {
+	ret := _m.Called(ctx, ga)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Mount")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, agent.Interface, string) error); ok {
-		r0 = rf(ctx, ga, devPath)
+	if rf, ok := ret.Get(0).(func(context.Context, agent.Interface) error); ok {
+		r0 = rf(ctx, ga)
 	} else {
 		r0 = ret.Error(0)
 	}

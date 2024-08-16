@@ -36,7 +36,7 @@ type Volume interface { //nolint:interfacebloat
 	Repair() error
 	IsSys() bool
 
-	Mount(ctx context.Context, ga agent.Interface, devPath string) error
+	Mount(ctx context.Context, ga agent.Interface) error
 	Umount(ctx context.Context, ga agent.Interface) error
 	AmplifyOffline(ctx context.Context, delta int64) error
 	AmplifyOnline(newCap int64, dom libvirt.Domain, ga agent.Interface) error

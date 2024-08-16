@@ -246,7 +246,8 @@ func (v *Volume) Repair() error {
 	return interutils.Repair(context.Background(), v.Filepath())
 }
 
-func (v *Volume) Mount(ctx context.Context, ga agent.Interface, devPath string) error {
+func (v *Volume) Mount(ctx context.Context, ga agent.Interface) error {
+	devPath := base.GetDevicePathByName(v.GetDevice())
 	return base.MountBlockDevice(ctx, ga, v.Name(), devPath, v.GetMountDir())
 }
 

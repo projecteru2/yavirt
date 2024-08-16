@@ -193,7 +193,7 @@ func Umount(vol volume.Volume, ga agent.Interface) error {
 }
 
 // Mount .
-func Mount(vol volume.Volume, ga agent.Interface, devPath string) error {
+func Mount(vol volume.Volume, ga agent.Interface) error {
 	if err := vol.Lock(); err != nil {
 		return errors.Wrap(err, "")
 	}
@@ -201,5 +201,5 @@ func Mount(vol volume.Volume, ga agent.Interface, devPath string) error {
 
 	var ctx, cancel = context.WithTimeout(context.Background(), configs.Conf.GADiskTimeout)
 	defer cancel()
-	return vol.Mount(ctx, ga, devPath)
+	return vol.Mount(ctx, ga)
 }

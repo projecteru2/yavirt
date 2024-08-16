@@ -15,7 +15,6 @@ import (
 	"github.com/projecteru2/yavirt/internal/virt/domain"
 	"github.com/projecteru2/yavirt/internal/virt/nic"
 	"github.com/projecteru2/yavirt/internal/volume"
-	"github.com/projecteru2/yavirt/internal/volume/base"
 	volFact "github.com/projecteru2/yavirt/internal/volume/factory"
 	"github.com/projecteru2/yavirt/pkg/libvirt"
 	"github.com/projecteru2/yavirt/pkg/terrors"
@@ -245,7 +244,6 @@ func (v *bot) RestoreSnapshot(volmod volume.Volume, snapID string) error {
 
 // AttachVolume .
 func (v *bot) AttachVolume(vol volume.Volume) (rollback func(), err error) {
-	devName := vol.GetDevice()
 	dom, err := v.dom.Lookup()
 	if err != nil {
 		return nil, errors.Wrap(err, "")
@@ -271,7 +269,7 @@ func (v *bot) AttachVolume(vol volume.Volume) (rollback func(), err error) {
 	st, err = dom.AttachDevice(string(buf))
 	if err == nil && st == libvirt.DomainRunning && configs.Conf.Storage.InitGuestVolume {
 		log.Debugf(context.TODO(), "Mount(%s): start to mount volume(%s)", v.guest.ID, vol.GetMountDir())
-		err = volFact.Mount(vol, v.ga, base.GetDevicePathByName(devName))
+		err = volFact.Mount(vol, v.ga)
 	}
 	return
 }
@@ -360,11 +358,11 @@ func (v *bot) setupVols() (err error) {
 	if !configs.Conf.Storage.InitGuestVolume {
 		return nil
 	}
-	v.guest.rangeVolumes(func(sn int, vol volume.Volume) bool {
+	v.guest.rangeVolumes(func(_ int, vol volume.Volume) bool {
 		if vol.IsSys() {
 			return true
 		}
-		err = volFact.Mount(vol, v.ga, base.GetDevicePathBySerialNumber(sn))
+		err = volFact.Mount(vol, v.ga)
 		return err == nil
 	})
 	return
