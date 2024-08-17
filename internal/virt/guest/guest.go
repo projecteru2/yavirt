@@ -223,17 +223,26 @@ func (g *Guest) handleResizeGPU(eParams *gputypes.EngineParams) (err error) {
 
 func (g *Guest) handleResizeVolumes(newVolMap map[string]volume.Volume) error {
 	existVolMap := make(map[string]volume.Volume)
+	var detachMountDirs []string
 	for _, existVol := range g.Vols {
-		existVolMap[existVol.GetMountDir()] = existVol
+		mountDir := existVol.GetMountDir()
+		existVolMap[mountDir] = existVol
 		if existVol.IsSys() {
 			continue
 		}
-		if _, ok := newVolMap[existVol.GetMountDir()]; !ok {
-			if err := g.detachVol(existVol); err != nil {
-				return errors.Wrap(err, "")
-			}
+		if _, ok := newVolMap[mountDir]; !ok {
+			// don't detach volume here, because detachVolume will change g.Vols
+			detachMountDirs = append(detachMountDirs, mountDir)
 		}
 	}
+
+	for _, mountDir := range detachMountDirs {
+		existVol := existVolMap[mountDir]
+		if err := g.detachVol(existVol); err != nil {
+			return errors.Wrap(err, "")
+		}
+	}
+
 	for mountDir, newVol := range newVolMap {
 		existVol, ok := existVolMap[mountDir]
 		if !ok { //nolint
