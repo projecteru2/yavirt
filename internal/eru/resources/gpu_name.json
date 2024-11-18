@@ -1,4 +1,5 @@
 {
+    "GA100 [A100 PCIe 80GB]": "nvidia-a100",
     "GA104 [GeForce RTX 3070]": "nvidia-3070",
     "GA104 [GeForce RTX 3070 Lite Hash Rate]": "nvidia-3070-lhr",
     "GA102 [GeForce RTX 3090]": "nvidia-3090",
