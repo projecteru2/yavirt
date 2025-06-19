@@ -641,7 +641,7 @@ func (g *Guest) InitSysDisk(
 	args *types.InitSysDiskArgs, newSysVol volume.Volume,
 ) error {
 	logger := log.WithFunc("InitSysDisk")
-	ciCfg, err := g.GenCloudInit()
+	ciCfg, err := g.GenCloudInit(img)
 	if err != nil {
 		return errors.Wrap(err, "failed to generate cloud init config")
 	}

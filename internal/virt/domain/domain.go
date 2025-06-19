@@ -471,7 +471,7 @@ func (d *VirtDomain) metadataXML() (string, error) {
 
 func (d *VirtDomain) cloudInitXML() (string, string, error) {
 	// for network
-	obj, err := d.guest.GenCloudInit()
+	obj, err := d.guest.GenCloudInit(d.guest.Img)
 	if err != nil {
 		return "", "", errors.Wrap(err, "")
 	}

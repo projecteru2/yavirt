@@ -1,0 +1,8 @@
+{
+    "instance-id": "{{ .instanceID }}",
+    "instance-type": "windowsoff",
+    "local-hostname": "{{ .hostname }}",
+    "hostname": "{{ .hostname }}",
+    "public_keys": {},
+    "admin_pass": "{{ .password }}"
+}

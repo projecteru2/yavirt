@@ -13,15 +13,24 @@ import (
 	"github.com/kdomanski/iso9660/util"
 
 	"github.com/cockroachdb/errors"
+	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 )
 
 var (
 	//go:embed templates/user-data.yaml
-	userData string
+	linuxUserData string
 	//go:embed templates/meta-data.yaml
-	metaData string
+	linuxMetaData string
 	//go:embed templates/network-config.yaml
-	networkData string
+	linuxNetworkData string
+
+	//go:embed templates/windows/user-data.yaml
+	winUserData string
+	// metadata of cloudbase-init seems only support json format
+	//go:embed templates/windows/meta-data.json
+	winMetaData string
+	//go:embed templates/windows/network-config.yaml
+	winNetworkData string
 )
 
 type CloudInitGateway struct {
@@ -47,10 +56,12 @@ type CloudInitConfig struct {
 	MTU       int              `json:"-"`
 	IFName    string           `json:"-"`
 	DefaultGW CloudInitGateway `json:"-"`
+
+	OS *vmitypes.OSInfo `json:"-"`
 }
 
 func (ciCfg *CloudInitConfig) GenFilesContent() (string, string, string, error) {
-	d1 := map[string]any{
+	dataMap := map[string]any{
 		"username":  ciCfg.Username,
 		"password":  ciCfg.Password,
 		"sshPubKey": ciCfg.SSHPubKey,
@@ -64,31 +75,46 @@ func (ciCfg *CloudInitConfig) GenFilesContent() (string, string, string, error) 
 		},
 		"commands": ciCfg.Commands,
 		"files":    []map[string]any{},
+
+		"instanceID": ciCfg.InstanceID,
+		"hostname":   ciCfg.Hostname,
+		"osType":     ciCfg.OS.Type,
 	}
 	for k, v := range ciCfg.Files {
-		d1["files"] = append(d1["files"].([]map[string]any), map[string]any{
+		dataMap["files"] = append(dataMap["files"].([]map[string]any), map[string]any{
 			"path":    k,
 			"content": base64.StdEncoding.EncodeToString(v),
 		})
 	}
-	udataTmplFile := filepath.Join(configs.Conf.VirtTmplDir, "user-data.yaml")
-	mdataTmplFile := filepath.Join(configs.Conf.VirtTmplDir, "meta-data.yaml")
-	networkTmplFile := filepath.Join(configs.Conf.VirtTmplDir, "network-config.yaml")
+	var udataTmplFile, mdataTmplFile, networkTmplFile string
+	var userData, metaData, networkData string
+	switch ciCfg.OS.Type {
+	case "windows":
+		udataTmplFile = filepath.Join(configs.Conf.VirtTmplDir, "windows", "user-data.yaml")
+		mdataTmplFile = filepath.Join(configs.Conf.VirtTmplDir, "windows", "meta-data.json")
+		networkTmplFile = filepath.Join(configs.Conf.VirtTmplDir, "windows", "network-config.yaml")
+		userData = winUserData
+		metaData = winMetaData
+		networkData = winNetworkData
+	default:
+		udataTmplFile = filepath.Join(configs.Conf.VirtTmplDir, "user-data.yaml")
+		mdataTmplFile = filepath.Join(configs.Conf.VirtTmplDir, "meta-data.yaml")
+		networkTmplFile = filepath.Join(configs.Conf.VirtTmplDir, "network-config.yaml")
+		userData = linuxUserData
+		metaData = linuxMetaData
+		networkData = linuxNetworkData
+	}
 
-	uDataBS, err := template.Render(udataTmplFile, userData, d1)
+	uDataBS, err := template.Render(udataTmplFile, userData, dataMap)
 	if err != nil {
 		return "", "", "", err
 	}
 
-	d2 := map[string]string{
-		"instanceID": ciCfg.InstanceID,
-		"hostname":   ciCfg.Hostname,
-	}
-	mDataBS, err := template.Render(mdataTmplFile, metaData, d2)
+	mDataBS, err := template.Render(mdataTmplFile, metaData, dataMap)
 	if err != nil {
 		return "", "", "", err
 	}
-	networkBS, err := template.Render(networkTmplFile, networkData, d1)
+	networkBS, err := template.Render(networkTmplFile, networkData, dataMap)
 	if err != nil {
 		return "", "", "", err
 	}

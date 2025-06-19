@@ -1,0 +1,33 @@
+#cloud-config
+
+{{if gt (len .files) 0}}
+write_files:
+  {{ range .files }}
+  - path: {{ .path }}
+    encoding: b64
+    content: {{ .content }}
+  {{ end }}
+{{ end }}
+groups:
+  - windows:
+    - Admin
+  - cloud-users
+
+users:
+  - name: "{{ .username }}"
+    passwd: "{{ .password }}"
+    gecos: 'Created by cloudbase-init'
+    primary_group: cloud-users
+    groups: 
+      - Administrators
+      - windows
+    inactive: False
+
+{{ if ne .sshPubKey "" }}
+    ssh_authorized_keys:
+      - {{ .sshPubKey }}
+{{ end }}
+
+# {{ if eq .sshPubKey "" }}
+# ssh_pwauth: true
+# {{ end }}

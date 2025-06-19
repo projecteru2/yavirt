@@ -288,7 +288,7 @@ func (g *Guest) NetworkPairName() string {
 }
 
 // Generate cloud-init config from guest.
-func (g *Guest) GenCloudInit() (*types.CloudInitConfig, error) {
+func (g *Guest) GenCloudInit(img *vmitypes.Image) (*types.CloudInitConfig, error) {
 	cidr := g.IPNets[0].CIDR()
 	gwAddr := g.IPNets[0].GatewayAddr()
 	inSubnet := netx.InSubnet(gwAddr, cidr)
@@ -301,8 +301,13 @@ func (g *Guest) GenCloudInit() (*types.CloudInitConfig, error) {
 			IP:     gwAddr,
 			OnLink: !inSubnet,
 		},
+		OS: &img.OS,
 	}
 	if bs, ok := g.JSONLabels["instance/cloud-init"]; ok {
+		if err := json.Unmarshal([]byte(bs), &obj); err != nil {
+			return nil, errors.Wrap(err, "")
+		}
+	} else if bs, ok := g.JSONLabels["instance/cloudbase-init"]; ok {
 		if err := json.Unmarshal([]byte(bs), &obj); err != nil {
 			return nil, errors.Wrap(err, "")
 		}
