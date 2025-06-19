@@ -159,13 +159,14 @@ func (v *bot) waitGA(ctx context.Context) error {
 	logger := log.WithFunc("waitGA").WithField("guest", v.guest.ID)
 	// Create a new context with a shorter timeout
 	// so that we can return a more informative error message when timeout.
-	timeout := 7 * time.Minute
+	timeout := 20 * time.Minute
 	if daedline, ok := ctx.Deadline(); ok {
 		timeout = time.Until(daedline) - 30*time.Second
 		if timeout < 0 {
 			timeout = time.Until(daedline)
 		}
 	}
+	logger.Infof(ctx, "waitGA: current timeout %v", timeout)
 	newCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
