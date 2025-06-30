@@ -188,7 +188,7 @@ type ResourceConfig struct {
 	MaxMemory       int64    `toml:"max_memory" default:"549755813888"`     // default: 512G
 	ReservedMemory  int64    `toml:"reserved_memory" default:"10737418240"` // default: 10GB
 	MinVolumeCap    int64    `toml:"min_volume" default:"1073741824"`
-	MaxVolumeCap    int64    `toml:"max_volume" default:"1099511627776"`
+	MaxVolumeCap    int64    `toml:"max_volume" default:"4398046511104"`
 	MaxVolumesCount int      `toml:"max_volumes_count" default:"8"`
 	Bandwidth       int64    `toml:"bandwidth" default:"50000000000"`
 	ExcludePCIs     []string `toml:"exclude_pcis"`
