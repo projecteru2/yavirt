@@ -51,7 +51,7 @@ func (y *GRPCYavirtd) GetInfo(ctx context.Context, _ *pb.Empty) (*pb.InfoMessage
 
 // GetGuest .
 func (y *GRPCYavirtd) GetGuest(ctx context.Context, opts *pb.GetGuestOptions) (*pb.GetGuestMessage, error) {
-	log.Infof(ctx, "[grpcserver] get guest: %s", opts.Id)
+	log.WithFunc("GRPCYavirtd.GetGuest").Infof(ctx, "get guest: %s", opts.Id)
 	guestReq := types.GuestReq{ID: opts.Id}
 	guest, err := y.service.GetGuest(ctx, guestReq.VirtID())
 	if err != nil {
@@ -79,7 +79,7 @@ func (y *GRPCYavirtd) GetGuest(ctx context.Context, opts *pb.GetGuestOptions) (*
 
 // GetGuestIDList gets all local vms' domain names regardless of their metadata validility.
 func (y *GRPCYavirtd) GetGuestIDList(ctx context.Context, _ *pb.GetGuestIDListOptions) (*pb.GetGuestIDListMessage, error) {
-	log.Info(ctx, "[grpcserver] get guest id list")
+	log.WithFunc("GRPCYavirtd.GetGuestIDList").Info(ctx, "get guest id list")
 	ids, err := y.service.GetGuestIDList(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "")
@@ -145,7 +145,7 @@ func parseEvent(event intertypes.Event) *pb.EventMessage {
 
 // GetGuestUUID .
 func (y *GRPCYavirtd) GetGuestUUID(ctx context.Context, opts *pb.GetGuestOptions) (*pb.GetGuestUUIDMessage, error) {
-	log.Infof(ctx, "[grpcserver] get guest UUID: %s", opts.Id)
+	log.WithFunc("GRPCYavirtd.GetGuestUUID").Infof(ctx, "get guest UUID: %s", opts.Id)
 	guestReq := types.GuestReq{ID: opts.Id}
 
 	uuid, err := y.service.GetGuestUUID(ctx, guestReq.VirtID())
@@ -158,7 +158,7 @@ func (y *GRPCYavirtd) GetGuestUUID(ctx context.Context, opts *pb.GetGuestOptions
 
 // CreateGuest .
 func (y *GRPCYavirtd) CreateGuest(ctx context.Context, opts *pb.CreateGuestOptions) (*pb.CreateGuestMessage, error) {
-	log.Infof(ctx, "[grpcserver] create guest: %q", opts)
+	log.WithFunc("GRPCYavirtd.CreateGuest").Infof(ctx, "create guest: %q", opts)
 	guest, err := y.service.CreateGuest(ctx, intertypes.ConvertGRPCCreateOptions(opts))
 	if err != nil {
 		return nil, errors.Wrap(err, "")
@@ -182,7 +182,8 @@ func (y *GRPCYavirtd) CreateGuest(ctx context.Context, opts *pb.CreateGuestOptio
 
 // CaptureGuest .
 func (y *GRPCYavirtd) CaptureGuest(ctx context.Context, opts *pb.CaptureGuestOptions) (*pb.UserImageMessage, error) {
-	log.Infof(ctx, "[grpcserver] capture guest: %q", opts)
+	logger := log.WithFunc("GRPCYavirtd.CaptureGuest").WithField("id", opts.Id)
+	logger.Infof(ctx, "capture guest: %q", opts)
 
 	imgName := vmiFact.NewImageName(opts.User, opts.Name)
 	uimg, err := y.service.CaptureGuest(ctx, utils.VirtID(opts.Id), imgName, opts.Overridden)
@@ -199,7 +200,8 @@ func (y *GRPCYavirtd) CaptureGuest(ctx context.Context, opts *pb.CaptureGuestOpt
 
 // ResizeGuest .
 func (y *GRPCYavirtd) ResizeGuest(ctx context.Context, opts *pb.ResizeGuestOptions) (*pb.ControlGuestMessage, error) {
-	log.Infof(ctx, "[grpcserver] resize guest: %q", opts)
+	logger := log.WithFunc("GRPCYavirtd.ResizeGuest").WithField("id", opts.Id)
+	logger.Infof(ctx, "[grpcserver] resize guest: %q", opts)
 
 	msg := &pb.ControlGuestMessage{Msg: "ok"}
 
@@ -250,7 +252,10 @@ func (y *GRPCYavirtd) ResizeConsoleWindow(ctx context.Context, opts *pb.ResizeWi
 
 // ExecuteGuest .
 func (y *GRPCYavirtd) ExecuteGuest(ctx context.Context, opts *pb.ExecuteGuestOptions) (msg *pb.ExecuteGuestMessage, err error) {
-	log.Infof(ctx, "[grpcserver] execute guest start")
+	logger := log.WithFunc("GRPCYavirtd.ExecuteGuest").WithField("id", opts.Id)
+	logger.Infof(ctx, "[grpcserver] execute guest start, commands: %s", opts.Commands)
+	defer logger.Infof(ctx, "[grpcserver] execute guest done")
+
 	req := types.GuestReq{ID: opts.Id}
 	m, err := y.service.ExecuteGuest(ctx, req.VirtID(), opts.Commands)
 	if err != nil {
@@ -334,8 +339,9 @@ func (y *GRPCYavirtd) NetworkList(ctx context.Context, opts *pb.NetworkListOptio
 // Cat .
 func (y *GRPCYavirtd) Cat(opts *pb.CatOptions, srv pb.YavirtdRPC_CatServer) error {
 	ctx := srv.Context()
-	log.Infof(ctx, "[grpcserver] cat %v", opts)
-	defer log.Infof(ctx, "[grpcserver] cat %v completed", opts)
+	logger := log.WithFunc("GRPCYavirtd.Cat").WithField("id", opts.Id)
+	logger.Infof(ctx, "cat %v", opts)
+	defer logger.Infof(ctx, "cat %v done", opts)
 
 	req := types.GuestReq{ID: opts.Id}
 	wc := &CatWriteCloser{srv: srv}
@@ -348,19 +354,23 @@ func (y *GRPCYavirtd) Cat(opts *pb.CatOptions, srv pb.YavirtdRPC_CatServer) erro
 // CopyToGuest .
 func (y *GRPCYavirtd) CopyToGuest(server pb.YavirtdRPC_CopyToGuestServer) (err error) {
 	ctx := server.Context()
-	defer log.Infof(ctx, "[grpcserver] copy file to guest complete")
-	log.Infof(ctx, "[grpcserver] copy file to guest start")
+	logger := log.WithFunc("GRPCYavirtd.CopyToGuest")
 
 	var opts *pb.CopyOptions
 	byteChan := make(chan []byte, 4*types.BufferSize)
 
 	opts, err = server.Recv()
 	if opts == nil {
+		logger.Errorf(ctx, err, "failed to receive options")
 		if err != io.EOF {
 			return err
 		}
 		return nil
 	}
+	logger = logger.WithField("id", opts.Id)
+	logger.Info(ctx, "copy file to guest start")
+	defer log.Info(ctx, "copy file to guest done")
+
 	req := types.GuestReq{ID: opts.Id}
 	dest := opts.Dest
 	override := opts.Override
