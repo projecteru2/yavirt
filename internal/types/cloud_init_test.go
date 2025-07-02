@@ -7,12 +7,16 @@ import (
 	"testing"
 
 	"github.com/projecteru2/yavirt/pkg/test/assert"
+	vmitypes "github.com/projecteru2/yavirt/pkg/vmimage/types"
 )
 
 func TestGenContent(t *testing.T) {
 	cfg := &CloudInitConfig{
 		Username: "root",
 		Password: "passwd",
+		OS: &vmitypes.OSInfo{
+			Type: "linux",
+		},
 	}
 	user, _, _, err := cfg.GenFilesContent()
 	assert.Nil(t, err)
@@ -42,6 +46,9 @@ func TestNetwork(t *testing.T) {
 		DefaultGW: CloudInitGateway{
 			IP:     "10.10.10.111",
 			OnLink: true,
+		},
+		OS: &vmitypes.OSInfo{
+			Type: "linux",
 		},
 	}
 	_, _, network, err := cfg.GenFilesContent()
