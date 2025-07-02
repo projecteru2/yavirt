@@ -25,7 +25,7 @@ type Domain interface { //nolint
 	SetVcpusFlags(vcpu uint, flags DomainVcpuFlags) error
 	SetMemoryFlags(memory uint64, flags DomainMemoryModFlags) error
 	SetMemoryStatsPeriod(period int, config, live bool) error
-	AmplifyVolume(filepath string, cap uint64) error
+	AmplifyVolume(filepath string, capacity uint64) error
 	AttachDevice(xml string) (DomainState, error)
 	DetachDevice(xml string) (st DomainState, err error)
 
@@ -254,6 +254,6 @@ func (d *Domainee) GetState() (st DomainState, err error) {
 }
 
 // AmplifyVolume .
-func (d *Domainee) AmplifyVolume(filepath string, cap uint64) error {
-	return d.Libvirt.DomainBlockResize(*d.Domain, filepath, cap, DomainBlockResizeBytes)
+func (d *Domainee) AmplifyVolume(filepath string, capacity uint64) error {
+	return d.Libvirt.DomainBlockResize(*d.Domain, filepath, capacity, DomainBlockResizeBytes)
 }

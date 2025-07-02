@@ -57,7 +57,7 @@ type Domain interface { //nolint
 	DetachVolume(dev string) (st libvirt.DomainState, err error)
 	AttachGPU(prod string, count int) (st libvirt.DomainState, err error)
 	DetachGPU(prod string, count int) (st libvirt.DomainState, err error)
-	AmplifyVolume(filepath string, cap uint64) error
+	AmplifyVolume(filepath string, capacity uint64) error
 	Define() error
 	Undefine() error
 	Shutdown(ctx context.Context, force bool) error
@@ -868,12 +868,12 @@ func (d *VirtDomain) GetState() (libvirt.DomainState, error) {
 }
 
 // AmplifyVolume .
-func (d *VirtDomain) AmplifyVolume(filepath string, cap uint64) error {
+func (d *VirtDomain) AmplifyVolume(filepath string, capacity uint64) error {
 	dom, err := d.Lookup()
 	if err != nil {
 		return errors.Wrap(err, "")
 	}
-	return dom.AmplifyVolume(filepath, cap)
+	return dom.AmplifyVolume(filepath, capacity)
 }
 
 func (d *VirtDomain) Lookup() (libvirt.Domain, error) {

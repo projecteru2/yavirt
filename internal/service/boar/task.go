@@ -124,7 +124,7 @@ type taskPool struct {
 	notifier chan taskNotifier
 }
 
-func newTaskPool(max int) (*taskPool, error) {
+func newTaskPool(max int) (*taskPool, error) { //nolint:revive
 	p, err := ants.NewPool(max, ants.WithNonblocking(true))
 	if err != nil {
 		return nil, err

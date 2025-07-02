@@ -10,12 +10,12 @@ import (
 )
 
 // CreateImage .
-func CreateImage(ctx context.Context, fmt, path string, cap int64) error {
-	return sh.ExecContext(ctx, "qemu-img", "create", "-q", "-f", fmt, path, strconv.FormatInt(cap, 10))
+func CreateImage(ctx context.Context, fmt, path string, capacity int64) error {
+	return sh.ExecContext(ctx, "qemu-img", "create", "-q", "-f", fmt, path, strconv.FormatInt(capacity, 10))
 }
 
-func ResizeImage(ctx context.Context, path string, cap int64) error {
-	return sh.ExecContext(ctx, "qemu-img", "resize", path, strconv.FormatInt(cap, 10))
+func ResizeImage(ctx context.Context, path string, capacity int64) error {
+	return sh.ExecContext(ctx, "qemu-img", "resize", path, strconv.FormatInt(capacity, 10))
 }
 
 // AmplifyImage .

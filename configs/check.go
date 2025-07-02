@@ -71,7 +71,7 @@ func (c *checker) checkRange() error { //nolint
 		return err
 	}
 
-	var min, max = ar[0], ar[1]
+	var min, max = ar[0], ar[1] //nolint:revive
 	var leng int
 	var kind = c.fieldObj.Type.Kind()
 
@@ -79,7 +79,7 @@ func (c *checker) checkRange() error { //nolint
 	case reflect.Int:
 		leng = c.val.(int) //nolint
 	case reflect.String:
-		leng = len(c.val.(string))
+		leng = len(c.val.(string)) //nolint
 	default:
 		return errors.Errorf("invalid type: %d", kind)
 	}

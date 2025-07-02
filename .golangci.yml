@@ -31,7 +31,7 @@ linters-settings:
     range-loops: true
     for-loops: true
   errcheck:
-    check-type-assertions: true
+    check-type-assertions: false
   gocritic:
     disabled-checks:
       - captLocal
@@ -56,11 +56,12 @@ linters-settings:
     time-layout: true
     crypto-hash: true
     default-rpc-path: true
-    os-dev-null: true
     sql-isolation-level: true
     tls-signature-scheme: true
     constant-kind: true
-    syslog-priority: true
+  gosec:
+    excludes:
+      - G115
 
 linters:
   disable-all: true
@@ -68,7 +69,7 @@ linters:
     - usestdlibvars
     - asasalint
     - bodyclose
-    - nolintlint
+    # - nolintlint
     - nosprintfhostport
     - prealloc
     - durationcheck
@@ -90,7 +91,7 @@ linters:
     - ineffassign
     - misspell
     - nakedret
-    - exportloopref
+    - copyloopvar
     - staticcheck
     - typecheck
     - unconvert

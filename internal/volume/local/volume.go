@@ -77,16 +77,16 @@ func NewVolumeFromStr(s string) (*Volume, error) {
 }
 
 // NewSysVolume .
-func NewSysVolume(cap int64, imageName string) *Volume {
+func NewSysVolume(capacity int64, imageName string) *Volume {
 	vol := NewVolume()
 	vol.SysImage = imageName
 	vol.Flags = "rws"
-	vol.SizeInBytes = cap
+	vol.SizeInBytes = capacity
 	return vol
 }
 
 // NewDataVolume .
-func NewDataVolume(mnt string, cap int64) (*Volume, error) {
+func NewDataVolume(mnt string, capacity int64) (*Volume, error) {
 	mnt = strings.TrimSpace(mnt)
 
 	src, dest := utils.PartRight(mnt, ":")
@@ -101,7 +101,7 @@ func NewDataVolume(mnt string, cap int64) (*Volume, error) {
 	vol.Source = src
 	vol.Destination = dest
 	vol.Flags = "rw"
-	vol.SizeInBytes = cap
+	vol.SizeInBytes = capacity
 
 	return vol, vol.Check()
 }
