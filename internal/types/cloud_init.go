@@ -26,8 +26,7 @@ var (
 
 	//go:embed templates/windows/user-data.yaml
 	winUserData string
-	// metadata of cloudbase-init seems only support json format
-	//go:embed templates/windows/meta-data.json
+	//go:embed templates/windows/meta-data.yaml
 	winMetaData string
 	//go:embed templates/windows/network-config.yaml
 	winNetworkData string

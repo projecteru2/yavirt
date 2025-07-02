@@ -8,20 +8,22 @@ write_files:
     content: {{ .content }}
   {{ end }}
 {{ end }}
-groups:
-  - windows:
-    - Admin
-  - cloud-users
+# groups:
+#   - windows:
+#     - Admin
+#   - cloud-users
 
 users:
-  - name: "{{ .username }}"
+  - name: Administrator
+    groups: Administrators
     passwd: "{{ .password }}"
-    gecos: 'Created by cloudbase-init'
-    primary_group: cloud-users
-    groups: 
-      - Administrators
-      - windows
     inactive: False
+
+  # - name: "{{ .username }}"
+  #   groups: Administrators
+  #   primary_group: Administrators
+  #   passwd: "{{ .password }}"
+  #   inactive: False
 
 {{ if ne .sshPubKey "" }}
     ssh_authorized_keys:
