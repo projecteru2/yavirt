@@ -50,7 +50,7 @@ func disconnectExtraNetwork(c *cli.Context, runtime run.Runtime) error {
 func connectExtraNetwork(c *cli.Context, runtime run.Runtime) error {
 	id := c.Args().First()
 	if len(id) < 1 {
-		return fmt.Errorf("Guest ID is required")
+		return fmt.Errorf("guest ID is required")
 	}
 
 	network := c.String("network")

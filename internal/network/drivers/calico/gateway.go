@@ -77,7 +77,7 @@ func (h *Driver) bindGatewayIPs(ips ...meta.IP) error {
 		}
 
 		addr.IPNet = &net.IPNet{
-			IP:   addr.IPNet.IP,
+			IP:   addr.IP,
 			Mask: AllonesMask,
 		}
 

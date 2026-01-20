@@ -90,8 +90,8 @@ func (d *Driver) updateWEP(args types.EndpointArgs) (cwe *libcaliapi.WorkloadEnd
 		return nil, errors.Wrap(err, "")
 	}
 
-	cwe.ObjectMeta.UID = k8stypes.UID(args.Calico.UID)
-	cwe.ObjectMeta.CreationTimestamp = k8smeta.NewTime(time.Now().UTC())
+	cwe.UID = k8stypes.UID(args.Calico.UID)
+	cwe.CreationTimestamp = k8smeta.NewTime(time.Now().UTC())
 
 	err = etcd.RetryTimedOut(func() error {
 		var updated, ue = d.WorkloadEndpoints().Update(context.Background(), cwe, libcaliopt.SetOptions{})

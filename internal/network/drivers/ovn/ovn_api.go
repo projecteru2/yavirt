@@ -20,7 +20,7 @@ import (
 )
 
 func normalizeAddr(addr string) string {
-	if !(strings.HasPrefix(addr, "tcp:") || strings.HasPrefix(addr, "unix:")) {
+	if !strings.HasPrefix(addr, "tcp:") && !strings.HasPrefix(addr, "unix:") {
 		if strings.HasPrefix(addr, "/") {
 			addr = "unix:" + addr
 		} else {

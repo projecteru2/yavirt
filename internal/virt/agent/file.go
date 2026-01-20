@@ -188,7 +188,7 @@ func (w *file) Tail(ctx context.Context, n int) ([]byte, error) {
 			return nil, err
 		}
 
-		if !(cursor[0] == '\n' || i == 0) {
+		if cursor[0] != '\n' && i != 0 {
 			continue
 		}
 

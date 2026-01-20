@@ -69,7 +69,7 @@ func (ip *IP) BindGuestID(guestID string) {
 
 // Create .
 func (ip *IP) Create() error {
-	var ipam = NewIpam(ip.Subnet.IntSubnet())
+	var ipam = NewIpam(ip.IntSubnet())
 
 	var ctx, cancel = meta.Context(context.Background())
 	defer cancel()
@@ -90,11 +90,11 @@ func (ip *IP) isOccupied() bool {
 }
 
 func (ip *IP) freeKey() string {
-	return meta.FreeIPKey(ip.Subnet.IntSubnet(), ip.Value)
+	return meta.FreeIPKey(ip.IntSubnet(), ip.Value)
 }
 
 func (ip *IP) occupiedKey() string {
-	return meta.OccupiedIPKey(ip.Subnet.IntSubnet(), ip.Value)
+	return meta.OccupiedIPKey(ip.IntSubnet(), ip.Value)
 }
 
 // CIDR .

@@ -55,7 +55,7 @@ func (g *Generic) JoinVirtPath(elem string) string {
 }
 
 func (g *Generic) SetStatus(st string, force bool) error {
-	if !(force || g.checkStatus(st)) {
+	if !force && !g.checkStatus(st) {
 		return errors.Wrapf(terrors.ErrForwardStatus, "%s => %s", g.Status, st)
 	}
 	g.Status = st

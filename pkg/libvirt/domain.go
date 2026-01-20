@@ -144,7 +144,7 @@ func (d *Domainee) GetInfo() (*DomainInfo, error) {
 }
 
 func (d *Domainee) GetUUIDString() (string, error) {
-	return hex.EncodeToString(d.Domain.UUID[:]), nil
+	return hex.EncodeToString(d.UUID[:]), nil
 }
 
 func (d *Domainee) GetXMLDesc(flags DomainXMLFlags) (string, error) {
@@ -156,7 +156,7 @@ func (d *Domainee) GetXMLDesc(flags DomainXMLFlags) (string, error) {
 }
 
 func (d *Domainee) GetName() (string, error) {
-	return d.Domain.Name, nil
+	return d.Name, nil
 }
 
 // NewDomainee converts a libvirt-go Domain object to a *Domainee object.

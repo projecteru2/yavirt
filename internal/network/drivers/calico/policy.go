@@ -107,7 +107,7 @@ func genCalicoNetworkPolicy(ns string) *apiv3.NetworkPolicy {
 	p := apiv3.NewNetworkPolicy()
 	p.Name = policyName
 
-	p.ObjectMeta.Namespace = ns
+	p.Namespace = ns
 	p.Spec.Types = []apiv3.PolicyType{apiv3.PolicyTypeIngress, apiv3.PolicyTypeEgress}
 	p.Spec.Ingress = []apiv3.Rule{
 		{

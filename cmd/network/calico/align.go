@@ -51,7 +51,7 @@ func getGatewayBoundIPs() ([]net.IP, error) {
 
 	ips := make([]net.IP, addrs.Len())
 	for i, addr := range addrs {
-		ips[i] = addr.IPNet.IP
+		ips[i] = addr.IP
 	}
 
 	return ips, nil

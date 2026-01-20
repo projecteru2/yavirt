@@ -55,7 +55,7 @@ func (t *Templates) parse(fpth string, defaultTemplStr string) (*text.Template, 
 	// if file path doesn't exist, then use default template string
 	if err != nil && os.IsNotExist(err) {
 		if defaultTemplStr == "" {
-			return nil, fmt.Errorf("Can't render %s: file doesn't exist and defaut template string is empty", fpth)
+			return nil, fmt.Errorf("can't render %s: file doesn't exist and default template string is empty", fpth)
 		}
 		return text.New(fpth).Funcs(sprig.TxtFuncMap()).Parse(defaultTemplStr)
 	}
