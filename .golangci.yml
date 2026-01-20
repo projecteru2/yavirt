@@ -1,75 +1,16 @@
+version: "2"
+
 run:
   timeout: 5m
   tests: false
   modules-download-mode: readonly
 
-issues:
-  exclude-dirs:
-    - vendor
-    - tools
-    - 3rdmocks
-    - thirdpart
-    - tmp
-    - mocks
-    
-linters-settings:
-  nakedret:
-    max-func-lines: 59
-  misspell:
-    locale: US
-    ignore-words:
-      - hicloud
-  gofmt:
-    simplify: false
-    rewrite-rules:
-      - pattern: 'interface{}'
-        replacement: 'any'
-      - pattern: 'a[b:len(a)]'
-        replacement: 'a[b:]'
-  prealloc:
-    simple: false
-    range-loops: true
-    for-loops: true
-  errcheck:
-    check-type-assertions: false
-  gocritic:
-    disabled-checks:
-      - captLocal
-  nilnil:
-    checked-types:
-      - ptr
-      - func
-      - iface
-      - map
-      - chan
-  asasalint:
-    exclude:
-      - Append
-      - \.Wrapf
-    use-builtin-exclusions: false
-    ignore-test: true
-  usestdlibvars:
-    http-method: true
-    http-status-code: true
-    time-weekday: true
-    time-month: true
-    time-layout: true
-    crypto-hash: true
-    default-rpc-path: true
-    sql-isolation-level: true
-    tls-signature-scheme: true
-    constant-kind: true
-  gosec:
-    excludes:
-      - G115
-
 linters:
-  disable-all: true
+  default: none
   enable:
     - usestdlibvars
     - asasalint
     - bodyclose
-    # - nolintlint
     - nosprintfhostport
     - prealloc
     - durationcheck
@@ -81,8 +22,6 @@ linters:
     - makezero
     - nilerr
     - nilnil
-    - gofmt
-    - goimports
     - revive
     - goprintffuncname
     - gosec
@@ -100,3 +39,70 @@ linters:
     - nestif
     - errcheck
     - gocritic
+
+  exclusions:
+    paths:
+      - vendor
+      - tools
+      - 3rdmocks
+      - thirdpart
+      - tmp
+      - mocks
+
+  settings:
+    nakedret:
+      max-func-lines: 59
+    misspell:
+      locale: US
+      ignore-words:
+        - hicloud
+    prealloc:
+      simple: false
+      range-loops: true
+      for-loops: true
+    errcheck:
+      check-type-assertions: false
+    gocritic:
+      disabled-checks:
+        - captLocal
+    nilnil:
+      checked-types:
+        - ptr
+        - func
+        - iface
+        - map
+        - chan
+    asasalint:
+      exclude:
+        - Append
+        - \.Wrapf
+      use-builtin-exclusions: false
+      ignore-test: true
+    usestdlibvars:
+      http-method: true
+      http-status-code: true
+      time-weekday: true
+      time-month: true
+      time-layout: true
+      crypto-hash: true
+      default-rpc-path: true
+      sql-isolation-level: true
+      tls-signature-scheme: true
+      constant-kind: true
+    gosec:
+      excludes:
+        - G115
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+  settings:
+    gofmt:
+      simplify: false
+      rewrite-rules:
+        - pattern: 'interface{}'
+          replacement: 'any'
+        - pattern: 'a[b:len(a)]'
+          replacement: 'a[b:]'
