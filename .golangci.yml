@@ -31,7 +31,6 @@ linters:
     - nakedret
     - copyloopvar
     - staticcheck
-    - typecheck
     - unconvert
     - unparam
     - unused

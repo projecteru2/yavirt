@@ -161,7 +161,7 @@ func TestFetchGPU(t *testing.T) {
 	assert.Equal(t, gpus3070.addrSet.Cardinality(), 1)
 	assert.True(t, gpus3070.addrSet.Contains("0000:3c:00.0"))
 	gpuMapJSON, _ := json.Marshal(gpuMap)
-	t.Logf(string(gpuMapJSON))
+	t.Logf("%s", string(gpuMapJSON))
 
 	mi210, ok := gpuMap["amd-mi210"]
 	assert.True(t, ok)
@@ -269,6 +269,6 @@ func TestHelperProcess(t *testing.T) {
 		return
 	}
 	// some code here to check arguments perhaps?
-	fmt.Fprintf(os.Stdout, fakeExecResult)
+	fmt.Fprint(os.Stdout, fakeExecResult)
 	os.Exit(0)
 }
