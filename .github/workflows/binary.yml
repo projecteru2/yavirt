@@ -9,13 +9,16 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: "Setup go"
-        uses: actions/setup-go@v5
-
       - name: checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: "Setup go"
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
       - name: "Build binary"
         run: |
           sudo apt-get update

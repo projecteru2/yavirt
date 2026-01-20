@@ -1,14 +1,11 @@
-FROM ubuntu:noble AS BUILD
+FROM golang:1.25 AS BUILD
 
 # make binary
 # RUN git clone https://github.com/projecteru2/yavirt.git /go/src/github.com/projecteru2/yavirt
 COPY . /go/src/github.com/projecteru2/yavirt
 WORKDIR /go/src/github.com/projecteru2/yavirt
 ARG KEEP_SYMBOL
-RUN apt update
-RUN apt install -y golang-1.25 build-essential libvirt-dev make genisoimage libguestfs-dev libcephfs-dev librbd-dev librados-dev git
-# RUN snap install go --classic
-ENV PATH="$PATH:/usr/lib/go-1.25/bin/"
+RUN apt-get update && apt-get install -y build-essential libvirt-dev make genisoimage libguestfs-dev libcephfs-dev librbd-dev librados-dev git
 
 RUN go version
 RUN make deps
