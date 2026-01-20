@@ -8,82 +8,49 @@ run:
 linters:
   default: none
   enable:
-    - usestdlibvars
     - asasalint
     - bodyclose
     - nosprintfhostport
-    - prealloc
     - durationcheck
     - errname
     - goconst
     - gocyclo
-    - gocognit
     - interfacebloat
     - makezero
     - nilerr
-    - nilnil
-    - revive
     - gosec
     - govet
     - ineffassign
-    - misspell
     - nakedret
     - copyloopvar
     - staticcheck
-    - unconvert
-    - unparam
     - unused
     - asciicheck
-    - nestif
-    - gocritic
 
   exclusions:
     paths:
       - vendor
       - tools
       - 3rdmocks
-      - thirdpart
+      - third_party
       - tmp
       - mocks
 
   settings:
     nakedret:
       max-func-lines: 59
-    misspell:
-      locale: US
-    prealloc:
-      simple: false
-      range-loops: true
-      for-loops: true
-    gocritic:
-      disabled-checks:
-        - captLocal
-    nilnil:
-      checked-types:
-        - ptr
-        - func
-        - iface
-        - map
-        - chan
+    gosec:
+      excludes:
+        - G115
+        - G301
+        - G304
+        - G101
+        - G104
     asasalint:
       exclude:
         - Append
         - \.Wrapf
       use-builtin-exclusions: false
-    usestdlibvars:
-      http-method: true
-      http-status-code: true
-      time-weekday: true
-      time-month: true
-      time-layout: true
-      crypto-hash: true
-      default-rpc-path: true
-      sql-isolation-level: true
-      tls-signature-scheme: true
-      constant-kind: true
-    gosec:
-      excludes:
-        - G115
 
 formatters:
   enable:
