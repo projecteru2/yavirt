@@ -53,8 +53,6 @@ linters:
       max-func-lines: 59
     misspell:
       locale: US
-      ignore-words:
-        - hicloud
     prealloc:
       simple: false
       range-loops: true
@@ -76,7 +74,6 @@ linters:
         - Append
         - \.Wrapf
       use-builtin-exclusions: false
-      ignore-test: true
     usestdlibvars:
       http-method: true
       http-status-code: true
