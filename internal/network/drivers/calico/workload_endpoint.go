@@ -168,8 +168,8 @@ func (d *Driver) getCalicoWorkloadEndpoint(args types.EndpointArgs) (*libcaliapi
 
 	wep := libcaliapi.NewWorkloadEndpoint()
 	wep.Name = endpName
-	wep.ObjectMeta.Namespace = args.Calico.Namespace
-	wep.ObjectMeta.ResourceVersion = args.Calico.ResourceVersion
+	wep.Namespace = args.Calico.Namespace
+	wep.ResourceVersion = args.Calico.ResourceVersion
 	wep.Spec.Endpoint = args.EndpointID
 	wep.Spec.Node = args.Hostname
 	wep.Spec.Orchestrator = OrchestratorID
@@ -229,7 +229,7 @@ func (d *Driver) getProfile(poolName string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "")
 	}
-	return pool.ObjectMeta.Name, nil
+	return pool.Name, nil
 }
 
 // ConvIPs .

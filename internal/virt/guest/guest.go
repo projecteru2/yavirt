@@ -836,7 +836,7 @@ func (g *Guest) botOperate(fn func(bot Bot) error, skipLock ...bool) error {
 
 	defer bot.Close()
 
-	if !(len(skipLock) > 0 && skipLock[0]) {
+	if len(skipLock) == 0 || !skipLock[0] {
 		if err := bot.Trylock(); err != nil {
 			return errors.Wrap(err, "")
 		}
