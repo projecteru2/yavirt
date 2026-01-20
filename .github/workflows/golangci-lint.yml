@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: "Setup go"
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
 
@@ -26,7 +26,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential libvirt-dev make genisoimage libguestfs-dev libcephfs-dev librbd-dev librados-dev
 
-      - uses: golangci/golangci-lint-action@v7
+      - uses: golangci/golangci-lint-action@v9
         with:
           version: v2.8.0
           args: --timeout=8m
