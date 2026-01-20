@@ -12,14 +12,14 @@
 
 ```bash
 cd /tmp
-curl -LOv http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.46.4.tar.gz
-tar -xzf e2fsprogs-1.46.4.tar.gz
-cd e2fsprogs-1.46.4
+curl -LOv http://prdownloads.sourceforge.net/e2fsprogs/e2fsprogs-1.47.3.tar.gz
+tar -xzf e2fsprogs-1.47.3.tar.gz
+cd e2fsprogs-1.47.3
 ./configure
 make && make install && make install-libs
 ```
 
-### Installing libguestfs (v1.46)
+### Installing libguestfs (v1.58)
 
 ```bash
 apt install -y gperf genisoimage flex bison libncurses-dev libpcre2-dev libaugeas-dev libmagic-dev libjansson-dev libhivex-dev libyara-dev supermin ocaml ocaml-findlib libhivex-ocaml-dev

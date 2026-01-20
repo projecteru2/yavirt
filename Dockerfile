@@ -6,9 +6,9 @@ COPY . /go/src/github.com/projecteru2/yavirt
 WORKDIR /go/src/github.com/projecteru2/yavirt
 ARG KEEP_SYMBOL
 RUN apt update
-RUN apt install -y golang-1.22 build-essential libvirt-dev make genisoimage libguestfs-dev libcephfs-dev librbd-dev librados-dev git
+RUN apt install -y golang-1.25 build-essential libvirt-dev make genisoimage libguestfs-dev libcephfs-dev librbd-dev librados-dev git
 # RUN snap install go --classic
-ENV PATH="$PATH:/usr/lib/go-1.22/bin/"
+ENV PATH="$PATH:/usr/lib/go-1.25/bin/"
 
 RUN go version
 RUN make deps
