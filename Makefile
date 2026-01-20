@@ -32,7 +32,7 @@ setup: setup-lint
 	$(ENV) go install github.com/vektra/mockery/v2@latest
 
 setup-lint:
-	$(ENV) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1
+	$(ENV) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.8.0
 
 lint: format
 	golangci-lint --version
