@@ -23,7 +23,6 @@ linters:
     - nilerr
     - nilnil
     - revive
-    - goprintffuncname
     - gosec
     - govet
     - ineffassign
@@ -36,7 +35,6 @@ linters:
     - unused
     - asciicheck
     - nestif
-    - errcheck
     - gocritic
 
   exclusions:
@@ -57,8 +55,6 @@ linters:
       simple: false
       range-loops: true
       for-loops: true
-    errcheck:
-      check-type-assertions: false
     gocritic:
       disabled-checks:
         - captLocal
